@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actividad Semana 3 :: Cifrado y Criptografía :: Utel</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g:#00FF88;--g2:#00A651;--g3:#007A3D;
+  --b:#00D4FF;--p:#BD00FF;--r:#FF3B30;--y:#FFD60A;
+  --bg:#000508;--panel:#03080F;
+  --mono:'Share Tech Mono',monospace;
+  --head:'Orbitron',sans-serif;
+  --body:'Rajdhani',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;min-height:100vh;overflow-x:hidden;}
+body{background:var(--bg);color:#C8FFE8;font-family:var(--body);cursor:crosshair;}
+
+/* ── CANVAS LAYERS ── */
+#matrixCanvas{position:fixed;inset:0;z-index:1;opacity:.18;}
+#bgCanvas{position:fixed;inset:0;z-index:2;opacity:.7;}
+.scanlines{position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);}
+.vignette{position:fixed;inset:0;z-index:9997;pointer-events:none;
+  background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 40%,rgba(0,0,0,0.85) 100%);}
+
+/* ── HUD ── */
+.hud{
+  position:fixed;top:0;left:0;right:0;z-index:1000;height:56px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+  background:rgba(0,5,8,0.95);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(0,255,136,0.2);
+}
+.hud::after{content:'';position:absolute;bottom:-1px;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--g),var(--b),var(--g),transparent);
+  animation:hudLine 3s infinite;}
+@keyframes hudLine{0%,100%{opacity:.6}50%{opacity:1}}
+
+.hud-brand{display:flex;flex-direction:column;}
+.hud-brand-top{font-family:var(--head);font-size:13px;color:var(--g);letter-spacing:4px;
+  text-shadow:0 0 15px rgba(0,255,136,0.6);}
+.hud-brand-bot{font-family:var(--mono);font-size:9px;color:rgba(0,212,255,0.7);letter-spacing:3px;}
+
+.hud-timer-wrap{display:flex;flex-direction:column;align-items:center;}
+.hud-timer{
+  font-family:var(--head);font-size:28px;letter-spacing:6px;
+  color:var(--g);text-shadow:0 0 20px rgba(0,255,136,0.8),0 0 40px rgba(0,255,136,0.4);
+  line-height:1;transition:color .3s,text-shadow .3s;
+}
+.hud-timer.warning{color:var(--y);text-shadow:0 0 20px rgba(255,214,10,0.8);}
+.hud-timer.danger{color:var(--r);text-shadow:0 0 20px rgba(255,59,48,.9);animation:dangerPulse .3s infinite;}
+@keyframes dangerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.hud-timer-label{font-family:var(--mono);font-size:8px;color:rgba(0,255,136,0.4);letter-spacing:3px;}
+
+.hud-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.hud-player{font-family:var(--mono);font-size:10px;color:var(--b);letter-spacing:2px;
+  text-shadow:0 0 10px rgba(0,212,255,0.5);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hud-score-row{display:flex;align-items:center;gap:6px;}
+.hud-star{color:var(--y);font-size:16px;animation:starSpin 4s linear infinite;}
+@keyframes starSpin{0%{filter:drop-shadow(0 0 4px rgba(255,214,10,0.3))}50%{filter:drop-shadow(0 0 12px rgba(255,214,10,0.8))}100%{filter:drop-shadow(0 0 4px rgba(255,214,10,0.3))}}
+.hud-score{font-family:var(--head);font-size:18px;color:var(--y);
+  text-shadow:0 0 15px rgba(255,214,10,0.7);transition:all .2s;}
+
+.phases{
+  position:fixed;top:56px;left:0;right:0;z-index:999;
+  display:flex;gap:2px;padding:5px 24px;height:16px;
+  background:rgba(0,5,8,0.9);border-bottom:1px solid rgba(0,255,136,0.1);
+}
+.phase-dot{flex:1;height:6px;background:rgba(0,255,136,0.06);border-radius:3px;transition:all .5s;position:relative;overflow:hidden;}
+.phase-dot.done{background:var(--g2);}
+.phase-dot.done::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);animation:sweep 2s linear infinite;}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.phase-dot.active{background:var(--g);box-shadow:0 0 10px var(--g),0 0 20px rgba(0,255,136,0.3);animation:activePulse .8s infinite;}
+@keyframes activePulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+/* ── SCREENS ── */
+.screen{display:none;position:relative;z-index:10;}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+
+/* ── HOLOGRAPHIC CARD ── */
+.card{
+  position:relative;width:100%;max-width:720px;
+  border-radius:20px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(3,8,15,0.97) 0%,rgba(0,8,18,0.99) 100%);
+  border:1px solid rgba(0,255,136,0.2);
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,0.05),
+    0 0 60px rgba(0,255,136,0.08),
+    0 0 120px rgba(0,212,255,0.04),
+    0 30px 80px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(0,255,136,0.15),
+    inset 0 -1px 0 rgba(0,212,255,0.05);
+  padding:32px;
+  animation:cardBreath 4s ease-in-out infinite;
+}
+@keyframes cardBreath{0%,100%{box-shadow:0 0 60px rgba(0,255,136,0.08),0 30px 80px rgba(0,0,0,.7),inset 0 1px 0 rgba(0,255,136,.15)}50%{box-shadow:0 0 80px rgba(0,255,136,0.14),0 30px 80px rgba(0,0,0,.7),inset 0 1px 0 rgba(0,255,136,.25)}}
+
+/* Top chromatic bar */
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--p) 0%,var(--b) 30%,var(--g) 60%,var(--y) 100%);
+  animation:chromaShift 4s linear infinite;}
+@keyframes chromaShift{0%{background-position:0%}100%{background-position:100%}}
+
+/* Holographic shimmer */
+.card::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 40%,rgba(0,255,136,0.03) 50%,transparent 60%);
+  animation:holoShimmer 5s ease-in-out infinite;
+}
+@keyframes holoShimmer{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
+
+/* Corner marks */
+.cc{position:absolute;width:20px;height:20px;}
+.cc.tl{top:10px;left:10px;border-top:2px solid var(--g);border-left:2px solid var(--g);}
+.cc.tr{top:10px;right:10px;border-top:2px solid var(--b);border-right:2px solid var(--b);}
+.cc.bl{bottom:10px;left:10px;border-bottom:2px solid var(--g);border-left:2px solid var(--g);}
+.cc.br{bottom:10px;right:10px;border-bottom:2px solid var(--b);border-right:2px solid var(--b);}
+
+.topic-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:9px;letter-spacing:4px;
+  padding:5px 14px;border-radius:30px;margin-bottom:14px;text-transform:uppercase;
+  backdrop-filter:blur(10px);
+}
+.t31{background:rgba(0,255,136,0.07);border:1px solid rgba(0,255,136,0.35);color:var(--g);box-shadow:0 0 15px rgba(0,255,136,0.1);}
+.t32{background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.35);color:var(--b);box-shadow:0 0 15px rgba(0,212,255,0.1);}
+.t33{background:rgba(189,0,255,0.07);border:1px solid rgba(189,0,255,0.35);color:var(--p);box-shadow:0 0 15px rgba(189,0,255,0.1);}
+.tboss{background:rgba(255,59,48,0.07);border:1px solid rgba(255,59,48,0.35);color:var(--r);box-shadow:0 0 15px rgba(255,59,48,0.1);}
+
+.phase-tag{font-family:var(--mono);font-size:10px;color:rgba(0,255,136,0.5);letter-spacing:4px;margin-bottom:6px;}
+.phase-title{
+  font-family:var(--head);font-size:clamp(18px,4vw,26px);margin-bottom:10px;line-height:1.2;
+  background:linear-gradient(135deg,#fff,var(--g));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.phase-desc{font-size:14px;color:rgba(200,255,232,0.6);margin-bottom:20px;line-height:1.7;font-weight:300;}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:var(--head);font-size:13px;font-weight:700;
+  padding:13px 32px;border-radius:10px;border:none;cursor:pointer;
+  transition:all .25s;letter-spacing:3px;text-transform:uppercase;
+  position:relative;overflow:hidden;
+}
+.btn-ripple::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background .3s;}
+.btn-ripple:hover::after{background:rgba(255,255,255,0.06);}
+
+.btn-primary{
+  background:linear-gradient(135deg,#00a651,#007a3d);color:#000;
+  box-shadow:0 0 25px rgba(0,166,81,0.5),0 4px 20px rgba(0,0,0,0.4);
+  border:1px solid rgba(0,255,136,0.4);
+}
+.btn-primary:hover:not(:disabled){
+  background:linear-gradient(135deg,#00FF88,#00a651);
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 0 40px rgba(0,255,136,0.6),0 8px 30px rgba(0,0,0,0.4);
+}
+.btn-primary:disabled{background:linear-gradient(135deg,#0d2016,#081208);color:#1a4a2a;cursor:not-allowed;box-shadow:none;}
+.btn-secondary{
+  background:transparent;color:var(--g);
+  border:1px solid rgba(0,255,136,0.3);
+  box-shadow:inset 0 0 30px rgba(0,255,136,0.02);
+}
+.btn-secondary:hover{
+  background:rgba(0,255,136,0.07);border-color:var(--g);
+  box-shadow:0 0 20px rgba(0,255,136,0.2),inset 0 0 30px rgba(0,255,136,0.04);
+  transform:translateY(-1px);
+}
+.btn-ghost{background:transparent;color:rgba(200,255,232,0.4);border:1px solid rgba(0,255,136,0.1);font-size:11px;padding:8px 18px;letter-spacing:2px;}
+.btn-ghost:hover{color:var(--g);border-color:rgba(0,255,136,0.3);}
+
+/* ── NAME INPUT ── */
+.name-input{
+  font-family:var(--head);font-size:17px;font-weight:700;
+  background:rgba(0,255,136,0.02);border:1px solid rgba(0,255,136,0.25);
+  border-radius:12px;padding:16px 20px;color:var(--g);width:100%;outline:none;
+  transition:all .3s;letter-spacing:2px;
+  box-shadow:inset 0 2px 20px rgba(0,0,0,0.4),0 0 0 0 rgba(0,255,136,0);
+}
+.name-input:focus{
+  border-color:var(--g);
+  box-shadow:inset 0 2px 20px rgba(0,0,0,0.4),0 0 30px rgba(0,255,136,0.2),0 0 60px rgba(0,255,136,0.08);
+}
+.name-input::placeholder{color:rgba(0,255,136,0.15);letter-spacing:2px;}
+.name-error{color:var(--r);font-family:var(--mono);font-size:11px;margin-top:6px;display:none;letter-spacing:2px;}
+.name-error.show{display:block;}
+.input-label{font-family:var(--mono);font-size:10px;color:rgba(0,255,136,0.6);letter-spacing:4px;display:block;margin-bottom:8px;}
+
+/* ── TRIVIA ── */
+.q-counter{font-family:var(--mono);font-size:10px;color:rgba(0,212,255,0.6);margin-bottom:10px;letter-spacing:3px;}
+.question-text{font-size:clamp(15px,3.2vw,20px);font-weight:700;color:#fff;margin-bottom:20px;line-height:1.5;}
+.options{display:grid;gap:9px;}
+.opt-btn{
+  font-family:var(--body);font-size:14px;font-weight:600;
+  padding:14px 18px;border-radius:12px;cursor:pointer;text-align:left;
+  background:rgba(0,255,136,0.02);
+  border:1px solid rgba(0,255,136,0.08);
+  color:rgba(200,255,232,0.9);transition:all .18s;letter-spacing:.5px;
+  position:relative;overflow:hidden;
+}
+.opt-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--g);opacity:0;transition:opacity .2s;border-radius:3px 0 0 3px;}
+.opt-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,255,136,0.06),transparent);opacity:0;transition:opacity .2s;}
+.opt-btn:hover:not(:disabled){border-color:rgba(0,255,136,0.35);transform:translateX(6px);}
+.opt-btn:hover:not(:disabled)::before,.opt-btn:hover:not(:disabled)::after{opacity:1;}
+.opt-btn.correct{background:rgba(0,255,136,0.1);border-color:var(--g);color:var(--g);box-shadow:0 0 25px rgba(0,255,136,0.15),inset 0 0 20px rgba(0,255,136,0.05);}
+.opt-btn.correct::before{opacity:1;}
+.opt-btn.wrong{background:rgba(255,59,48,0.08);border-color:rgba(255,59,48,0.5);color:var(--r);}
+.opt-btn:disabled{cursor:default;transform:none;}
+
+.feedback{margin-top:12px;padding:14px 18px;border-radius:12px;font-size:13px;line-height:1.7;display:none;font-weight:400;}
+.feedback.show{display:block;}
+.feedback.ok{background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.25);color:rgba(0,255,136,0.9);box-shadow:0 0 30px rgba(0,255,136,0.06);}
+.feedback.fail{background:rgba(255,59,48,0.06);border:1px solid rgba(255,59,48,0.25);color:rgba(255,138,128,0.9);}
+.next-wrap{margin-top:16px;text-align:right;}
+
+/* ── SIMULADOR ── */
+.sim-area{display:flex;flex-direction:column;gap:14px;}
+.sim-label{font-family:var(--mono);font-size:10px;color:rgba(0,255,136,0.5);letter-spacing:3px;margin-bottom:5px;}
+.sim-input{
+  font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:4px;
+  background:rgba(0,0,0,0.4);border:1px solid rgba(0,255,136,0.2);
+  border-radius:10px;padding:12px 16px;color:var(--g);width:100%;outline:none;transition:all .2s;
+}
+.sim-input:focus{border-color:var(--g);box-shadow:0 0 20px rgba(0,255,136,0.12);}
+.sim-output{
+  font-family:var(--mono);font-size:14px;background:rgba(0,0,0,0.5);
+  border:1px solid rgba(0,255,136,0.1);border-radius:10px;padding:12px 16px;
+  color:var(--y);min-height:44px;word-break:break-all;letter-spacing:2px;
+}
+.xor-vis{
+  display:flex;gap:8px;flex-wrap:wrap;padding:14px;
+  background:rgba(0,0,0,0.4);border-radius:10px;border:1px solid rgba(0,255,136,0.08);
+  min-height:60px;align-items:center;
+}
+.xor-cell{display:flex;flex-direction:column;align-items:center;gap:3px;animation:cellIn .3s ease-out;}
+@keyframes cellIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.xor-char{font-family:var(--mono);font-size:12px;padding:4px 6px;border-radius:5px;min-width:28px;text-align:center;}
+.xor-char.msg{background:rgba(0,255,136,0.12);color:var(--g);border:1px solid rgba(0,255,136,0.25);}
+.xor-char.key{background:rgba(255,214,10,0.1);color:var(--y);border:1px solid rgba(255,214,10,0.2);}
+.xor-char.out{background:rgba(0,212,255,0.1);color:var(--b);border:1px solid rgba(0,212,255,0.2);}
+.xor-op{font-size:9px;color:rgba(0,255,136,0.25);font-family:var(--mono);}
+
+/* ── HACK ── */
+.hack-msg{
+  font-family:var(--head);font-size:26px;color:var(--y);text-align:center;letter-spacing:14px;
+  padding:20px;background:rgba(255,214,10,0.04);
+  border:1px solid rgba(255,214,10,0.15);border-radius:14px;margin-bottom:16px;
+  text-shadow:0 0 30px rgba(255,214,10,0.6);
+  animation:hackPulse 1.5s ease-in-out infinite;
+}
+@keyframes hackPulse{0%,100%{text-shadow:0 0 20px rgba(255,214,10,0.5);border-color:rgba(255,214,10,0.15)}50%{text-shadow:0 0 50px rgba(255,214,10,0.9);border-color:rgba(255,214,10,0.4)}}
+.hack-clue{font-size:13px;color:rgba(200,255,232,0.6);margin-bottom:16px;line-height:1.8;padding:16px;background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.12);border-radius:12px;}
+.hack-input{
+  font-family:var(--head);font-size:26px;font-weight:900;text-align:center;
+  background:rgba(0,0,0,0.5);border:1px solid rgba(0,255,136,0.2);
+  border-radius:12px;padding:16px;color:var(--g);width:100%;outline:none;
+  letter-spacing:12px;text-transform:uppercase;transition:all .2s;
+  text-shadow:0 0 20px rgba(0,255,136,0.4);
+}
+.hack-input:focus{border-color:var(--g);box-shadow:0 0 40px rgba(0,255,136,0.2),inset 0 0 20px rgba(0,255,136,0.03);}
+.hack-result{text-align:center;margin-top:14px;font-size:16px;font-weight:700;display:none;padding:14px;border-radius:10px;}
+.hack-result.show{display:block;}
+.hack-result.ok{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);color:var(--g);}
+.hack-result.fail{background:rgba(255,59,48,0.08);border:1px solid rgba(255,59,48,0.25);color:var(--r);}
+
+/* ── SECTION DIVIDER ── */
+.section-card{
+  position:relative;text-align:center;max-width:540px;width:100%;
+  padding:56px 36px;border-radius:24px;
+  background:linear-gradient(145deg,rgba(3,8,15,0.98),rgba(0,5,12,0.99));
+  border:1px solid rgba(0,255,136,0.15);overflow:hidden;
+  box-shadow:0 0 100px rgba(0,255,136,0.06),0 0 200px rgba(0,212,255,0.03),0 40px 80px rgba(0,0,0,0.8);
+}
+.section-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--g),var(--b),var(--g),transparent);}
+.section-card-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:300px;height:300px;border-radius:50%;pointer-events:none;
+  animation:sectionGlow 3s ease-in-out infinite;}
+@keyframes sectionGlow{0%,100%{opacity:.3}50%{opacity:.6}}
+
+.section-num{
+  font-family:var(--head);font-size:96px;line-height:1;margin-bottom:6px;
+  background:linear-gradient(135deg,#fff 0%,var(--g) 40%,var(--b) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 30px rgba(0,255,136,0.4));
+  animation:numGlow 2s ease-in-out infinite;
+}
+@keyframes numGlow{0%,100%{filter:drop-shadow(0 0 20px rgba(0,255,136,.4))}50%{filter:drop-shadow(0 0 50px rgba(0,255,136,.8))}}
+.section-name{font-family:var(--head);font-size:clamp(18px,4vw,28px);color:#fff;margin-bottom:8px;letter-spacing:2px;}
+.section-sub{font-size:13px;color:rgba(200,255,232,0.45);font-weight:300;margin-bottom:30px;letter-spacing:1px;}
+.section-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;}
+.pill{font-family:var(--mono);font-size:10px;color:rgba(200,255,232,0.5);padding:6px 16px;
+  border:1px solid rgba(0,255,136,0.15);border-radius:30px;letter-spacing:2px;}
+
+/* ── INTRO ── */
+.intro-scan{
+  font-family:var(--mono);font-size:10px;color:rgba(0,255,136,0.5);
+  text-align:center;letter-spacing:5px;margin-bottom:16px;
+  animation:scanText .8s steps(1) infinite;
+}
+@keyframes scanText{0%,100%{opacity:1}50%{opacity:.3}}
+.intro-title{
+  font-family:var(--head);font-size:clamp(32px,8vw,72px);text-align:center;
+  line-height:.95;margin-bottom:8px;
+  background:linear-gradient(135deg,#ffffff 0%,#00FF88 35%,#00D4FF 65%,#BD00FF 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(0,255,136,0.4));
+  animation:titlePulse 3s ease-in-out infinite;
+}
+@keyframes titlePulse{0%,100%{filter:drop-shadow(0 0 30px rgba(0,255,136,.4))}50%{filter:drop-shadow(0 0 60px rgba(0,255,136,.7))}}
+.intro-glitch{position:relative;display:inline-block;}
+.intro-glitch::before,.intro-glitch::after{
+  content:attr(data-text);position:absolute;inset:0;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.intro-glitch::before{background:linear-gradient(135deg,#ff0050,transparent);animation:glitchTop 5s infinite;clip-path:polygon(0 0,100% 0,100% 35%,0 35%);}
+.intro-glitch::after{background:linear-gradient(135deg,#00D4FF,transparent);animation:glitchBot 5s infinite 2.5s;clip-path:polygon(0 65%,100% 65%,100% 100%,0 100%);}
+@keyframes glitchTop{0%,90%,100%{transform:none;opacity:0}92%{transform:translate(-3px,0);opacity:0.8}94%{transform:translate(3px,0);opacity:0.8}96%{transform:none;opacity:0}}
+@keyframes glitchBot{0%,90%,100%{transform:none;opacity:0}92%{transform:translate(3px,0);opacity:0.8}94%{transform:translate(-3px,0);opacity:0.8}96%{transform:none;opacity:0}}
+
+.intro-sub{
+  font-family:var(--head);font-size:clamp(10px,2vw,14px);letter-spacing:5px;text-align:center;
+  color:var(--b);text-shadow:0 0 20px rgba(0,212,255,0.5);margin-bottom:40px;
+}
+
+.feat-grid{width:100%;max-width:520px;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;}
+.feat-card{
+  padding:12px 16px;border-radius:12px;
+  background:rgba(0,255,136,0.02);border:1px solid rgba(0,255,136,0.1);
+  transition:all .2s;cursor:default;
+}
+.feat-card:hover{background:rgba(0,255,136,0.06);border-color:rgba(0,255,136,0.3);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,0.4);}
+.feat-card-icon{font-size:20px;margin-bottom:6px;display:block;}
+.feat-card-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:3px;letter-spacing:.5px;}
+.feat-card-sub{font-family:var(--mono);font-size:9px;color:rgba(0,255,136,0.5);letter-spacing:2px;}
+.feat-warn{
+  grid-column:1/-1;padding:10px 16px;border-radius:10px;
+  background:rgba(255,59,48,0.05);border:1px solid rgba(255,59,48,0.2);
+  font-family:var(--mono);font-size:10px;color:rgba(255,100,80,0.8);text-align:center;letter-spacing:2px;
+}
+
+/* ── SCORE END ── */
+.end-glow{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:400px;height:400px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(0,255,136,0.1) 0%,transparent 70%);
+  animation:endGlow 2s ease-in-out infinite;
+}
+@keyframes endGlow{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.2)}}
+.trophy{font-size:80px;display:block;filter:drop-shadow(0 0 30px rgba(255,214,10,0.7));animation:trophyFloat 3s ease-in-out infinite;}
+@keyframes trophyFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+.score-label{font-family:var(--mono);font-size:11px;color:rgba(0,255,136,0.5);letter-spacing:5px;margin-bottom:4px;}
+.score-big{
+  font-family:var(--head);font-size:clamp(56px,12vw,88px);line-height:1;
+  background:linear-gradient(135deg,#FFD60A,#FF8C00,#FFD60A);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(255,214,10,0.5));
+  animation:scoreGlow 2s ease-in-out infinite;
+}
+@keyframes scoreGlow{0%,100%{filter:drop-shadow(0 0 30px rgba(255,214,10,.5))}50%{filter:drop-shadow(0 0 60px rgba(255,214,10,.9))}}
+.rank-msg{font-size:17px;font-weight:700;margin:12px 0 20px;color:rgba(255,255,255,0.9);text-align:center;letter-spacing:1px;}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:540px;margin-bottom:20px;}
+.stat-box{
+  background:rgba(0,255,136,0.03);border:1px solid rgba(0,255,136,0.15);
+  border-radius:12px;padding:14px 8px;text-align:center;transition:all .25s;
+}
+.stat-box:hover{background:rgba(0,255,136,0.07);border-color:var(--g);box-shadow:0 0 20px rgba(0,255,136,0.1);transform:translateY(-3px);}
+.stat-n{font-family:var(--head);font-size:22px;color:var(--g);text-shadow:0 0 15px rgba(0,255,136,0.4);}
+.stat-l{font-size:9px;color:rgba(0,255,136,0.4);font-family:var(--mono);margin-top:3px;letter-spacing:2px;}
+
+/* ── SCOREBOARD ── */
+.sb-title{font-family:var(--head);font-size:clamp(16px,4vw,24px);color:var(--g);text-align:center;margin-bottom:22px;letter-spacing:3px;text-shadow:0 0 20px rgba(0,255,136,0.4);}
+.sb-table{width:100%;border-collapse:collapse;}
+.sb-table th{font-family:var(--mono);font-size:9px;color:rgba(0,255,136,0.4);letter-spacing:3px;padding:8px 10px;border-bottom:1px solid rgba(0,255,136,0.1);}
+.sb-table td{padding:12px 10px;border-bottom:1px solid rgba(0,255,136,0.04);font-size:14px;font-weight:600;transition:all .2s;}
+.sb-table tr:hover td{background:rgba(0,255,136,0.025);}
+.sb-table tr.me td{background:rgba(0,255,136,0.04);}
+.sb-rank{font-family:var(--head);font-size:14px;color:var(--g);}
+.sb-rank.gold{color:var(--y);text-shadow:0 0 15px rgba(255,214,10,.6);}
+.sb-rank.silver{color:#C0C0C0;text-shadow:0 0 10px rgba(192,192,192,.4);}
+.sb-rank.bronze{color:#CD7F32;}
+.sb-score{font-family:var(--mono);color:var(--g);}
+.sb-badge{font-size:10px;padding:3px 9px;border-radius:20px;font-family:var(--mono);}
+.sb-badge.expert{background:rgba(0,255,136,0.1);color:var(--g);border:1px solid rgba(0,255,136,0.3);}
+.sb-badge.good{background:rgba(255,214,10,0.08);color:var(--y);border:1px solid rgba(255,214,10,0.25);}
+.sb-badge.ok{background:rgba(255,59,48,0.07);color:#FF8A80;border:1px solid rgba(255,59,48,0.2);}
+.sb-empty,.sb-loading{text-align:center;padding:36px;color:rgba(0,255,136,0.4);font-family:var(--mono);font-size:12px;line-height:2.2;letter-spacing:2px;}
+.sb-loading{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── BLOCKED ── */
+.blocked-countdown{font-family:var(--head);font-size:40px;color:var(--y);text-align:center;
+  text-shadow:0 0 30px rgba(255,214,10,.7);margin:12px 0 22px;letter-spacing:6px;}
+
+/* ── PARTICLES ── */
+.p{position:fixed;pointer-events:none;border-radius:50%;z-index:9990;animation:pFly .9s ease-out forwards;}
+@keyframes pFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+
+@media(max-width:500px){
+  .card,.section-card{padding:20px 16px;}
+  .feat-grid{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:repeat(3,1fr);}
+}
+</style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+<canvas id="bgCanvas"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<!-- HUD -->
+<div class="hud" id="hud" style="display:none">
+  <div class="hud-brand">
+    <div class="hud-brand-top">UTEL // SEMANA 3</div>
+    <div class="hud-brand-bot">CIFRADO Y CRIPTOGRAFÍA</div>
+  </div>
+  <div class="hud-timer-wrap">
+    <div class="hud-timer" id="timer">8:00</div>
+    <div class="hud-timer-label">TIEMPO RESTANTE</div>
+  </div>
+  <div class="hud-right">
+    <div class="hud-player" id="hudPlayer"></div>
+    <div class="hud-score-row">
+      <div class="hud-star">★</div>
+      <div class="hud-score" id="scoreHud">0</div>
+    </div>
+  </div>
+</div>
+<div class="phases" id="phases" style="display:none">
+  <div class="phase-dot" id="pd0"></div>
+  <div class="phase-dot" id="pd1"></div>
+  <div class="phase-dot" id="pd2"></div>
+  <div class="phase-dot" id="pd3"></div>
+  <div class="phase-dot" id="pd4"></div>
+  <div class="phase-dot" id="pd5"></div>
+  <div class="phase-dot" id="pd6"></div>
+</div>
+
+<!-- INTRO -->
+<div class="screen active" id="screen-intro">
+  <div class="intro-scan">// SISTEMA DE EVALUACIÓN ACTIVO — UTEL //</div>
+  <div class="intro-title">
+    <div class="intro-glitch" data-text="CIFRADO">CIFRADO</div><br>
+    <div class="intro-glitch" data-text="SIMÉTRICO">SIMÉTRICO</div>
+  </div>
+  <div class="intro-sub">ACTIVIDAD SEMANA 3 &nbsp;·&nbsp; CIFRADO Y CRIPTOGRAFÍA &nbsp;·&nbsp; UTEL</div>
+
+  <div class="feat-grid">
+    <div class="feat-card"><span class="feat-card-icon">🔐</span><div class="feat-card-title">Cifrado en Flujo</div><div class="feat-card-sub">TRIVIA + SIMULADOR XOR</div></div>
+    <div class="feat-card"><span class="feat-card-icon">📡</span><div class="feat-card-title">A5 y RC4</div><div class="feat-card-sub">TRIVIA + DESCIFRADO</div></div>
+    <div class="feat-card"><span class="feat-card-icon">⚡</span><div class="feat-card-title">Otros Algoritmos</div><div class="feat-card-sub">CHACHA20 · GRAIN · SEAL</div></div>
+    <div class="feat-card"><span class="feat-card-icon">💀</span><div class="feat-card-title">Reto BOSS</div><div class="feat-card-sub">TODOS LOS TEMAS</div></div>
+    <div class="feat-warn">⏳ &nbsp; 1 INTENTO / 3 HORAS &nbsp;·&nbsp; SCORE REGISTRADO EN RANKING</div>
+  </div>
+
+  <div style="width:100%;max-width:500px;margin-bottom:18px;">
+    <label class="input-label">// IDENTIFICACIÓN DEL ESTUDIANTE</label>
+    <input class="name-input" id="nameInput" type="text" placeholder="NOMBRE COMPLETO" maxlength="60" autocomplete="off">
+    <div class="name-error" id="nameError">⚠ &nbsp; SE REQUIERE NOMBRE Y APELLIDO</div>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+    <button class="btn btn-primary btn-ripple" id="btnStart" onclick="handleStart()" style="font-size:14px;padding:16px 52px;">▶ &nbsp; INICIAR MISIÓN</button>
+    <button class="btn btn-ghost btn-ripple" onclick="showScoreboard()">🏆 &nbsp; RANKING</button>
+  </div>
+  <div style="margin-top:24px;display:flex;align-items:center;gap:12px;padding:10px 24px;border:1px solid rgba(0,255,136,0.25);border-radius:30px;background:rgba(0,255,136,0.04);box-shadow:0 0 20px rgba(0,255,136,0.08);">
+    <span style="font-family:var(--mono);font-size:10px;color:rgba(0,255,136,0.45);letter-spacing:3px;">CREADO POR</span>
+    <span style="width:1px;height:16px;background:rgba(0,255,136,0.2);display:inline-block;"></span>
+    <span style="font-family:var(--head);font-size:13px;color:var(--g);letter-spacing:2px;text-shadow:0 0 15px rgba(0,255,136,0.5);">José Luis Perales Trejo</span>
+  </div>
+</div>
+
+<!-- BLOQUEADO -->
+<div class="screen" id="screen-blocked">
+  <div class="card" style="text-align:center;max-width:500px;">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div style="font-size:64px;margin-bottom:14px;filter:drop-shadow(0 0 20px rgba(255,59,48,0.7));animation:trophyFloat 2s ease-in-out infinite;">🔒</div>
+    <div style="font-family:var(--head);font-size:22px;color:var(--r);margin-bottom:12px;letter-spacing:3px;text-shadow:0 0 20px rgba(255,59,48,.5);">ACCESO DENEGADO</div>
+    <div style="font-size:14px;color:rgba(200,255,232,0.55);line-height:1.8;margin-bottom:16px;" id="blockedMsg"></div>
+    <div style="font-family:var(--mono);font-size:10px;color:rgba(0,255,136,0.4);margin-bottom:6px;letter-spacing:3px;">TIEMPO RESTANTE</div>
+    <div class="blocked-countdown" id="blockedCountdown">--:--:--</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-ripple" onclick="showScoreboard()">🏆 VER RANKING</button>
+      <button class="btn btn-ghost" onclick="showScreen('screen-intro')">← VOLVER</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCOREBOARD -->
+<div class="screen" id="screen-scoreboard">
+  <div class="card" style="max-width:740px;">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="phase-tag">// TABLA DE POSICIONES GLOBAL</div>
+    <div class="sb-title">🏆 RANKING DE LA CLASE</div>
+    <div id="sbContent"><div class="sb-loading">// Sincronizando base de datos...</div></div>
+    <div style="margin-top:20px;text-align:center;">
+      <button class="btn btn-ghost" onclick="showScreen('screen-intro')">← VOLVER AL INICIO</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEC 3.1 -->
+<div class="screen" id="screen-sec31">
+  <div class="section-card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="section-card-glow" style="background:radial-gradient(circle,rgba(0,255,136,0.08),transparent 70%);"></div>
+    <div class="topic-badge t31" style="margin-bottom:16px;">▌ TEMA 3.1</div>
+    <div class="section-num">3.1</div>
+    <div class="section-name">Cifrado en Flujo</div>
+    <div class="section-sub">Generalidades · Keystream · Operación XOR</div>
+    <div class="section-pills"><div class="pill">🧠 TRIVIA</div><div class="pill">🔐 SIMULADOR XOR</div></div>
+    <button class="btn btn-primary btn-ripple" onclick="startTrivia('t31')" style="width:100%;padding:16px;font-size:14px;">INICIAR FASE →</button>
+  </div>
+</div>
+
+<!-- TRIVIA -->
+<div class="screen" id="screen-trivia" style="padding-top:92px;">
+  <div class="card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="topic-badge" id="triviaTopicBadge"></div>
+    <div class="phase-tag" id="triviaPhaseTag"></div>
+    <div class="q-counter" id="qCounter"></div>
+    <div class="question-text" id="questionText"></div>
+    <div class="options" id="optionsArea"></div>
+    <div class="feedback" id="feedbackBox"></div>
+    <div class="next-wrap"><button class="btn btn-secondary btn-ripple" id="btnNextQ" onclick="nextQuestion()" style="display:none">SIGUIENTE →</button></div>
+  </div>
+</div>
+
+<!-- SIMULADOR -->
+<div class="screen" id="screen-sim" style="padding-top:92px;">
+  <div class="card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="topic-badge t31">▌ TEMA 3.1</div>
+    <div class="phase-tag">// SIMULADOR XOR EN TIEMPO REAL</div>
+    <div class="phase-title">Cifra tu propio mensaje</div>
+    <div class="phase-desc">Escribe hasta 6 letras. Observa cómo XOR combina cada símbolo con la clave — exactamente como hace RC4 o A5 en tiempo real.</div>
+    <div class="sim-area">
+      <div><div class="sim-label">// TU MENSAJE</div>
+        <input class="sim-input" id="simMsg" maxlength="6" placeholder="HOLA" oninput="runSim()" autocomplete="off" spellcheck="false"></div>
+      <div><div class="sim-label">// CLAVE SECRETA</div>
+        <div class="sim-output" style="color:var(--y);letter-spacing:8px;font-size:17px;">K &nbsp;E &nbsp;Y &nbsp;1 &nbsp;2 &nbsp;3</div></div>
+      <div><div class="sim-label">// XOR CARÁCTER A CARÁCTER</div>
+        <div class="xor-vis" id="xorVis"><span style="font-family:var(--mono);font-size:11px;color:rgba(0,255,136,0.2);letter-spacing:2px;">— escribe un mensaje arriba —</span></div></div>
+      <div><div class="sim-label">// RESULTADO CIFRADO (HEX)</div>
+        <div class="sim-output" id="simOut">—</div></div>
+    </div>
+    <div style="margin-top:16px;padding:14px 18px;background:rgba(0,212,255,0.03);border-radius:10px;border:1px solid rgba(0,212,255,0.12);">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--b);">💡 PRINCIPIO CLAVE: </span>
+      <span style="font-size:13px;color:rgba(200,255,232,0.55);">El receptor aplica XOR con la misma clave y recupera el mensaje original. Eso es el cifrado simétrico.</span>
+    </div>
+    <div class="next-wrap" style="margin-top:16px;">
+      <button class="btn btn-primary btn-ripple" onclick="goNext('sim')">TEMA 3.2 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEC 3.2 -->
+<div class="screen" id="screen-sec32">
+  <div class="section-card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="section-card-glow" style="background:radial-gradient(circle,rgba(0,212,255,0.07),transparent 70%);"></div>
+    <div class="topic-badge t32" style="margin-bottom:16px;">▌ TEMA 3.2</div>
+    <div class="section-num" style="background:linear-gradient(135deg,#00D4FF,#BD00FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">3.2</div>
+    <div class="section-name">Algoritmos A5 y RC4</div>
+    <div class="section-sub">Redes GSM · WiFi WEP · Vulnerabilidades reales</div>
+    <div class="section-pills"><div class="pill">🧠 TRIVIA</div><div class="pill">💀 DESCIFRADO</div></div>
+    <button class="btn btn-primary btn-ripple" onclick="startTrivia('t32')" style="width:100%;padding:16px;background:linear-gradient(135deg,#0d3050,#081828);border:1px solid rgba(0,212,255,0.35);box-shadow:0 0 25px rgba(0,212,255,0.2);">INICIAR FASE →</button>
+  </div>
+</div>
+
+<!-- HACK -->
+<div class="screen" id="screen-hack" style="padding-top:92px;">
+  <div class="card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="topic-badge t32">▌ TEMA 3.2</div>
+    <div class="phase-tag">// MISIÓN DE DESCIFRADO — WEP INTERCEPTADO</div>
+    <div class="phase-title">💀 Capturaste tráfico WiFi WEP</div>
+    <div class="phase-desc">Interceptaste paquetes cifrados con RC4/WEP. El payload usa César +3. Descífralo antes de que el sistema te detecte.</div>
+    <div class="hack-msg">N &nbsp;&nbsp; R &nbsp;&nbsp; F &nbsp;&nbsp; H</div>
+    <div class="hack-clue">
+      <b style="color:var(--b);">🔑 PROTOCOLO DE DESCIFRADO:</b> Cifrado César, desplazamiento <b style="color:#fff;">+3</b><br><br>
+      Para descifrar → <b style="color:#fff;">restar 3</b> a cada letra:<br>
+      N(14−3)→<b style="color:var(--g);">K</b> &nbsp;·&nbsp; R(18−3)→<b style="color:var(--g);">O</b> &nbsp;·&nbsp; F(6−3)→<b style="color:var(--g);">C</b> &nbsp;·&nbsp; H(8−3)→<b style="color:var(--g);">E</b><br><br>
+      <span style="color:rgba(0,255,136,0.3);font-size:12px;">Así opera RC4: combina keystream con el mensaje. Con la clave, descifras todo.</span>
+    </div>
+    <input class="hack-input" id="hackAnswer" placeholder="_ _ _ _" maxlength="6" oninput="checkHack()" autocomplete="off" spellcheck="false">
+    <div class="hack-result" id="hackResult"></div>
+    <div class="next-wrap" style="margin-top:14px;">
+      <button class="btn btn-ghost" onclick="goNext('hack')">SALTAR → TEMA 3.3</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEC 3.3 -->
+<div class="screen" id="screen-sec33">
+  <div class="section-card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="section-card-glow" style="background:radial-gradient(circle,rgba(189,0,255,0.07),transparent 70%);"></div>
+    <div class="topic-badge t33" style="margin-bottom:16px;">▌ TEMA 3.3</div>
+    <div class="section-num" style="background:linear-gradient(135deg,var(--p),var(--r));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">3.3</div>
+    <div class="section-name">Otros Algoritmos</div>
+    <div class="section-sub">Salsa20 · ChaCha20 · SEAL · Grain · eSTREAM</div>
+    <div class="section-pills"><div class="pill">🧠 TRIVIA</div></div>
+    <button class="btn btn-primary btn-ripple" onclick="startTrivia('t33')" style="width:100%;padding:16px;background:linear-gradient(135deg,#280a42,#160520);border:1px solid rgba(189,0,255,0.3);box-shadow:0 0 25px rgba(189,0,255,0.2);">INICIAR FASE →</button>
+  </div>
+</div>
+
+<!-- BOSS -->
+<div class="screen" id="screen-boss" style="padding-top:92px;">
+  <div class="card" style="border-color:rgba(255,59,48,0.3);">
+    <div class="cc tl" style="border-color:var(--r);"></div><div class="cc tr" style="border-color:var(--r);"></div>
+    <div class="cc bl" style="border-color:var(--r);"></div><div class="cc br" style="border-color:var(--r);"></div>
+    <div class="topic-badge tboss">⚡ RETO FINAL BOSS</div>
+    <div class="q-counter" id="bossCounter"></div>
+    <div class="question-text" id="bossQuestion"></div>
+    <div class="options" id="bossOptions"></div>
+    <div class="feedback" id="bossFeedback"></div>
+    <div class="next-wrap"><button class="btn btn-primary btn-ripple" id="btnNextBoss" onclick="nextBoss()" style="display:none">SIGUIENTE →</button></div>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div class="screen" id="screen-end">
+  <div style="position:relative;text-align:center;margin-bottom:8px;">
+    <div class="end-glow"></div>
+    <span class="trophy" id="trophy">🏆</span>
+  </div>
+  <div class="score-label">PUNTUACIÓN FINAL</div>
+  <div class="score-big" id="finalScore">0</div>
+  <div class="rank-msg" id="rankMsg"></div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-n" id="st31">0/3</div><div class="stat-l">TEMA 3.1</div></div>
+    <div class="stat-box"><div class="stat-n" id="st32">0/3</div><div class="stat-l">TEMA 3.2</div></div>
+    <div class="stat-box"><div class="stat-n" id="st33">0/2</div><div class="stat-l">TEMA 3.3</div></div>
+    <div class="stat-box"><div class="stat-n" id="stXor">✓</div><div class="stat-l">SIMULADOR</div></div>
+    <div class="stat-box"><div class="stat-n" id="stHack">—</div><div class="stat-l">HACK</div></div>
+    <div class="stat-box"><div class="stat-n" id="stBoss">0/3</div><div class="stat-l">BOSS</div></div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+    <button class="btn btn-primary btn-ripple" onclick="showScoreboard()">🏆 VER RANKING</button>
+    <button class="btn btn-ghost" onclick="showScreen('screen-intro')">← INICIO</button>
+  </div>
+  <div style="margin-top:22px;display:flex;align-items:center;gap:12px;padding:10px 24px;border:1px solid rgba(0,255,136,0.25);border-radius:30px;background:rgba(0,255,136,0.04);box-shadow:0 0 20px rgba(0,255,136,0.08);">
+    <span style="font-family:var(--mono);font-size:10px;color:rgba(0,255,136,0.45);letter-spacing:3px;">CREADO POR</span>
+    <span style="width:1px;height:16px;background:rgba(0,255,136,0.2);display:inline-block;"></span>
+    <span style="font-family:var(--head);font-size:13px;color:var(--g);letter-spacing:2px;text-shadow:0 0 15px rgba(0,255,136,0.5);">José Luis Perales Trejo</span>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// MATRIX RAIN
+// ══════════════════════════════════════
+(function(){
+  const c=document.getElementById('matrixCanvas');
+  const ctx=c.getContext('2d');
+  let W,H,cols,drops;
+  const chars='01アイウエオカキクケコサシスセソタチツテトナニヌネノABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  function init(){
+    W=c.width=window.innerWidth;H=c.height=window.innerHeight;
+    cols=Math.floor(W/18);drops=Array(cols).fill(1);
+  }
+  init();window.addEventListener('resize',init);
+  setInterval(()=>{
+    ctx.fillStyle='rgba(0,5,8,0.05)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#00FF88';ctx.font='14px Share Tech Mono';
+    drops.forEach((y,i)=>{
+      const ch=chars[Math.floor(Math.random()*chars.length)];
+      ctx.fillStyle=`rgba(0,${120+Math.random()*136},${50+Math.random()*80},${0.15+Math.random()*0.25})`;
+      ctx.fillText(ch,i*18,y*18);
+      if(y*18>H&&Math.random()>.975)drops[i]=0;
+      drops[i]++;
+    });
+  },50);
+})();
+
+// ══════════════════════════════════════
+// PARTICLE NETWORK
+// ══════════════════════════════════════
+(function(){
+  const c=document.getElementById('bgCanvas');
+  const ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function init(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  init();window.addEventListener('resize',init);
+  class Pt{
+    constructor(){this.x=Math.random()*W;this.y=Math.random()*H;
+      this.vx=(Math.random()-.5)*.4;this.vy=(Math.random()-.5)*.4;
+      this.r=Math.random()*2+.5;this.life=Math.random();
+      this.hue=Math.random()>.6?'0,212,255':'0,255,136';}
+    upd(){this.x+=this.vx;this.y+=this.vy;this.life-=.004;
+      if(this.life<=0||this.x<-10||this.x>W+10||this.y<-10||this.y>H+10){
+        this.x=Math.random()*W;this.y=Math.random()*H;this.life=1;}}
+    draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${this.hue},${this.life*.5})`;ctx.fill();}
+  }
+  for(let i=0;i<90;i++)pts.push(new Pt());
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach((a,i)=>{
+      pts.slice(i+1).forEach(b=>{
+        const d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d<120){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+          ctx.strokeStyle=`rgba(0,255,136,${(1-d/120)*.06})`;ctx.lineWidth=.6;ctx.stroke();}
+      });
+      a.upd();a.draw();
+    });
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+// ══════════════════════════════════════
+// BURST PARTICLES
+// ══════════════════════════════════════
+function burst(x,y,col='0,255,136',n=20){
+  for(let i=0;i<n;i++){
+    const el=document.createElement('div');el.className='p';
+    const ang=Math.random()*Math.PI*2,dist=50+Math.random()*120;
+    const sz=2+Math.random()*5;
+    el.style.cssText=`left:${x}px;top:${y}px;width:${sz}px;height:${sz}px;background:rgba(${col},.9);--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`;
+    document.body.appendChild(el);setTimeout(()=>el.remove(),1000);
+  }
+}
+
+// ══════════════════════════════════════
+// DATA
+// ══════════════════════════════════════
+const Q={
+  t31:[
+    {q:"¿Qué característica principal define al cifrado en flujo?",
+     opts:["Cifra datos en bloques de 128 bits","Cifra bit a bit o byte a byte de forma continua","Solo funciona con imágenes","Necesita dos claves distintas"],
+     ans:1,fb:"✅ El cifrado en flujo procesa la información continuamente, pieza por pieza. Ideal para transmisiones en tiempo real como llamadas y streaming de video."},
+    {q:"¿Qué es el 'keystream' en un cifrado de flujo?",
+     opts:["La contraseña del usuario","Una secuencia de bits pseudo-aleatoria generada por la clave","El mensaje cifrado final","El canal de transmisión"],
+     ans:1,fb:"✅ El keystream es la secuencia generada a partir de la clave. Se combina con el mensaje mediante XOR para producir el texto cifrado."},
+    {q:"¿Qué propiedad de XOR lo hace ideal para cifrar y descifrar?",
+     opts:["Es muy difícil de calcular","A ⊕ K = C y C ⊕ K = A — es reversible con la misma clave","Solo funciona con números primos","Genera claves automáticamente"],
+     ans:1,fb:"✅ XOR es reversible: cifras con K, descifras aplicando XOR de nuevo con K. Esa simetría perfecta lo hace ideal para cifrado de flujo."}
+  ],
+  t32:[
+    {q:"¿En qué tipo de red se usa A5/1 para proteger comunicaciones de voz?",
+     opts:["WiFi doméstico WPA2","Redes GSM — llamadas 2G","Páginas web HTTPS","Disco duro cifrado"],
+     ans:1,fb:"✅ A5/1 protege llamadas GSM (2G). En 2010 se demostró que era vulnerable. Por eso existen 3G/4G/5G con algoritmos más robustos."},
+    {q:"RC4 se usó en WEP. ¿Por qué fue abandonado como estándar?",
+     opts:["Era demasiado lento","Genera patrones predecibles al inicio del keystream — fue roto por el ataque FMS","Solo funcionaba en Windows XP","Costaba demasiado implementarlo"],
+     ans:1,fb:"✅ RC4 genera un keystream predecible en los primeros bytes. Capturando suficientes paquetes WiFi se podía recuperar la clave. TLS 1.3 lo prohíbe completamente."},
+    {q:"¿Cuántos bits tiene la clave del algoritmo A5/1?",
+     opts:["256 bits","512 bits","64 bits","128 bits"],
+     ans:2,fb:"✅ A5/1 usa clave de 64 bits — hoy considerado inseguro. Equipos modernos pueden atacarlo por fuerza bruta en tiempo relativamente corto."}
+  ],
+  t33:[
+    {q:"ChaCha20 reemplazó a RC4. ¿Dónde se usa actualmente?",
+     opts:["Solo en videojuegos","TLS 1.3 — el protocolo detrás de HTTPS, WhatsApp y Chrome","Solo en servidores Linux","Tarjetas bancarias con chip"],
+     ans:1,fb:"✅ ChaCha20 está en TLS 1.3, usado por Google, WhatsApp, Firefox y la mayoría de sitios HTTPS modernos. Es rápido en dispositivos sin hardware AES especializado."},
+    {q:"¿Cuál es la ventaja principal de Grain frente a otros cifradores de flujo?",
+     opts:["Es el más rápido en supercomputadoras","Diseñado para hardware de recursos mínimos — IoT, RFID, sensores","Tiene la clave más larga del mercado","Solo funciona en la nube"],
+     ans:1,fb:"✅ Grain fue diseñado para dispositivos con memoria y energía mínimas: sensores IoT y tags RFID. Es parte del portafolio eSTREAM para hardware embebido."}
+  ]
+};
+const BOSS=[
+  {topic:"3.1",q:"Un dev usa el MISMO keystream para dos mensajes distintos. ¿Qué obtiene el atacante?",
+   opts:["Nada — es práctica normal","C1⊕C2 = M1⊕M2 — el keystream se cancela y obtiene XOR de ambos mensajes","Los mensajes se comprimen","El cifrado se vuelve más lento"],
+   ans:1,fb:"⚡ CRÍTICO: C1=M1⊕K, C2=M2⊕K → C1⊕C2=M1⊕M2. El keystream desaparece y el atacante obtiene la XOR de los dos mensajes. Por eso jamás se reutiliza el keystream."},
+  {topic:"3.2",q:"El ataque FMS (2001) destruyó WEP. ¿Qué explotó exactamente?",
+   opts:["Firmware desactualizado del router","Vectores de inicialización (IV) débiles en RC4 — capturando paquetes se recupera la clave","Un bug en Windows XP","La contraseña del administrador"],
+   ans:1,fb:"⚡ FMS explotó los IV débiles de WEP+RC4. Con ~50,000 paquetes se recuperaba la clave completa. Eso mató a WEP en 2004 y originó el estándar WPA."},
+  {topic:"3.3",q:"¿Cuál es la diferencia práctica entre Salsa20 y su sucesor ChaCha20?",
+   opts:["ChaCha20 es más lento en ARM","ChaCha20 tiene mejor difusión y resistencia a criptoanálisis diferencial","Salsa20 usa claves más largas","No hay diferencia práctica"],
+   ans:1,fb:"⚡ ChaCha20 es evolución de Salsa20 con mejor mezcla de bits y mayor resistencia a ataques diferenciales. Ambos de Daniel Bernstein, pero ChaCha20 es el recomendado en protocolos modernos."}
+];
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let score=0,secondsLeft=480,timerInterval=null,blockedInterval=null;
+let playerName='',triviaBlock=null,triviaQIdx=0;
+let scores={t31:0,t32:0,t33:0},hackSolved=false,bossScore=0,currentBoss=0;
+const COOLDOWN=3*60*60*1000;
+
+// ══════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════
+const sk=n=>'csym:'+n.trim().toLowerCase().replace(/\s+/g,'-');
+async function getP(n){try{const r=await window.storage.get(sk(n),true);return r?JSON.parse(r.value):null;}catch{return null;}}
+async function saveP(n,d){try{await window.storage.set(sk(n),JSON.stringify(d),true);}catch{}}
+async function allP(){
+  try{
+    const k=await window.storage.list('csym:',true);if(!k?.keys)return[];
+    const ps=[];
+    for(const key of k.keys){try{const r=await window.storage.get(key,true);if(r)ps.push(JSON.parse(r.value));}catch{}}
+    return ps.sort((a,b)=>b.score-a.score);
+  }catch{return[];}
+}
+
+// ══════════════════════════════════════
+// TIMER
+// ══════════════════════════════════════
+function startTimer(){
+  document.getElementById('hud').style.display='flex';
+  document.getElementById('phases').style.display='flex';
+  timerInterval=setInterval(()=>{secondsLeft--;uptTimer();if(secondsLeft<=0){clearInterval(timerInterval);endGame();}},1000);
+}
+function uptTimer(){
+  const m=Math.floor(secondsLeft/60),s=secondsLeft%60;
+  const el=document.getElementById('timer');
+  el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+  el.className='hud-timer'+(secondsLeft<=60?' danger':secondsLeft<=120?' warning':'');
+}
+function addScore(pts,el){
+  score+=pts;document.getElementById('scoreHud').textContent=score;
+  if(el){const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,pts>=150?'255,214,10':'0,255,136',pts>=150?28:20);}
+}
+function uptPhase(p){for(let i=0;i<7;i++)document.getElementById('pd'+i).className='phase-dot'+(i<p?' done':i===p?' active':'');}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+
+// ══════════════════════════════════════
+// START
+// ══════════════════════════════════════
+async function handleStart(){
+  const raw=document.getElementById('nameInput').value.trim();
+  const err=document.getElementById('nameError');
+  if(raw.split(/\s+/).filter(p=>p.length>1).length<2){err.className='name-error show';return;}
+  err.className='name-error';playerName=raw;
+  const btn=document.getElementById('btnStart');
+  btn.textContent='VERIFICANDO...';btn.disabled=true;
+  const ex=await getP(playerName);
+  btn.textContent='▶  INICIAR MISIÓN';btn.disabled=false;
+  if(ex?.timestamp&&(Date.now()-ex.timestamp)<COOLDOWN){showBlocked(COOLDOWN-(Date.now()-ex.timestamp),ex);return;}
+  score=0;secondsLeft=480;triviaQIdx=0;scores={t31:0,t32:0,t33:0};
+  hackSolved=false;bossScore=0;currentBoss=0;
+  document.getElementById('scoreHud').textContent='0';
+  document.getElementById('hudPlayer').textContent=playerName.split(' ')[0].toUpperCase();
+  startTimer();showScreen('screen-sec31');
+}
+
+function showBlocked(rem,data){
+  showScreen('screen-blocked');
+  document.getElementById('blockedMsg').innerHTML=`Hola <b style="color:var(--g)">${playerName}</b>, ya completaste esta actividad.<br>Score registrado: <b style="color:var(--y)">${data.score} pts</b><br><span style="font-family:var(--mono);font-size:11px;color:rgba(200,255,232,.4);">Solo puedes jugar una vez cada 3 horas.</span>`;
+  clearInterval(blockedInterval);let ms=rem;
+  (function tick(){
+    const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000),s=Math.floor((ms%60000)/1000);
+    document.getElementById('blockedCountdown').textContent=`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    ms-=1000;if(ms<=0){clearInterval(blockedInterval);showScreen('screen-intro');return;}
+    blockedInterval=setTimeout(tick,1000);
+  })();
+}
+
+// ══════════════════════════════════════
+// TRIVIA
+// ══════════════════════════════════════
+function startTrivia(block){
+  triviaBlock=block;triviaQIdx=0;
+  const cfg={t31:{cls:'t31',tag:'3.1 — CIFRADO EN FLUJO',ph:0},t32:{cls:'t32',tag:'3.2 — ALGORITMOS A5 Y RC4',ph:2},t33:{cls:'t33',tag:'3.3 — OTROS ALGORITMOS',ph:4}};
+  const c=cfg[block];
+  document.getElementById('triviaTopicBadge').className='topic-badge '+c.cls;
+  document.getElementById('triviaTopicBadge').textContent='▌ TEMA '+c.tag.split('—')[0].trim();
+  document.getElementById('triviaPhaseTag').textContent='// '+c.tag;
+  uptPhase(c.ph);showScreen('screen-trivia');loadTQ();
+}
+function loadTQ(){
+  const qs=Q[triviaBlock],q=qs[triviaQIdx];
+  document.getElementById('qCounter').textContent=`PREGUNTA ${triviaQIdx+1} DE ${qs.length}`;
+  document.getElementById('questionText').textContent=q.q;
+  document.getElementById('feedbackBox').className='feedback';
+  document.getElementById('btnNextQ').style.display='none';
+  const a=document.getElementById('optionsArea');a.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('button');btn.className='opt-btn';
+    btn.innerHTML=`<span style="font-family:var(--mono);color:rgba(0,255,136,0.4);font-size:12px;margin-right:10px;">${['A','B','C','D'][i]}</span>${opt}`;
+    btn.onclick=()=>ansT(i,btn);a.appendChild(btn);
+  });
+}
+function ansT(idx,btn){
+  const q=Q[triviaBlock][triviaQIdx];
+  document.querySelectorAll('#optionsArea .opt-btn').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('feedbackBox');
+  if(idx===q.ans){btn.classList.add('correct');fb.className='feedback ok show';fb.textContent=q.fb;addScore(100,btn);scores[triviaBlock]++;}
+  else{btn.classList.add('wrong');document.querySelectorAll('#optionsArea .opt-btn')[q.ans].classList.add('correct');fb.className='feedback fail show';fb.textContent='❌ '+q.fb;}
+  document.getElementById('btnNextQ').style.display='inline-block';
+}
+function nextQuestion(){triviaQIdx++;if(triviaQIdx>=Q[triviaBlock].length)goNext('trivia_'+triviaBlock);else loadTQ();}
+
+// ══════════════════════════════════════
+// FLOW
+// ══════════════════════════════════════
+function goNext(from){
+  if(from==='trivia_t31'){uptPhase(1);showScreen('screen-sim');}
+  else if(from==='sim')showScreen('screen-sec32');
+  else if(from==='trivia_t32'){uptPhase(3);document.getElementById('hackAnswer').value='';document.getElementById('hackResult').className='hack-result';showScreen('screen-hack');}
+  else if(from==='hack')showScreen('screen-sec33');
+  else if(from==='trivia_t33'){uptPhase(5);loadBoss();showScreen('screen-boss');}
+  else if(from==='boss')endGame();
+}
+
+// ══════════════════════════════════════
+// SIMULADOR
+// ══════════════════════════════════════
+function runSim(){
+  const KEY='KEY123',msg=document.getElementById('simMsg').value.toUpperCase().replace(/[^A-Z0-9 ]/g,'');
+  document.getElementById('simMsg').value=msg;
+  const vis=document.getElementById('xorVis'),out=document.getElementById('simOut');
+  if(!msg){vis.innerHTML='<span style="font-family:var(--mono);font-size:11px;color:rgba(0,255,136,0.2);letter-spacing:2px;">— escribe un mensaje —</span>';out.textContent='—';return;}
+  let hex='',html='';
+  for(let i=0;i<msg.length;i++){
+    const kc=KEY[i%KEY.length],xr=msg.charCodeAt(i)^kc.charCodeAt(0);
+    hex+=xr.toString(16).toUpperCase().padStart(2,'0')+' ';
+    html+=`<div class="xor-cell"><div class="xor-char msg">${msg[i]}</div><div class="xor-op">⊕</div><div class="xor-char key">${kc}</div><div class="xor-op">=</div><div class="xor-char out">${xr.toString(16).toUpperCase().padStart(2,'0')}</div></div>`;
+  }
+  vis.innerHTML=html;out.textContent=hex.trim();
+}
+
+// ══════════════════════════════════════
+// HACK
+// ══════════════════════════════════════
+window.checkHack=function(){
+  const ans=document.getElementById('hackAnswer').value.toUpperCase().trim();
+  const res=document.getElementById('hackResult');
+  if(ans.length<4){res.className='hack-result';return;}
+  if(['KOCE','KODE','CODE'].includes(ans)){
+    res.className='hack-result ok show';
+    res.innerHTML=`<span style="font-size:22px;">✅ ¡SISTEMA DESCIFRADO!</span><br><span style="font-size:13px;opacity:.7;">N→K · R→O · F→C · H→E ✓</span>`;
+    if(!hackSolved){addScore(200,document.getElementById('hackAnswer'));hackSolved=true;}
+    setTimeout(()=>goNext('hack'),1800);
+  }else if(ans.length>=4){
+    res.className='hack-result fail show';
+    res.innerHTML='❌ &nbsp; Intenta de nuevo. &nbsp; N−3=K · R−3=O · F−3=C · H−3=E';
+  }
+};
+
+// ══════════════════════════════════════
+// BOSS
+// ══════════════════════════════════════
+function loadBoss(){
+  const q=BOSS[currentBoss];
+  document.getElementById('bossCounter').textContent=`⚡ PREGUNTA ${currentBoss+1} DE ${BOSS.length} — TEMA ${q.topic}`;
+  document.getElementById('bossQuestion').textContent=q.q;
+  document.getElementById('bossFeedback').className='feedback';
+  document.getElementById('btnNextBoss').style.display='none';
+  const a=document.getElementById('bossOptions');a.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('button');btn.className='opt-btn';
+    btn.innerHTML=`<span style="font-family:var(--mono);color:rgba(255,59,48,0.5);font-size:12px;margin-right:10px;">${['A','B','C','D'][i]}</span>${opt}`;
+    btn.onclick=()=>ansB(i,btn);a.appendChild(btn);
+  });
+}
+function ansB(idx,btn){
+  const q=BOSS[currentBoss];
+  document.querySelectorAll('#bossOptions .opt-btn').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('bossFeedback');
+  if(idx===q.ans){btn.classList.add('correct');fb.className='feedback ok show';fb.textContent=q.fb;addScore(150,btn);bossScore++;}
+  else{btn.classList.add('wrong');document.querySelectorAll('#bossOptions .opt-btn')[q.ans].classList.add('correct');fb.className='feedback fail show';fb.textContent='❌ '+q.fb;}
+  document.getElementById('btnNextBoss').style.display='inline-block';
+}
+function nextBoss(){currentBoss++;if(currentBoss>=BOSS.length)endGame();else{uptPhase(5);loadBoss();}}
+
+// ══════════════════════════════════════
+// END
+// ══════════════════════════════════════
+async function endGame(){
+  clearInterval(timerInterval);
+  document.getElementById('hud').style.display='none';
+  document.getElementById('phases').style.display='none';
+  const pct=score/1550;
+  let rank,trophy;
+  if(pct>=.85){rank='EXPERTO 🏆';trophy='🏆';}
+  else if(pct>=.6){rank='AVANZADO 🥈';trophy='🥈';}
+  else if(pct>=.35){rank='EN PROGRESO 🥉';trophy='🥉';}
+  else{rank='PRINCIPIANTE 📚';trophy='📚';}
+  await saveP(playerName,{name:playerName,score,rank,scores,hackSolved,bossScore,timestamp:Date.now()});
+  showScreen('screen-end');
+  document.getElementById('finalScore').textContent=score;
+  document.getElementById('trophy').textContent=trophy;
+  document.getElementById('rankMsg').textContent=pct>=.85?'¡EXPERTO EN SEGURIDAD! Dominas todos los temas.':pct>=.6?'¡Muy bien! Tienes sólidos conocimientos.':pct>=.35?'Buen esfuerzo. Repasa A5, RC4 y ChaCha20.':'Sigue practicando. ¡La criptografía es fascinante!';
+  document.getElementById('st31').textContent=`${scores.t31}/3`;
+  document.getElementById('st32').textContent=`${scores.t32}/3`;
+  document.getElementById('st33').textContent=`${scores.t33}/2`;
+  document.getElementById('stHack').textContent=hackSolved?'✓':'✗';
+  document.getElementById('stBoss').textContent=`${bossScore}/3`;
+  for(let i=0;i<8;i++)setTimeout(()=>{
+    burst(Math.random()*window.innerWidth,Math.random()*window.innerHeight*.6,pct>=.6?'255,214,10':'0,255,136',30);
+  },i*180);
+}
+
+// ══════════════════════════════════════
+// SCOREBOARD
+// ══════════════════════════════════════
+async function showScoreboard(){
+  showScreen('screen-scoreboard');
+  document.getElementById('sbContent').innerHTML='<div class="sb-loading">// Sincronizando base de datos...</div>';
+  const players=await allP();
+  if(!players.length){document.getElementById('sbContent').innerHTML='<div class="sb-empty">// Sin participantes aún.<br>Sé el primero en completar la misión.</div>';return;}
+  const M=['🥇','🥈','🥉'],RC=['gold','silver','bronze'];
+  let html=`<table class="sb-table"><thead><tr><th>#</th><th>IDENTIFICACIÓN</th><th>SCORE</th><th>NIVEL</th></tr></thead><tbody>`;
+  players.forEach((p,i)=>{
+    const isMe=p.name.trim().toLowerCase()===playerName.trim().toLowerCase();
+    const badge=p.score>=1000?'<span class="sb-badge expert">EXPERTO</span>':p.score>=600?'<span class="sb-badge good">AVANZADO</span>':'<span class="sb-badge ok">EN PROGRESO</span>';
+    html+=`<tr${isMe?' class="me"':''}><td><span class="sb-rank ${i<3?RC[i]:''}">${i<3?M[i]:i+1}</span></td><td style="color:rgba(200,255,232,.9)">${esc(p.name)}${isMe?' <span style="font-family:var(--mono);color:var(--g);font-size:9px;letter-spacing:1px;">(tú)</span>':''}</td><td class="sb-score">${p.score}</td><td>${badge}</td></tr>`;
+  });
+  html+=`</tbody></table><div style="margin-top:12px;font-family:var(--mono);font-size:9px;color:rgba(0,255,136,.2);text-align:center;letter-spacing:3px;">${players.length} participante${players.length!==1?'s':''} · Score máximo: 1,550</div>`;
+  document.getElementById('sbContent').innerHTML=html;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+</body>
+</html>
