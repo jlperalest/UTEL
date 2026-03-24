@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actividad Semana 4 :: Cifrado Asimétrico :: Utel</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#FFE000;--gold2:#FF9500;--gold3:#FFAA00;
+  --cyan:#00FFFF;--cyan2:#00CCEE;--pink:#FF00CC;
+  --green:#00FF66;--purple:#CC00FF;--red:#FF2244;
+  --orange:#FF6600;--lime:#AAFF00;
+  --bg:#000308;--card:#04060F;
+  --mono:'Share Tech Mono',monospace;
+  --head:'Orbitron',sans-serif;
+  --body:'Exo 2',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;min-height:100vh;overflow-x:hidden;}
+body{background:var(--bg);color:#F0F8FF;font-family:var(--body);font-size:16px;}
+
+/* CANVAS */
+#c1,#c2{position:fixed;inset:0;pointer-events:none;}
+#c1{z-index:1;}#c2{z-index:2;opacity:.6;}
+.scan{position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);}
+.vig{position:fixed;inset:0;z-index:9997;pointer-events:none;
+  background:radial-gradient(ellipse 90% 90% at 50% 50%,transparent 30%,rgba(0,0,0,0.82) 100%);}
+
+/* ══ HUD ══ */
+.hud{
+  position:fixed;top:0;left:0;right:0;z-index:1000;height:62px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  background:rgba(0,3,8,0.97);backdrop-filter:blur(20px);
+  border-bottom:2px solid rgba(255,224,0,0.3);
+}
+.hud::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--pink),var(--cyan),var(--gold),var(--cyan),var(--pink));
+  background-size:300%;animation:hbar 3s linear infinite;}
+@keyframes hbar{0%{background-position:0%}100%{background-position:300%}}
+
+.hud-logo{font-family:var(--head);font-size:14px;color:var(--gold);letter-spacing:4px;
+  text-shadow:0 0 20px var(--gold),0 0 40px rgba(255,224,0,.4);}
+.hud-sub{font-family:var(--mono);font-size:10px;color:var(--cyan2);letter-spacing:3px;margin-top:2px;}
+
+.hud-timer{font-family:var(--head);font-size:34px;letter-spacing:6px;color:var(--gold);
+  text-shadow:0 0 30px var(--gold),0 0 60px rgba(255,224,0,.5);line-height:1;transition:all .3s;}
+.hud-timer.warning{color:var(--orange);text-shadow:0 0 30px var(--orange);}
+.hud-timer.danger{color:var(--red);text-shadow:0 0 30px var(--red);animation:dp .3s infinite;}
+@keyframes dp{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.hud-tlabel{font-family:var(--mono);font-size:9px;color:rgba(255,224,0,.4);letter-spacing:3px;text-align:center;}
+
+.hud-player{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2px;
+  text-shadow:0 0 12px var(--cyan);max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hud-pts{font-family:var(--head);font-size:22px;color:var(--gold);
+  text-shadow:0 0 20px var(--gold);margin-top:2px;text-align:right;}
+
+/* PHASE BAR */
+.phases{position:fixed;top:62px;left:0;right:0;z-index:999;
+  display:flex;gap:3px;padding:6px 20px;height:20px;
+  background:rgba(0,3,8,.97);border-bottom:1px solid rgba(255,224,0,.12);}
+.pd{flex:1;height:8px;background:rgba(255,224,0,.06);border-radius:4px;transition:all .5s;position:relative;overflow:hidden;}
+.pd.done{background:var(--gold2);box-shadow:0 0 6px rgba(255,149,0,.5);}
+.pd.done::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:sw 1.8s linear infinite;}
+@keyframes sw{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.pd.active{background:var(--gold);box-shadow:0 0 16px var(--gold),0 0 32px rgba(255,224,0,.5);animation:ap .7s infinite;}
+@keyframes ap{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ══ SCREENS ══ */
+.screen{display:none;position:relative;z-index:10;}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+
+/* ══ CARD ══ */
+.card{
+  position:relative;width:100%;max-width:740px;border-radius:20px;overflow:hidden;
+  background:linear-gradient(145deg,rgba(4,6,15,.97),rgba(2,4,12,.99));
+  border:1px solid rgba(255,224,0,.25);padding:36px;
+  box-shadow:0 0 80px rgba(255,224,0,.1),0 0 160px rgba(0,255,255,.05),0 40px 80px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,224,0,.2);
+  animation:cB 4s ease-in-out infinite;
+}
+@keyframes cB{0%,100%{box-shadow:0 0 80px rgba(255,224,0,.1),0 40px 80px rgba(0,0,0,.8)}50%{box-shadow:0 0 120px rgba(255,224,0,.18),0 40px 80px rgba(0,0,0,.8)}}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--pink),var(--cyan),var(--gold),var(--lime),var(--pink));
+  background-size:300%;animation:cBar 3s linear infinite;}
+@keyframes cBar{0%{background-position:0%}100%{background-position:300%}}
+.card::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(112deg,transparent 38%,rgba(255,224,0,.03) 50%,transparent 62%);
+  animation:hs 5s ease-in-out infinite;pointer-events:none;}
+@keyframes hs{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
+
+.cc{position:absolute;width:22px;height:22px;}
+.cc.tl{top:12px;left:12px;border-top:2px solid var(--gold);border-left:2px solid var(--gold);}
+.cc.tr{top:12px;right:12px;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan);}
+.cc.bl{bottom:12px;left:12px;border-bottom:2px solid var(--gold);border-left:2px solid var(--gold);}
+.cc.br{bottom:12px;right:12px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan);}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;
+  letter-spacing:4px;padding:7px 18px;border-radius:30px;margin-bottom:16px;text-transform:uppercase;}
+.b41{background:rgba(255,224,0,.1);border:1px solid rgba(255,224,0,.5);color:var(--gold);box-shadow:0 0 20px rgba(255,224,0,.15);}
+.b42{background:rgba(0,255,255,.08);border:1px solid rgba(0,255,255,.45);color:var(--cyan);box-shadow:0 0 20px rgba(0,255,255,.1);}
+.b43{background:rgba(0,255,102,.08);border:1px solid rgba(0,255,102,.45);color:var(--green);box-shadow:0 0 20px rgba(0,255,102,.1);}
+.b44{background:rgba(204,0,255,.08);border:1px solid rgba(204,0,255,.45);color:var(--purple);box-shadow:0 0 20px rgba(204,0,255,.1);}
+.b45{background:rgba(255,102,0,.08);border:1px solid rgba(255,102,0,.45);color:var(--orange);box-shadow:0 0 20px rgba(255,102,0,.1);}
+.bboss{background:rgba(255,34,68,.08);border:1px solid rgba(255,34,68,.45);color:var(--red);box-shadow:0 0 20px rgba(255,34,68,.12);}
+
+.ptag{font-family:var(--mono);font-size:11px;color:rgba(255,224,0,.5);letter-spacing:4px;margin-bottom:8px;}
+.ptitle{font-family:var(--head);font-size:clamp(20px,4vw,28px);margin-bottom:12px;line-height:1.2;
+  background:linear-gradient(135deg,#fff,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pdesc{font-size:16px;color:rgba(240,248,255,.65);margin-bottom:20px;line-height:1.7;font-weight:300;}
+
+/* ══ BUTTONS ══ */
+.btn{font-family:var(--head);font-size:14px;font-weight:700;padding:15px 34px;border-radius:12px;
+  border:none;cursor:pointer;transition:all .25s;letter-spacing:3px;text-transform:uppercase;
+  position:relative;overflow:hidden;}
+.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:.3s;}
+.btn:hover::after{background:rgba(255,255,255,.08);}
+
+.btn-gold{background:linear-gradient(135deg,#c8940a,#7a5800);color:#fff;
+  border:1px solid rgba(255,224,0,.5);
+  box-shadow:0 0 30px rgba(255,224,0,.4),0 6px 20px rgba(0,0,0,.5);}
+.btn-gold:hover:not(:disabled){background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;
+  transform:translateY(-4px) scale(1.03);
+  box-shadow:0 0 50px rgba(255,224,0,.7),0 10px 30px rgba(0,0,0,.4);}
+.btn-gold:disabled{background:linear-gradient(135deg,#1a1200,#0d0800);color:#2a1800;cursor:not-allowed;box-shadow:none;}
+.btn-outline{background:transparent;color:var(--gold);border:1px solid rgba(255,224,0,.4);font-size:14px;}
+.btn-outline:hover{background:rgba(255,224,0,.08);border-color:var(--gold);box-shadow:0 0 25px rgba(255,224,0,.25);}
+.btn-ghost{background:transparent;color:rgba(240,248,255,.4);border:1px solid rgba(255,224,0,.12);
+  font-size:12px;padding:10px 20px;letter-spacing:2px;}
+.btn-ghost:hover{color:var(--gold);border-color:rgba(255,224,0,.35);}
+
+/* ══ NAME INPUT ══ */
+.name-input{font-family:var(--head);font-size:18px;font-weight:700;
+  background:rgba(255,224,0,.03);border:1px solid rgba(255,224,0,.25);
+  border-radius:12px;padding:18px 22px;color:var(--gold);width:100%;outline:none;
+  transition:all .3s;letter-spacing:2px;}
+.name-input:focus{border-color:var(--gold);
+  box-shadow:0 0 40px rgba(255,224,0,.2),inset 0 2px 20px rgba(0,0,0,.4);}
+.name-input::placeholder{color:rgba(255,224,0,.18);}
+.ilabel{font-family:var(--mono);font-size:11px;color:rgba(255,224,0,.6);letter-spacing:4px;display:block;margin-bottom:10px;}
+.nerr{color:var(--red);font-family:var(--mono);font-size:12px;margin-top:8px;display:none;letter-spacing:2px;}
+.nerr.show{display:block;}
+
+/* ══ TRIVIA ══ */
+.qcount{font-family:var(--mono);font-size:12px;color:rgba(0,255,255,.65);margin-bottom:12px;letter-spacing:3px;}
+.qtext{font-size:clamp(17px,3.5vw,22px);font-weight:700;color:#fff;margin-bottom:22px;line-height:1.5;}
+.opts{display:grid;gap:11px;}
+.opt{font-family:var(--body);font-size:16px;font-weight:600;padding:16px 20px;border-radius:14px;
+  cursor:pointer;text-align:left;background:rgba(255,224,0,.02);border:1px solid rgba(255,224,0,.1);
+  color:rgba(240,248,255,.9);transition:all .18s;position:relative;overflow:hidden;letter-spacing:.3px;}
+.opt::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--gold);opacity:0;transition:opacity .2s;border-radius:4px 0 0 4px;}
+.opt:hover:not(:disabled){border-color:rgba(255,224,0,.45);transform:translateX(8px);background:rgba(255,224,0,.05);}
+.opt:hover:not(:disabled)::before{opacity:1;}
+.opt.correct{background:rgba(255,224,0,.12);border-color:var(--gold);color:var(--gold);
+  box-shadow:0 0 30px rgba(255,224,0,.2);}
+.opt.correct::before{opacity:1;}
+.opt.wrong{background:rgba(255,34,68,.1);border-color:rgba(255,34,68,.6);color:var(--red);}
+.opt:disabled{cursor:default;transform:none;}
+.fb{margin-top:14px;padding:16px 20px;border-radius:14px;font-size:15px;line-height:1.7;display:none;}
+.fb.show{display:block;}
+.fb.ok{background:rgba(255,224,0,.07);border:1px solid rgba(255,224,0,.3);color:var(--gold);}
+.fb.fail{background:rgba(255,34,68,.07);border:1px solid rgba(255,34,68,.3);color:#FF8898;}
+.nw{margin-top:18px;text-align:right;}
+
+/* ══ KEY DEMO ══ */
+.key-demo{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin:18px 0;}
+.key-box{border-radius:16px;padding:18px;text-align:center;}
+.key-pub{background:rgba(0,255,255,.06);border:2px solid rgba(0,255,255,.35);box-shadow:0 0 30px rgba(0,255,255,.08);}
+.key-priv{background:rgba(255,224,0,.06);border:2px solid rgba(255,224,0,.35);box-shadow:0 0 30px rgba(255,224,0,.08);}
+.key-icon{font-size:48px;display:block;margin-bottom:8px;filter:drop-shadow(0 0 10px rgba(255,255,255,.3));}
+.key-label{font-family:var(--head);font-size:11px;letter-spacing:2px;margin-bottom:6px;}
+.key-val{font-family:var(--mono);font-size:12px;color:rgba(240,248,255,.55);word-break:break-all;line-height:1.6;}
+.arrow-mid{font-size:36px;color:rgba(255,224,0,.6);text-align:center;text-shadow:0 0 20px rgba(255,224,0,.4);}
+.demo-msg{font-family:var(--mono);font-size:14px;padding:14px 18px;border-radius:10px;text-align:center;margin:8px 0;transition:all .5s;}
+.demo-msg.plain{background:rgba(0,255,255,.06);border:1px solid rgba(0,255,255,.25);color:var(--cyan);}
+.demo-msg.cipher{background:rgba(255,224,0,.05);border:1px solid rgba(255,224,0,.25);color:var(--gold);letter-spacing:3px;}
+.demo-msg.decrypted{background:rgba(0,255,102,.06);border:1px solid rgba(0,255,102,.3);color:var(--green);}
+
+/* ══ DH SIMULATOR ══ */
+.dh-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+.dh-box{background:rgba(0,255,102,.04);border:1px solid rgba(0,255,102,.18);border-radius:14px;padding:16px;text-align:center;}
+.dh-label{font-family:var(--mono);font-size:10px;color:rgba(0,255,102,.6);letter-spacing:2px;margin-bottom:8px;}
+.dh-val{font-family:var(--head);font-size:28px;color:var(--green);text-shadow:0 0 20px rgba(0,255,102,.5);}
+.dh-formula{font-family:var(--mono);font-size:11px;color:rgba(240,248,255,.45);margin-top:6px;}
+.dh-shared{background:rgba(0,255,102,.06);border:2px solid rgba(0,255,102,.3);border-radius:14px;padding:20px;text-align:center;margin-bottom:16px;box-shadow:0 0 30px rgba(0,255,102,.08);}
+.dh-shared-num{font-family:var(--head);font-size:48px;color:var(--green);text-shadow:0 0 30px rgba(0,255,102,.6);}
+
+/* ══ RSA ══ */
+.rsa-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0;}
+.rsa-box{background:rgba(204,0,255,.05);border:1px solid rgba(204,0,255,.2);border-radius:14px;padding:16px;text-align:center;}
+.rsa-label{font-family:var(--mono);font-size:10px;color:rgba(204,0,255,.7);letter-spacing:2px;margin-bottom:8px;}
+.rsa-val{font-family:var(--head);font-size:26px;color:var(--purple);text-shadow:0 0 20px rgba(204,0,255,.5);}
+.rsa-sub{font-family:var(--mono);font-size:11px;color:rgba(240,248,255,.35);margin-top:5px;}
+.rsa-select{font-family:var(--mono);font-size:16px;background:rgba(204,0,255,.06);border:1px solid rgba(204,0,255,.3);border-radius:10px;padding:10px 14px;color:var(--purple);width:100%;outline:none;cursor:pointer;margin-top:8px;transition:border .2s;}
+.rsa-select:focus{border-color:var(--purple);box-shadow:0 0 20px rgba(204,0,255,.15);}
+
+/* ══ SECTION CARDS ══ */
+.sec-card{position:relative;text-align:center;max-width:560px;width:100%;padding:56px 40px;
+  border-radius:26px;background:linear-gradient(145deg,rgba(4,6,15,.98),rgba(2,4,12,.99));
+  border:1px solid rgba(255,224,0,.18);overflow:hidden;
+  box-shadow:0 0 120px rgba(255,224,0,.08),0 50px 80px rgba(0,0,0,.9);}
+.sec-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),var(--cyan),var(--gold),transparent);}
+.sec-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:350px;height:350px;border-radius:50%;pointer-events:none;animation:sg 3s ease-in-out infinite;}
+@keyframes sg{0%,100%{opacity:.25;transform:translate(-50%,-50%) scale(1)}50%{opacity:.55;transform:translate(-50%,-50%) scale(1.12)}}
+
+.sec-num{font-family:var(--head);font-size:100px;line-height:1;margin-bottom:10px;
+  background:linear-gradient(135deg,#fff,var(--gold),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(255,224,0,.5));animation:ng 2.5s ease-in-out infinite;}
+@keyframes ng{0%,100%{filter:drop-shadow(0 0 30px rgba(255,224,0,.5))}50%{filter:drop-shadow(0 0 70px rgba(255,224,0,.9))}}
+.sec-name{font-family:var(--head);font-size:clamp(18px,4.5vw,30px);color:#fff;margin-bottom:10px;letter-spacing:2px;text-shadow:0 0 20px rgba(255,224,0,.2);}
+.sec-sub{font-size:15px;color:rgba(240,248,255,.45);font-weight:300;margin-bottom:30px;letter-spacing:1px;}
+.pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;}
+.pill{font-family:var(--mono);font-size:11px;color:rgba(240,248,255,.5);padding:7px 18px;
+  border:1px solid rgba(255,224,0,.2);border-radius:30px;letter-spacing:2px;}
+
+/* ══ INTRO ══ */
+.intro-eye{
+  font-family:var(--mono);font-size:11px;color:var(--cyan);text-align:center;
+  letter-spacing:6px;margin-bottom:18px;
+  text-shadow:0 0 15px rgba(0,255,255,.5);
+  animation:eye .9s steps(1) infinite;
+}
+@keyframes eye{0%,100%{opacity:1}50%{opacity:.15}}
+
+/* HEXAGON DECORATION */
+.hex-deco{
+  display:flex;gap:8px;justify-content:center;align-items:center;
+  margin-bottom:20px;
+}
+.hex-dot{width:8px;height:8px;border-radius:2px;transform:rotate(45deg);}
+.hex-dot.c1{background:var(--gold);box-shadow:0 0 10px var(--gold);}
+.hex-dot.c2{background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+.hex-dot.c3{background:var(--pink);box-shadow:0 0 10px var(--pink);}
+.hex-line{flex:1;max-width:80px;height:1px;}
+.hex-line.l1{background:linear-gradient(90deg,transparent,var(--gold));}
+.hex-line.l2{background:linear-gradient(90deg,var(--cyan),transparent);}
+
+/* TECH BORDER FRAME */
+.intro-frame{
+  position:relative;width:100%;max-width:620px;
+  padding:30px 36px;border-radius:24px;
+  background:linear-gradient(145deg,rgba(6,8,18,.97),rgba(3,5,14,.99));
+  border:1px solid rgba(255,224,0,.15);
+  box-shadow:0 0 100px rgba(255,224,0,.07),0 0 200px rgba(0,255,255,.03),0 40px 80px rgba(0,0,0,.9);
+  margin-bottom:28px;
+}
+.intro-frame::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--pink),var(--gold),var(--cyan),var(--gold),var(--pink));
+  background-size:300%;animation:cBar 3s linear infinite;}
+.intro-frame-corner{position:absolute;width:24px;height:24px;}
+.intro-frame-corner.tl{top:12px;left:12px;border-top:2px solid var(--gold);border-left:2px solid var(--gold);}
+.intro-frame-corner.tr{top:12px;right:12px;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan);}
+.intro-frame-corner.bl{bottom:12px;left:12px;border-bottom:2px solid var(--gold);border-left:2px solid var(--gold);}
+.intro-frame-corner.br{bottom:12px;right:12px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan);}
+
+.intro-title{font-family:var(--head);font-size:clamp(34px,9vw,76px);text-align:center;
+  line-height:.92;margin-bottom:10px;
+  background:linear-gradient(135deg,#fff 0%,var(--gold) 30%,var(--cyan) 60%,var(--pink) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 50px rgba(255,224,0,.5));animation:tp 3s ease-in-out infinite;}
+@keyframes tp{0%,100%{filter:drop-shadow(0 0 40px rgba(255,224,0,.5))}50%{filter:drop-shadow(0 0 80px rgba(255,224,0,.8))}}
+
+.intro-glitch{position:relative;display:inline-block;}
+.intro-glitch::before,.intro-glitch::after{content:attr(data-text);position:absolute;inset:0;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.intro-glitch::before{background:var(--pink);animation:gt 6s infinite;clip-path:polygon(0 0,100% 0,100% 40%,0 40%);}
+.intro-glitch::after{background:var(--cyan);animation:gb 6s infinite 3s;clip-path:polygon(0 60%,100% 60%,100% 100%,0 100%);}
+@keyframes gt{0%,88%,100%{transform:none;opacity:0}91%{transform:translate(-4px);opacity:.9}93%{transform:translate(4px);opacity:.9}95%{transform:none;opacity:0}}
+@keyframes gb{0%,88%,100%{transform:none;opacity:0}91%{transform:translate(4px);opacity:.9}93%{transform:translate(-4px);opacity:.9}95%{transform:none;opacity:0}}
+
+.intro-sub{font-family:var(--head);font-size:clamp(11px,2.2vw,15px);color:var(--cyan);
+  text-align:center;letter-spacing:5px;margin-bottom:40px;text-shadow:0 0 25px rgba(0,255,255,.6);}
+
+.feat-grid{width:100%;max-width:580px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;}
+.feat{
+  padding:20px 18px;border-radius:16px;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,rgba(10,12,25,.95),rgba(5,6,15,.98));
+  border:1px solid rgba(255,224,0,.18);transition:all .25s;cursor:default;
+}
+.feat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .3s;}
+.feat::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,224,0,.04),transparent 60%);opacity:0;transition:opacity .3s;}
+.feat:hover{border-color:rgba(255,224,0,.5);transform:translateY(-4px);
+  box-shadow:0 20px 50px rgba(0,0,0,.6),0 0 30px rgba(255,224,0,.1);}
+.feat:hover::before,.feat:hover::after{opacity:1;}
+.feat-icon{font-size:44px;margin-bottom:10px;display:block;
+  filter:drop-shadow(0 0 12px rgba(255,255,255,.4));position:relative;z-index:1;}
+.feat-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:5px;letter-spacing:.5px;position:relative;z-index:1;}
+.feat-sub{font-family:var(--mono);font-size:10px;color:rgba(255,224,0,.55);letter-spacing:2px;position:relative;z-index:1;}
+
+/* CREDIT BADGE */
+.credit-badge{
+  display:flex;align-items:center;gap:16px;padding:18px 38px;
+  border:2px solid rgba(255,224,0,.6);border-radius:60px;
+  background:linear-gradient(135deg,rgba(30,20,0,.95),rgba(15,10,0,.98));
+  box-shadow:
+    0 0 40px rgba(255,224,0,.35),
+    0 0 80px rgba(255,224,0,.15),
+    0 0 120px rgba(255,224,0,.06),
+    inset 0 0 30px rgba(255,224,0,.06);
+  margin-top:28px;
+  position:relative;
+  animation:creditPulse 2.5s ease-in-out infinite;
+}
+@keyframes creditPulse{
+  0%,100%{box-shadow:0 0 40px rgba(255,224,0,.35),0 0 80px rgba(255,224,0,.15),inset 0 0 30px rgba(255,224,0,.06);}
+  50%{box-shadow:0 0 60px rgba(255,224,0,.55),0 0 120px rgba(255,224,0,.25),inset 0 0 40px rgba(255,224,0,.1);}
+}
+.credit-badge::before{
+  content:'';position:absolute;inset:-2px;border-radius:62px;
+  background:linear-gradient(90deg,var(--pink),var(--gold),var(--cyan),var(--gold),var(--pink));
+  background-size:300%;animation:cBar 3s linear infinite;
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:2px;
+  opacity:.7;
+}
+.credit-label{font-family:var(--mono);font-size:11px;color:rgba(255,224,0,.65);letter-spacing:5px;}
+.credit-div{width:2px;height:28px;background:linear-gradient(180deg,transparent,var(--gold),transparent);}
+.credit-name{font-family:var(--head);font-size:18px;color:var(--gold);letter-spacing:3px;
+  text-shadow:0 0 25px rgba(255,224,0,.9),0 0 50px rgba(255,224,0,.4);}
+
+/* ══ END ══ */
+.trophy{font-size:96px;display:block;animation:tf 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 40px rgba(255,224,0,.8));}
+@keyframes tf{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-14px) rotate(4deg)}}
+.slabel{font-family:var(--mono);font-size:12px;color:rgba(255,224,0,.5);letter-spacing:5px;margin-bottom:6px;}
+.sbig{font-family:var(--head);font-size:clamp(60px,13vw,96px);line-height:1;
+  background:linear-gradient(135deg,var(--gold),var(--gold2),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 50px rgba(255,224,0,.6));animation:sG 2s ease-in-out infinite;}
+@keyframes sG{0%,100%{filter:drop-shadow(0 0 40px rgba(255,224,0,.6))}50%{filter:drop-shadow(0 0 80px rgba(255,224,0,1))}}
+.rankmsg{font-size:19px;font-weight:700;margin:12px 0 20px;color:rgba(255,255,255,.95);text-align:center;letter-spacing:.5px;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:580px;margin-bottom:20px;}
+.sbox{background:rgba(255,224,0,.04);border:1px solid rgba(255,224,0,.18);
+  border-radius:14px;padding:14px 8px;text-align:center;transition:all .25s;}
+.sbox:hover{background:rgba(255,224,0,.09);border-color:var(--gold);
+  box-shadow:0 0 25px rgba(255,224,0,.15);transform:translateY(-4px);}
+.sn{font-family:var(--head);font-size:24px;color:var(--gold);text-shadow:0 0 15px rgba(255,224,0,.5);}
+.sl{font-size:10px;color:rgba(255,224,0,.4);font-family:var(--mono);margin-top:4px;letter-spacing:2px;}
+
+/* ══ SCOREBOARD ══ */
+.sb-t{width:100%;border-collapse:collapse;}
+.sb-t th{font-family:var(--mono);font-size:10px;color:rgba(255,224,0,.45);letter-spacing:3px;
+  padding:10px 12px;border-bottom:1px solid rgba(255,224,0,.15);}
+.sb-t td{padding:13px 12px;border-bottom:1px solid rgba(255,224,0,.06);font-size:15px;font-weight:600;transition:.2s;}
+.sb-t tr:hover td{background:rgba(255,224,0,.03);}
+.sb-t tr.me td{background:rgba(255,224,0,.06);}
+.sb-rank{font-family:var(--head);font-size:15px;color:var(--gold);}
+.sb-rank.g{color:var(--gold);text-shadow:0 0 15px rgba(255,224,0,.7);}
+.sb-rank.s{color:#D0D0D0;}
+.sb-rank.b{color:#E8964A;}
+.sb-score{font-family:var(--mono);color:var(--gold);font-size:15px;}
+.sb-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:var(--mono);}
+.sb-badge.exp{background:rgba(255,224,0,.12);color:var(--gold);border:1px solid rgba(255,224,0,.35);}
+.sb-badge.adv{background:rgba(0,255,255,.08);color:var(--cyan);border:1px solid rgba(0,255,255,.3);}
+.sb-badge.ok{background:rgba(255,34,68,.08);color:#FF8898;border:1px solid rgba(255,34,68,.25);}
+.sb-empty,.sb-loading{text-align:center;padding:36px;color:rgba(255,224,0,.4);
+  font-family:var(--mono);font-size:13px;letter-spacing:2px;line-height:2.4;}
+.sb-loading{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* INFO BOX */
+.info-box{padding:14px 18px;border-radius:12px;margin-top:8px;}
+.info-gold{background:rgba(255,224,0,.05);border:1px solid rgba(255,224,0,.18);}
+.info-cyan{background:rgba(0,255,255,.04);border:1px solid rgba(0,255,255,.18);}
+.info-green{background:rgba(0,255,102,.04);border:1px solid rgba(0,255,102,.18);}
+.info-purple{background:rgba(204,0,255,.04);border:1px solid rgba(204,0,255,.18);}
+.info-icon{font-family:var(--mono);font-size:11px;letter-spacing:2px;}
+.info-text{font-size:14px;color:rgba(240,248,255,.6);line-height:1.6;}
+
+/* PARTICLES */
+.p{position:fixed;pointer-events:none;border-radius:50%;z-index:9990;animation:pF .9s ease-out forwards;}
+@keyframes pF{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+
+@media(max-width:520px){
+  .card,.sec-card{padding:22px 16px;}
+  .feat-grid{grid-template-columns:1fr;}
+  .key-demo{display:flex;flex-direction:column;}
+  .arrow-mid{transform:rotate(90deg);}
+  .dh-grid{grid-template-columns:1fr;}
+  .rsa-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<canvas id="c1"></canvas>
+<canvas id="c2"></canvas>
+<div class="scan"></div>
+<div class="vig"></div>
+
+<!-- HUD -->
+<div class="hud" id="hud" style="display:none">
+  <div><div class="hud-logo">UTEL // SEMANA 4</div><div class="hud-sub">CIFRADO ASIMÉTRICO</div></div>
+  <div style="text-align:center"><div class="hud-timer" id="timer">10:00</div><div class="hud-tlabel">TIEMPO RESTANTE</div></div>
+  <div><div class="hud-player" id="hudPlayer"></div><div class="hud-pts">★ <span id="scoreHud">0</span></div></div>
+</div>
+<div class="phases" id="phases" style="display:none">
+  <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div><div class="pd" id="pd2"></div>
+  <div class="pd" id="pd3"></div><div class="pd" id="pd4"></div><div class="pd" id="pd5"></div>
+  <div class="pd" id="pd6"></div><div class="pd" id="pd7"></div>
+</div>
+
+<!-- ══ INTRO ══ -->
+<div class="screen active" id="s-intro">
+
+  <div class="intro-eye">⬡ &nbsp; SISTEMA DE EVALUACIÓN ACTIVO — UTEL SEMANA 4 &nbsp; ⬡</div>
+
+  <div class="hex-deco">
+    <div class="hex-line l1"></div>
+    <div class="hex-dot c1"></div><div class="hex-dot c2"></div><div class="hex-dot c3"></div><div class="hex-dot c2"></div><div class="hex-dot c1"></div>
+    <div class="hex-line l2"></div>
+  </div>
+
+  <div class="intro-title">
+    <div class="intro-glitch" data-text="CIFRADO">CIFRADO</div><br>
+    <div class="intro-glitch" data-text="ASIMÉTRICO">ASIMÉTRICO</div>
+  </div>
+  <div class="intro-sub" style="color:var(--green);text-shadow:0 0 30px rgba(0,255,102,.8),0 0 60px rgba(0,255,102,.4);font-size:clamp(12px,2.5vw,17px);letter-spacing:6px;border:1px solid rgba(0,255,102,.3);padding:10px 28px;border-radius:30px;background:rgba(0,255,102,.06);">ACTIVIDAD SEMANA 4 &nbsp;·&nbsp; CIFRADO Y CRIPTOGRAFÍA &nbsp;·&nbsp; UTEL</div>
+
+  <div class="feat-grid">
+    <div class="feat"><span class="feat-icon">🔐</span><div class="feat-title">4.1 Generalidades</div><div class="feat-sub">TRIVIA × 3</div></div>
+    <div class="feat"><span class="feat-icon">🗝️</span><div class="feat-title">4.2 Llaves Públicas y Privadas</div><div class="feat-sub">TRIVIA + DEMO INTERACTIVA</div></div>
+    <div class="feat"><span class="feat-icon">🔄</span><div class="feat-title">4.3 Intercambio de Claves</div><div class="feat-sub">TRIVIA + DIFFIE-HELLMAN</div></div>
+    <div class="feat"><span class="feat-icon">🧮</span><div class="feat-title">4.4 Algoritmo RSA</div><div class="feat-sub">TRIVIA + CALCULADORA RSA</div></div>
+    <div class="feat"><span class="feat-icon">⚡</span><div class="feat-title">4.5 ElGamal</div><div class="feat-sub">TRIVIA × 3</div></div>
+    <div class="feat" style="border-color:rgba(255,34,68,.3);background:linear-gradient(145deg,rgba(18,4,8,.97),rgba(10,2,5,.98));">
+      <span class="feat-icon" style="filter:drop-shadow(0 0 12px rgba(255,34,68,.6));">💀</span>
+      <div class="feat-title">Reto BOSS Final</div>
+      <div class="feat-sub" style="color:rgba(255,80,80,.65);">TODOS LOS TEMAS</div>
+    </div>
+  </div>
+
+  <div class="intro-frame">
+    <div class="intro-frame-corner tl"></div>
+    <div class="intro-frame-corner tr"></div>
+    <div class="intro-frame-corner bl"></div>
+    <div class="intro-frame-corner br"></div>
+    <label class="ilabel" style="font-size:12px;letter-spacing:5px;">⬡ &nbsp; IDENTIFICACIÓN DEL ESTUDIANTE</label>
+    <input class="name-input" id="nameInput" type="text" placeholder="NOMBRE Y APELLIDO" maxlength="60" autocomplete="off" style="font-size:20px;padding:20px 22px;letter-spacing:2px;">
+    <div class="nerr" id="nerr">⚠ &nbsp; SE REQUIERE NOMBRE Y APELLIDO</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:22px;">
+      <button class="btn btn-gold" id="btnStart" onclick="handleStart()" style="font-size:16px;padding:18px 60px;letter-spacing:4px;">▶ &nbsp; INICIAR MISIÓN</button>
+      <button class="btn btn-ghost" onclick="showSB()" style="font-size:13px;padding:14px 24px;">🏆 &nbsp; RANKING</button>
+    </div>
+  </div>
+
+  <div class="credit-badge">
+    <span style="font-size:28px;filter:drop-shadow(0 0 14px rgba(255,224,0,.9));">👨‍💻</span>
+    <span class="credit-div"></span>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <span class="credit-label">CREADO POR</span>
+      <span class="credit-name">José Luis Perales Trejo</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCOREBOARD -->
+<div class="screen" id="s-sb">
+  <div class="card" style="max-width:760px;">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="ptag">// TABLA DE POSICIONES</div>
+    <div style="font-family:var(--head);font-size:clamp(18px,4vw,26px);color:var(--gold);text-align:center;margin-bottom:22px;letter-spacing:3px;text-shadow:0 0 25px rgba(255,224,0,.5);">🏆 RANKING DE LA CLASE</div>
+    <div id="sbContent"><div class="sb-loading">// Cargando registros...</div></div>
+    <div style="margin-top:20px;text-align:center;"><button class="btn btn-ghost" onclick="showScreen('s-intro')">← VOLVER</button></div>
+  </div>
+</div>
+
+<!-- SEC 4.1 -->
+<div class="screen" id="s-sec41">
+  <div class="sec-card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="sec-glow" style="background:radial-gradient(circle,rgba(255,224,0,.1),transparent 70%);"></div>
+    <div class="badge b41">▌ TEMA 4.1</div>
+    <div class="sec-num">4.1</div>
+    <div class="sec-name">Generalidades</div>
+    <div class="sec-sub">Concepto · Historia · Diferencias clave</div>
+    <div class="pills"><div class="pill">🧠 TRIVIA × 3</div></div>
+    <button class="btn btn-gold" onclick="startTrivia('t41')" style="width:100%;padding:18px;font-size:15px;">INICIAR FASE →</button>
+  </div>
+</div>
+
+<!-- SEC 4.2 -->
+<div class="screen" id="s-sec42">
+  <div class="sec-card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="sec-glow" style="background:radial-gradient(circle,rgba(0,255,255,.08),transparent 70%);"></div>
+    <div class="badge b42">▌ TEMA 4.2</div>
+    <div class="sec-num" style="background:linear-gradient(135deg,#fff,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">4.2</div>
+    <div class="sec-name">Llaves Públicas y Privadas</div>
+    <div class="sec-sub">Par de claves · Cifrado · Firma digital</div>
+    <div class="pills"><div class="pill">🧠 TRIVIA × 3</div><div class="pill">🗝️ DEMO INTERACTIVA</div></div>
+    <button class="btn btn-gold" onclick="startTrivia('t42')" style="width:100%;padding:18px;background:linear-gradient(135deg,#0a3050,#05182a);border-color:rgba(0,255,255,.5);box-shadow:0 0 30px rgba(0,255,255,.2);">INICIAR FASE →</button>
+  </div>
+</div>
+
+<!-- DEMO LLAVES -->
+<div class="screen" id="s-keydemo" style="padding-top:96px;">
+  <div class="card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="badge b42">▌ TEMA 4.2</div>
+    <div class="ptag">// DEMO INTERACTIVA — PAR DE CLAVES</div>
+    <div class="ptitle">🗝️ Cifra y Descifra con tu par de claves</div>
+    <div class="pdesc">Observa cómo la clave pública cifra y solo la clave privada descifra. Así funciona RSA en la práctica.</div>
+
+    <div class="key-demo">
+      <div class="key-box key-pub">
+        <span class="key-icon">🔓</span>
+        <div class="key-label" style="color:var(--cyan);font-family:var(--head);font-size:13px;letter-spacing:2px;">CLAVE PÚBLICA</div>
+        <div class="key-val" style="font-size:13px;">e = 65537<br>n = 3233</div>
+        <div style="font-size:13px;color:rgba(0,255,255,.5);margin-top:8px;font-family:var(--mono);">Todos la conocen</div>
+      </div>
+      <div class="arrow-mid">⇄</div>
+      <div class="key-box key-priv">
+        <span class="key-icon">🔐</span>
+        <div class="key-label" style="color:var(--gold);font-family:var(--head);font-size:13px;letter-spacing:2px;">CLAVE PRIVADA</div>
+        <div class="key-val" style="font-size:13px;">d = 2753<br>n = 3233</div>
+        <div style="font-size:13px;color:rgba(255,224,0,.5);margin-top:8px;font-family:var(--mono);">Solo tú la tienes</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label class="ilabel">// ESCRIBE UN NÚMERO (1-100) PARA CIFRAR</label>
+      <input type="number" id="demoNum" min="1" max="100" value="42" class="name-input" style="font-size:26px;letter-spacing:8px;text-align:center;" oninput="runKeyDemo()">
+    </div>
+
+    <div class="demo-msg plain">Mensaje original: <b id="demoPlainVal" style="font-size:18px;">42</b></div>
+    <div style="text-align:center;font-family:var(--mono);font-size:12px;color:rgba(255,224,0,.5);margin:8px 0;letter-spacing:2px;">↓ CIFRAR CON CLAVE PÚBLICA ↓</div>
+    <div class="demo-msg cipher">Cifrado: <b id="demoCipherVal" style="font-size:18px;">—</b></div>
+    <div style="text-align:center;font-family:var(--mono);font-size:12px;color:rgba(0,255,255,.5);margin:8px 0;letter-spacing:2px;">↓ DESCIFRAR CON CLAVE PRIVADA ↓</div>
+    <div class="demo-msg decrypted">Descifrado: <b id="demoDecVal" style="font-size:18px;">—</b></div>
+
+    <div class="info-box info-gold" style="margin-top:16px;">
+      <span class="info-icon" style="color:var(--gold);">💡 </span>
+      <span class="info-text">Nadie puede descifrar el mensaje aunque vea la clave pública. Solo el dueño de la clave privada puede hacerlo.</span>
+    </div>
+    <div class="nw" style="margin-top:16px;"><button class="btn btn-gold" onclick="goNext('keydemo')">TEMA 4.3 →</button></div>
+  </div>
+</div>
+
+<!-- SEC 4.3 -->
+<div class="screen" id="s-sec43">
+  <div class="sec-card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="sec-glow" style="background:radial-gradient(circle,rgba(0,255,102,.08),transparent 70%);"></div>
+    <div class="badge b43">▌ TEMA 4.3</div>
+    <div class="sec-num" style="background:linear-gradient(135deg,#fff,var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">4.3</div>
+    <div class="sec-name">Intercambio de Claves</div>
+    <div class="sec-sub">Diffie-Hellman · TLS · Acuerdo de clave</div>
+    <div class="pills"><div class="pill">🧠 TRIVIA × 3</div><div class="pill">🔄 SIMULADOR D-H</div></div>
+    <button class="btn btn-gold" onclick="startTrivia('t43')" style="width:100%;padding:18px;background:linear-gradient(135deg,#0a3020,#051810);border-color:rgba(0,255,102,.45);box-shadow:0 0 30px rgba(0,255,102,.2);">INICIAR FASE →</button>
+  </div>
+</div>
+
+<!-- DH SIMULATOR -->
+<div class="screen" id="s-dh" style="padding-top:96px;">
+  <div class="card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="badge b43">▌ TEMA 4.3</div>
+    <div class="ptag">// SIMULADOR DIFFIE-HELLMAN</div>
+    <div class="ptitle">🔄 Acuerdo de clave sin compartirla</div>
+    <div class="pdesc">Alice y Bob generan un secreto compartido sin enviárselo. Un atacante que ve todo el canal NO puede calcularlo.</div>
+
+    <div class="info-box info-green" style="margin-bottom:16px;">
+      <span class="info-icon" style="color:var(--green);">PARÁMETROS PÚBLICOS: </span>
+      <span style="font-family:var(--mono);font-size:15px;color:rgba(240,248,255,.8);">p = <b id="dhP" style="color:var(--green);">23</b> &nbsp;·&nbsp; g = <b id="dhG" style="color:var(--green);">5</b></span>
+    </div>
+
+    <div class="dh-grid">
+      <div class="dh-box">
+        <div class="dh-label">🙋 ALICE — Secreto privado</div>
+        <div class="dh-val" id="dhA">6</div>
+        <div class="dh-formula">A pública = g<sup>a</sup> mod p = <span id="dhApub" style="color:var(--green);">8</span></div>
+      </div>
+      <div class="dh-box">
+        <div class="dh-label">🙋 BOB — Secreto privado</div>
+        <div class="dh-val" id="dhB">15</div>
+        <div class="dh-formula">B pública = g<sup>b</sup> mod p = <span id="dhBpub" style="color:var(--green);">19</span></div>
+      </div>
+    </div>
+
+    <div style="text-align:center;font-family:var(--mono);font-size:12px;color:rgba(0,255,102,.5);margin:10px 0;letter-spacing:2px;">↓ INTERCAMBIAN VALORES PÚBLICOS ↓</div>
+
+    <div class="dh-shared">
+      <div style="font-family:var(--mono);font-size:11px;color:rgba(0,255,102,.5);letter-spacing:3px;margin-bottom:10px;">🔑 SECRETO COMPARTIDO</div>
+      <div class="dh-shared-num" id="dhShared">2</div>
+      <div style="font-family:var(--mono);font-size:12px;color:rgba(240,248,255,.4);margin-top:8px;">Alice: B_pub<sup>a</sup> mod p = <span id="dhAliceCalc">19⁶ mod 23</span><br>Bob: A_pub<sup>b</sup> mod p = <span id="dhBobCalc">8¹⁵ mod 23</span></div>
+    </div>
+
+    <button class="btn btn-outline" onclick="randomizeDH()" style="width:100%;margin-bottom:14px;font-size:15px;">🎲 &nbsp; GENERAR NUEVOS VALORES ALEATORIOS</button>
+    <div class="info-box info-gold">
+      <span class="info-icon" style="color:var(--gold);">💡 </span>
+      <span class="info-text">El atacante solo ve p, g, A_pub y B_pub — sin los secretos privados no puede calcular el secreto compartido.</span>
+    </div>
+    <div class="nw" style="margin-top:16px;"><button class="btn btn-gold" onclick="goNext('dh')">TEMA 4.4 →</button></div>
+  </div>
+</div>
+
+<!-- SEC 4.4 -->
+<div class="screen" id="s-sec44">
+  <div class="sec-card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="sec-glow" style="background:radial-gradient(circle,rgba(204,0,255,.08),transparent 70%);"></div>
+    <div class="badge b44">▌ TEMA 4.4</div>
+    <div class="sec-num" style="background:linear-gradient(135deg,#fff,var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">4.4</div>
+    <div class="sec-name">Algoritmo RSA</div>
+    <div class="sec-sub">Rivest · Shamir · Adleman · MIT 1977</div>
+    <div class="pills"><div class="pill">🧠 TRIVIA × 3</div><div class="pill">🧮 CALCULADORA RSA</div></div>
+    <button class="btn btn-gold" onclick="startTrivia('t44')" style="width:100%;padding:18px;background:linear-gradient(135deg,#200a40,#100520);border-color:rgba(204,0,255,.45);box-shadow:0 0 30px rgba(204,0,255,.2);">INICIAR FASE →</button>
+  </div>
+</div>
+
+<!-- RSA CALC -->
+<div class="screen" id="s-rsa" style="padding-top:96px;">
+  <div class="card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="badge b44">▌ TEMA 4.4</div>
+    <div class="ptag">// CALCULADORA RSA PASO A PASO</div>
+    <div class="ptitle">🧮 Genera tu propio par de claves RSA</div>
+    <div class="pdesc">Selecciona dos números primos p y q. RSA calculará n, φ(n), e y d automáticamente.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div><label class="ilabel">// PRIMO p</label>
+        <select class="rsa-select" id="rsaP" onchange="calcRSA()">
+          <option value="3">3</option><option value="5">5</option><option value="7">7</option>
+          <option value="11">11</option><option value="13">13</option><option value="17">17</option>
+          <option value="19" selected>19</option><option value="23">23</option><option value="29">29</option>
+          <option value="31">31</option><option value="37">37</option><option value="41">41</option>
+          <option value="43">43</option><option value="47">47</option><option value="53">53</option><option value="61">61</option>
+        </select></div>
+      <div><label class="ilabel">// PRIMO q</label>
+        <select class="rsa-select" id="rsaQ" onchange="calcRSA()">
+          <option value="3">3</option><option value="5">5</option><option value="7">7</option>
+          <option value="11">11</option><option value="13">13</option><option value="17">17</option>
+          <option value="19">19</option><option value="23" selected>23</option><option value="29">29</option>
+          <option value="31">31</option><option value="37">37</option><option value="41">41</option>
+          <option value="43">43</option><option value="47">47</option><option value="53">53</option><option value="61">61</option>
+        </select></div>
+    </div>
+
+    <div class="rsa-grid">
+      <div class="rsa-box"><div class="rsa-label">n = p × q</div><div class="rsa-val" id="rsaN">437</div><div class="rsa-sub">Módulo público</div></div>
+      <div class="rsa-box"><div class="rsa-label">φ(n) = (p-1)(q-1)</div><div class="rsa-val" id="rsaPhi">396</div><div class="rsa-sub">Función de Euler</div></div>
+      <div class="rsa-box"><div class="rsa-label">e — Clave Pública</div><div class="rsa-val" id="rsaE">5</div><div class="rsa-sub">mcd(e,φ)=1</div></div>
+      <div class="rsa-box"><div class="rsa-label">d — Clave Privada</div><div class="rsa-val" id="rsaD">317</div><div class="rsa-sub">e×d ≡ 1 mod φ(n)</div></div>
+    </div>
+
+    <div class="info-box info-purple" style="margin-top:6px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:8px;letter-spacing:2px;">🔑 TU PAR DE CLAVES GENERADO:</div>
+      <div style="font-family:var(--mono);font-size:14px;color:rgba(240,248,255,.7);line-height:1.8;">
+        Pública: <span style="color:var(--cyan);">(e=<span id="rsaEsm">5</span>, n=<span id="rsaNsm">437</span>)</span><br>
+        Privada: <span style="color:var(--gold);">(d=<span id="rsaDsm">317</span>, n=<span id="rsaNsm2">437</span>)</span>
+      </div>
+    </div>
+    <div class="nw" style="margin-top:16px;"><button class="btn btn-gold" onclick="goNext('rsa')">TEMA 4.5 →</button></div>
+  </div>
+</div>
+
+<!-- SEC 4.5 -->
+<div class="screen" id="s-sec45">
+  <div class="sec-card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="sec-glow" style="background:radial-gradient(circle,rgba(255,102,0,.08),transparent 70%);"></div>
+    <div class="badge b45">▌ TEMA 4.5</div>
+    <div class="sec-num" style="background:linear-gradient(135deg,#fff,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">4.5</div>
+    <div class="sec-name">Algoritmo ElGamal</div>
+    <div class="sec-sub">Logaritmo discreto · Probabilístico · 1985</div>
+    <div class="pills"><div class="pill">🧠 TRIVIA × 3</div><div class="pill">💀 RETO BOSS</div></div>
+    <button class="btn btn-gold" onclick="startTrivia('t45')" style="width:100%;padding:18px;">INICIAR FASE →</button>
+  </div>
+</div>
+
+<!-- TRIVIA -->
+<div class="screen" id="s-trivia" style="padding-top:96px;">
+  <div class="card">
+    <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+    <div class="badge" id="trivBadge"></div>
+    <div class="ptag" id="trivTag"></div>
+    <div class="qcount" id="qCount"></div>
+    <div class="qtext" id="qText"></div>
+    <div class="opts" id="optsArea"></div>
+    <div class="fb" id="fbBox"></div>
+    <div class="nw"><button class="btn btn-outline" id="btnNext" onclick="nextQ()" style="display:none;font-size:15px;">SIGUIENTE →</button></div>
+  </div>
+</div>
+
+<!-- BOSS -->
+<div class="screen" id="s-boss" style="padding-top:96px;">
+  <div class="card" style="border-color:rgba(255,34,68,.4);box-shadow:0 0 80px rgba(255,34,68,.12),0 40px 80px rgba(0,0,0,.8);">
+    <div class="cc tl" style="border-color:var(--red);"></div><div class="cc tr" style="border-color:var(--red);"></div>
+    <div class="cc bl" style="border-color:var(--red);"></div><div class="cc br" style="border-color:var(--red);"></div>
+    <div class="badge bboss">⚡ RETO FINAL BOSS</div>
+    <div class="qcount" id="bossCount"></div>
+    <div class="qtext" id="bossQ"></div>
+    <div class="opts" id="bossOpts"></div>
+    <div class="fb" id="bossFb"></div>
+    <div class="nw"><button class="btn btn-gold" id="btnBossNext" onclick="nextBoss()" style="display:none;font-size:15px;">SIGUIENTE →</button></div>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div class="screen" id="s-end">
+  <span class="trophy" id="trophy">🏆</span>
+  <div class="slabel">PUNTUACIÓN FINAL</div>
+  <div class="sbig" id="finalScore">0</div>
+  <div class="rankmsg" id="rankMsg"></div>
+  <div class="stat-grid">
+    <div class="sbox"><div class="sn" id="st41">0/3</div><div class="sl">TEMA 4.1</div></div>
+    <div class="sbox"><div class="sn" id="st42">0/3</div><div class="sl">TEMA 4.2</div></div>
+    <div class="sbox"><div class="sn" id="st43">0/3</div><div class="sl">TEMA 4.3</div></div>
+    <div class="sbox"><div class="sn" id="st44">0/3</div><div class="sl">TEMA 4.4</div></div>
+    <div class="sbox"><div class="sn" id="st45">0/3</div><div class="sl">TEMA 4.5</div></div>
+    <div class="sbox"><div class="sn" id="stBoss">0/3</div><div class="sl">BOSS</div></div>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+    <button class="btn btn-gold" onclick="showSB()">🏆 VER RANKING</button>
+    <button class="btn btn-ghost" onclick="showScreen('s-intro')">← INICIO</button>
+  </div>
+  <div class="credit-badge" style="margin-top:22px;">
+    <span class="credit-label">CREADO POR</span>
+    <span class="credit-div"></span>
+    <span class="credit-name">José Luis Perales Trejo</span>
+  </div>
+</div>
+
+<script>
+// ══ MATRIX ══
+(function(){
+  const c=document.getElementById('c1'),ctx=c.getContext('2d');
+  let W,H,cols,drops;
+  const chars='01アイウエRSAELGAMALCRYPTO公私鍵NQPABCDEFGH';
+  function init(){W=c.width=innerWidth;H=c.height=innerHeight;cols=Math.floor(W/22);drops=Array(cols).fill(1);}
+  init();window.addEventListener('resize',init);
+  setInterval(()=>{
+    ctx.fillStyle='rgba(0,3,8,0.055)';ctx.fillRect(0,0,W,H);
+    drops.forEach((y,i)=>{
+      const ch=chars[Math.floor(Math.random()*chars.length)];
+      const r=Math.random();
+      ctx.fillStyle=r>.65?`rgba(255,224,0,${.12+Math.random()*.22})`:r>.35?`rgba(0,255,255,${.08+Math.random()*.18})`:`rgba(255,0,204,${.06+Math.random()*.12})`;
+      ctx.font='14px Share Tech Mono';ctx.fillText(ch,i*22,y*22);
+      if(y*22>H&&Math.random()>.972)drops[i]=0;drops[i]++;
+    });
+  },55);
+})();
+
+// ══ PARTICLES NET ══
+(function(){
+  const c=document.getElementById('c2'),ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function init(){W=c.width=innerWidth;H=c.height=innerHeight;}
+  init();window.addEventListener('resize',init);
+  class P{constructor(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.4;this.vy=(Math.random()-.5)*.4;this.r=Math.random()*2.5+.5;this.life=Math.random();this.hue=Math.random()>.5?'255,224,0':'0,255,255';}
+    upd(){this.x+=this.vx;this.y+=this.vy;this.life-=.004;if(this.life<=0||this.x<0||this.x>W||this.y<0||this.y>H){this.x=Math.random()*W;this.y=Math.random()*H;this.life=1;}}
+    draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=`rgba(${this.hue},${this.life*.45})`;ctx.fill();}}
+  for(let i=0;i<100;i++)pts.push(new P());
+  (function frame(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach((a,i)=>{pts.slice(i+1).forEach(b=>{const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<115){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,224,0,${(1-d/115)*.07})`;ctx.lineWidth=.6;ctx.stroke();}});a.upd();a.draw();});
+    requestAnimationFrame(frame);
+  })();
+})();
+
+// ══ BURST ══
+function burst(x,y,col='255,224,0',n=22){
+  for(let i=0;i<n;i++){
+    const el=document.createElement('div');el.className='p';
+    const ang=Math.random()*Math.PI*2,dist=60+Math.random()*130,sz=3+Math.random()*6;
+    el.style.cssText=`left:${x}px;top:${y}px;width:${sz}px;height:${sz}px;background:rgba(${col},.9);--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`;
+    document.body.appendChild(el);setTimeout(()=>el.remove(),1000);
+  }
+}
+
+// ══ QUESTIONS ══
+const Q={
+  t41:[
+    {q:"¿Cuál es la principal diferencia entre cifrado simétrico y asimétrico?",
+     opts:["El asimétrico es más rápido","El simétrico usa la misma clave para cifrar y descifrar; el asimétrico usa un par de claves distintas","El asimétrico no puede descifrar mensajes","El simétrico requiere internet"],
+     ans:1,fb:"✅ En cifrado simétrico ambos lados comparten la MISMA clave. En asimétrico hay un par: clave pública para cifrar y clave privada para descifrar. Son matemáticamente distintas pero relacionadas."},
+    {q:"¿Quiénes publicaron el concepto de clave pública-privada en 1976?",
+     opts:["Rivest, Shamir y Adleman","Whitfield Diffie y Martin Hellman","Alan Turing y Claude Shannon","Ron Rivest y ElGamal"],
+     ans:1,fb:"✅ Diffie y Hellman publicaron 'New Directions in Cryptography' en 1976 revolucionando la criptografía. Introdujeron el concepto de par de claves pública-privada que hoy protege internet."},
+    {q:"¿Cuál es la principal desventaja del cifrado asimétrico frente al simétrico?",
+     opts:["No puede cifrar archivos de texto","Es 100-1000 veces más lento computacionalmente","No funciona en internet","No se puede implementar en hardware"],
+     ans:1,fb:"✅ El cifrado asimétrico es mucho más lento que el simétrico. Por eso en HTTPS se usa asimétrico solo para intercambiar una clave simétrica, y luego se cifra con AES que es ultrarrápido."}
+  ],
+  t42:[
+    {q:"¿Para qué se usa la clave PÚBLICA en el cifrado asimétrico?",
+     opts:["Para descifrar mensajes recibidos","Para cifrar mensajes que solo el receptor con su clave privada puede descifrar","Para firmar documentos propios","Para generar números aleatorios"],
+     ans:1,fb:"✅ La clave pública cifra el mensaje. Cualquiera puede tener la clave pública, pero SOLO el dueño de la clave privada correspondiente puede descifrar."},
+    {q:"¿Qué propiedad matemática hace imposible derivar la clave privada de la pública?",
+     opts:["La suma de números primos","La factorización de números grandes — multiplicar dos primos es fácil, factorizarlos es prácticamente imposible","La raíz cuadrada de números negativos","La división euclidiana"],
+     ans:1,fb:"✅ RSA se basa en que es fácil multiplicar dos primos enormes pero computacionalmente inviable factorizarlos. Ese problema unidireccional protege la clave privada."},
+    {q:"Una firma digital usa las claves de forma INVERSA al cifrado. ¿Cómo funciona?",
+     opts:["Se cifra con clave pública y verifica con privada","Se firma con la clave PRIVADA y cualquiera verifica con la clave PÚBLICA","Se firma con clave simétrica","No usa claves asimétricas"],
+     ans:1,fb:"✅ En firma digital: el autor firma con su clave PRIVADA (nadie más puede hacerlo). Cualquiera con la clave PÚBLICA puede verificar que la firma es auténtica. Es lo inverso del cifrado."}
+  ],
+  t43:[
+    {q:"¿Qué problema resuelve el protocolo Diffie-Hellman?",
+     opts:["Cifrar archivos grandes rápidamente","Establecer un secreto compartido a través de un canal público sin transmitirlo","Verificar la identidad de un servidor","Comprimir datos antes de cifrar"],
+     ans:1,fb:"✅ D-H permite que Alice y Bob acuerden un secreto compartido aunque un atacante escuche TODA la conversación. Ninguno envía el secreto — lo calculan independientemente con matemáticas."},
+    {q:"¿En qué problema matemático se basa la seguridad de Diffie-Hellman?",
+     opts:["Multiplicación de matrices","El problema del logaritmo discreto — g^a mod p es fácil de calcular pero muy difícil de invertir","La factorización de números primos","La raíz cuadrada modular"],
+     ans:1,fb:"✅ D-H se basa en que g^a mod p es fácil de calcular pero dado el resultado es computacionalmente inviable encontrar 'a'. Ese problema unidireccional protege los secretos privados."},
+    {q:"¿Qué protocolo usa Diffie-Hellman para establecer conexiones HTTPS seguras?",
+     opts:["FTP sobre cifrado","TLS (Transport Layer Security) — el protocolo que pone la 's' en https://","SSH solo en Linux","SMTP para correo cifrado"],
+     ans:1,fb:"✅ TLS usa Ephemeral Diffie-Hellman (DHE/ECDHE) para acordar la clave de sesión. Eso garantiza 'Perfect Forward Secrecy' — cada sesión tiene una clave diferente e irrepetible."}
+  ],
+  t44:[
+    {q:"¿Qué significan las siglas RSA?",
+     opts:["Random Secure Algorithm","Rivest, Shamir y Adleman — sus creadores del MIT en 1977","Royal Security Association","Recursive Symmetric Approach"],
+     ans:1,fb:"✅ RSA = Ron Rivest, Adi Shamir y Leonard Adleman. Publicado en 1977 en el MIT. Es el algoritmo asimétrico más usado en el mundo, base de la seguridad de internet tal como la conocemos."},
+    {q:"¿Qué tamaño mínimo de clave se recomienda hoy para RSA?",
+     opts:["512 bits","1024 bits","2048 bits mínimo, idealmente 4096","128 bits es suficiente"],
+     ans:2,fb:"✅ RSA 2048 bits es el mínimo aceptable hoy. RSA 1024 fue roto. Se recomiendan 4096 bits para datos muy sensibles. La computación cuántica podría amenazar RSA en el futuro."},
+    {q:"¿Cuál es el primer paso del algoritmo RSA para generar claves?",
+     opts:["Elegir un número aleatorio grande","Seleccionar dos números primos p y q grandes y calcular n = p × q","Dividir un número por su raíz cuadrada","Aplicar SHA-256 a una contraseña"],
+     ans:1,fb:"✅ RSA: elegir primos p y q → n=p×q → φ(n)=(p-1)(q-1) → elegir e coprimo con φ(n) → calcular d = e⁻¹ mod φ(n). La clave pública es (e,n) y la privada es (d,n)."}
+  ],
+  t45:[
+    {q:"¿En qué problema matemático se basa ElGamal?",
+     opts:["Factorización de primos (como RSA)","El logaritmo discreto en grupos cíclicos — muy difícil de invertir","Raíces cuadradas modulares","Suma de números de Fibonacci"],
+     ans:1,fb:"✅ ElGamal se basa en el logaritmo discreto: dado g^x mod p, encontrar x es computacionalmente inviable. Es diferente de RSA pero igual de seguro con parámetros adecuados."},
+    {q:"¿Cuál es una característica ÚNICA de ElGamal vs RSA?",
+     opts:["Es más rápido que RSA","Es probabilístico — el mismo mensaje cifrado dos veces produce textos cifrados DISTINTOS","Usa claves más cortas","No requiere números primos"],
+     ans:1,fb:"✅ ElGamal es probabilístico: incluye un número aleatorio k en cada cifrado. 'Hola' cifrado 10 veces produce 10 resultados distintos. RSA determinístico puede ser vulnerable a ataques de texto plano."},
+    {q:"¿Dónde se usa ElGamal actualmente en la práctica?",
+     opts:["En contraseñas de WiFi","En GPG/PGP — el estándar para cifrar correo y firmas digitales","En chips de tarjetas de crédito","En contraseñas de Windows"],
+     ans:1,fb:"✅ ElGamal está en GPG (GNU Privacy Guard) y PGP (Pretty Good Privacy) — los estándares para cifrar correos y documentos. También en esquemas de firma digital y sistemas de votación electrónica."}
+  ]
+};
+const BOSS=[
+  {t:"4.1",q:"HTTPS usa criptografía asimétrica Y simétrica. ¿Por qué no usa solo asimétrica para todo?",
+   opts:["El asimétrico no puede cifrar texto","El asimétrico es ~1000x más lento — se usa solo para acordar una clave AES de sesión","Los servidores no soportan asimétrico","El asimétrico expira cada minuto"],
+   ans:1,fb:"⚡ HTTPS usa RSA/DH para el handshake inicial y acordar una clave AES (simétrica). Luego toda la sesión usa AES ultrarrápido. Es lo mejor de ambos mundos: seguridad asimétrica + velocidad simétrica."},
+  {t:"4.3",q:"¿Qué garantiza 'Perfect Forward Secrecy' con Diffie-Hellman Efímero?",
+   opts:["Que la conexión nunca se cae","Si la clave privada del servidor se compromete DESPUÉS, las sesiones pasadas siguen siendo secretas","Que el certificado SSL dura para siempre","Que no necesitas contraseña"],
+   ans:1,fb:"⚡ PFS garantiza que cada sesión usa claves temporales efímeras. Aunque un atacante grabe el tráfico HOY y robe la clave privada MAÑANA, NO puede descifrar las sesiones grabadas. Cada sesión es irrecuperable."},
+  {t:"4.4",q:"Un computador cuántico con el algoritmo de Shor podría romper RSA. ¿Cuál es la solución?",
+   opts:["RSA con claves de 1 millón de bits","Criptografía post-cuántica basada en retículos (lattices) — resistente a ataques cuánticos","Volver a cifrado simétrico exclusivamente","Usar fibra óptica solamente"],
+   ans:1,fb:"⚡ El NIST seleccionó en 2024 los primeros estándares post-cuánticos: CRYSTALS-Kyber y CRYSTALS-Dilithium, basados en problemas de retículos resistentes al algoritmo de Shor. La transición post-cuántica ya comenzó."}
+];
+
+// ══ STATE ══
+let score=0,sLeft=600,tInterval=null,pName='',tBlock=null,tIdx=0;
+let scores={t41:0,t42:0,t43:0,t44:0,t45:0},bScore=0,bIdx=0;
+
+// ══ LOCAL STORAGE ══
+const LS='utel_s4';
+function getAll(){try{return JSON.parse(localStorage.getItem(LS)||'[]');}catch{return[];}}
+function saveScore(name,pts){
+  let all=getAll();
+  const ex=all.findIndex(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(ex>=0){if(pts>all[ex].score)all[ex]={name,score:pts,date:new Date().toLocaleDateString('es-MX')};}
+  else all.push({name,score:pts,date:new Date().toLocaleDateString('es-MX')});
+  all.sort((a,b)=>b.score-a.score);
+  localStorage.setItem(LS,JSON.stringify(all.slice(0,60)));
+}
+
+// ══ TIMER ══
+function startTimer(){document.getElementById('hud').style.display='flex';document.getElementById('phases').style.display='flex';tInterval=setInterval(()=>{sLeft--;uptTimer();if(sLeft<=0){clearInterval(tInterval);endGame();}},1000);}
+function uptTimer(){const m=Math.floor(sLeft/60),s=sLeft%60;const el=document.getElementById('timer');el.textContent=`${m}:${s.toString().padStart(2,'0')}`;el.className='hud-timer'+(sLeft<=60?' danger':sLeft<=120?' warning':'');}
+function addScore(pts,el){score+=pts;document.getElementById('scoreHud').textContent=score;if(el){const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,pts>=150?'255,224,0':'0,212,255',pts>=150?28:20);}}
+function uptPhase(p){for(let i=0;i<8;i++)document.getElementById('pd'+i).className='pd'+(i<p?' done':i===p?' active':'');}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+
+// ══ START ══
+function handleStart(){
+  const raw=document.getElementById('nameInput').value.trim();
+  const err=document.getElementById('nerr');
+  if(raw.split(/\s+/).filter(p=>p.length>1).length<2){err.className='nerr show';return;}
+  err.className='nerr';pName=raw;
+  score=0;sLeft=600;tIdx=0;scores={t41:0,t42:0,t43:0,t44:0,t45:0};bScore=0;bIdx=0;
+  document.getElementById('scoreHud').textContent='0';
+  document.getElementById('hudPlayer').textContent=pName.split(' ')[0].toUpperCase();
+  startTimer();showScreen('s-sec41');uptPhase(0);
+}
+
+// ══ TRIVIA ══
+function startTrivia(block){
+  tBlock=block;tIdx=0;
+  const cfg={t41:{cls:'b41',tag:'4.1 — GENERALIDADES',ph:0},t42:{cls:'b42',tag:'4.2 — LLAVES PÚBLICAS Y PRIVADAS',ph:2},t43:{cls:'b43',tag:'4.3 — INTERCAMBIO DE CLAVES',ph:4},t44:{cls:'b44',tag:'4.4 — ALGORITMO RSA',ph:5},t45:{cls:'b45',tag:'4.5 — ALGORITMO ELGAMAL',ph:7}};
+  const c=cfg[block];
+  document.getElementById('trivBadge').className='badge '+c.cls;
+  document.getElementById('trivBadge').textContent='▌ TEMA '+c.tag.split('—')[0].trim();
+  document.getElementById('trivTag').textContent='// '+c.tag;
+  uptPhase(c.ph);showScreen('s-trivia');loadQ();
+}
+function loadQ(){
+  const qs=Q[tBlock],q=qs[tIdx];
+  document.getElementById('qCount').textContent=`PREGUNTA ${tIdx+1} DE ${qs.length}`;
+  document.getElementById('qText').textContent=q.q;
+  document.getElementById('fbBox').className='fb';document.getElementById('btnNext').style.display='none';
+  const a=document.getElementById('optsArea');a.innerHTML='';
+  q.opts.forEach((opt,i)=>{const btn=document.createElement('button');btn.className='opt';btn.innerHTML=`<span style="font-family:var(--mono);color:rgba(255,224,0,.45);font-size:13px;margin-right:12px;">${['A','B','C','D'][i]}</span>${opt}`;btn.onclick=()=>ansQ(i,btn);a.appendChild(btn);});
+}
+function ansQ(idx,btn){
+  const q=Q[tBlock][tIdx];
+  document.querySelectorAll('#optsArea .opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('fbBox');
+  if(idx===q.ans){btn.classList.add('correct');fb.className='fb ok show';fb.textContent=q.fb;addScore(100,btn);scores[tBlock]++;}
+  else{btn.classList.add('wrong');document.querySelectorAll('#optsArea .opt')[q.ans].classList.add('correct');fb.className='fb fail show';fb.textContent='❌ '+q.fb;}
+  document.getElementById('btnNext').style.display='inline-block';
+}
+function nextQ(){tIdx++;if(tIdx>=Q[tBlock].length)goNext('trivia_'+tBlock);else loadQ();}
+
+// ══ FLOW ══
+function goNext(from){
+  const map={
+    'trivia_t41':()=>{uptPhase(1);runKeyDemo();showScreen('s-keydemo');},
+    'keydemo':()=>showScreen('s-sec42'),
+    'trivia_t42':()=>{showScreen('s-sec43');},
+    'trivia_t43':()=>{uptPhase(4);randomizeDH();showScreen('s-dh');},
+    'dh':()=>showScreen('s-sec44'),
+    'trivia_t44':()=>{uptPhase(6);calcRSA();showScreen('s-rsa');},
+    'rsa':()=>showScreen('s-sec45'),
+    'trivia_t45':()=>{uptPhase(7);loadBoss();showScreen('s-boss');},
+    'boss':()=>endGame()
+  };
+  if(map[from])map[from]();
+}
+
+// ══ KEY DEMO ══
+function modpow(b,e,m){let r=1n;b=BigInt(b)%BigInt(m);e=BigInt(e);m=BigInt(m);while(e>0n){if(e%2n===1n)r=r*b%m;e=e>>1n;b=b*b%m;}return Number(r);}
+function runKeyDemo(){
+  const v=parseInt(document.getElementById('demoNum').value)||42;
+  document.getElementById('demoPlainVal').textContent=v;
+  if(v<1||v>100){return;}
+  const c=modpow(v,65537,3233);
+  const d2=modpow(c,2753,3233);
+  document.getElementById('demoCipherVal').textContent=c;
+  document.getElementById('demoDecVal').textContent=d2;
+}
+
+// ══ DH ══
+const PRIMES=[11,13,17,19,23,29,31,37,41,43,47];
+function mpN(b,e,m){let r=1;b=b%m;while(e>0){if(e%2===1)r=r*b%m;e=Math.floor(e/2);b=b*b%m;}return r;}
+function randomizeDH(){
+  const p=PRIMES[Math.floor(Math.random()*PRIMES.length)];
+  const g=[2,3,5][Math.floor(Math.random()*3)];
+  const a=2+Math.floor(Math.random()*(p-3));
+  let b=2+Math.floor(Math.random()*(p-3));while(b===a)b=2+Math.floor(Math.random()*(p-3));
+  const Ap=mpN(g,a,p),Bp=mpN(g,b,p),sh=mpN(Bp,a,p);
+  document.getElementById('dhP').textContent=p;document.getElementById('dhG').textContent=g;
+  document.getElementById('dhA').textContent=a;document.getElementById('dhB').textContent=b;
+  document.getElementById('dhApub').textContent=Ap;document.getElementById('dhBpub').textContent=Bp;
+  document.getElementById('dhShared').textContent=sh;
+  document.getElementById('dhAliceCalc').textContent=`${Bp}^${a} mod ${p}`;
+  document.getElementById('dhBobCalc').textContent=`${Ap}^${b} mod ${p}`;
+}
+
+// ══ RSA ══
+function gcd(a,b){while(b){let t=b;b=a%b;a=t;}return a;}
+function modInv(e,phi){let[or,r,os,s]=[e,phi,1,0];while(r){const q=Math.floor(or/r);[or,r]=[r,or-q*r];[os,s]=[s,os-q*s];}return((os%phi)+phi)%phi;}
+function findE(phi){for(const e of[3,5,17,257,65537])if(e<phi&&gcd(e,phi)===1)return e;for(let e=3;e<phi;e+=2)if(gcd(e,phi)===1)return e;return 3;}
+function calcRSA(){
+  const p=parseInt(document.getElementById('rsaP').value),q=parseInt(document.getElementById('rsaQ').value);
+  if(p===q){document.getElementById('rsaN').textContent='p ≠ q';return;}
+  const n=p*q,phi=(p-1)*(q-1),e=findE(phi),d=modInv(e,phi);
+  document.getElementById('rsaN').textContent=n;document.getElementById('rsaPhi').textContent=phi;
+  document.getElementById('rsaE').textContent=e;document.getElementById('rsaD').textContent=d;
+  document.getElementById('rsaEsm').textContent=e;document.getElementById('rsaNsm').textContent=n;
+  document.getElementById('rsaDsm').textContent=d;document.getElementById('rsaNsm2').textContent=n;
+}
+
+// ══ BOSS ══
+function loadBoss(){
+  const q=BOSS[bIdx];
+  document.getElementById('bossCount').textContent=`⚡ PREGUNTA ${bIdx+1} DE ${BOSS.length} — TEMA ${q.t}`;
+  document.getElementById('bossQ').textContent=q.q;
+  document.getElementById('bossFb').className='fb';document.getElementById('btnBossNext').style.display='none';
+  const a=document.getElementById('bossOpts');a.innerHTML='';
+  q.opts.forEach((opt,i)=>{const btn=document.createElement('button');btn.className='opt';btn.innerHTML=`<span style="font-family:var(--mono);color:rgba(255,34,68,.5);font-size:13px;margin-right:12px;">${['A','B','C','D'][i]}</span>${opt}`;btn.onclick=()=>ansB(i,btn);a.appendChild(btn);});
+}
+function ansB(idx,btn){
+  const q=BOSS[bIdx];
+  document.querySelectorAll('#bossOpts .opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('bossFb');
+  if(idx===q.ans){btn.classList.add('correct');fb.className='fb ok show';fb.textContent=q.fb;addScore(150,btn);bScore++;}
+  else{btn.classList.add('wrong');document.querySelectorAll('#bossOpts .opt')[q.ans].classList.add('correct');fb.className='fb fail show';fb.textContent='❌ '+q.fb;}
+  document.getElementById('btnBossNext').style.display='inline-block';
+}
+function nextBoss(){bIdx++;if(bIdx>=BOSS.length)endGame();else{uptPhase(7);loadBoss();}}
+
+// ══ END ══
+function endGame(){
+  clearInterval(tInterval);document.getElementById('hud').style.display='none';document.getElementById('phases').style.display='none';
+  const max=15*100+3*150,pct=score/max;
+  let rank,trophy;
+  if(pct>=.85){rank='EXPERTO 🏆';trophy='🏆';}else if(pct>=.6){rank='AVANZADO 🥈';trophy='🥈';}else if(pct>=.35){rank='EN PROGRESO 🥉';trophy='🥉';}else{rank='PRINCIPIANTE 📚';trophy='📚';}
+  saveScore(pName,score);
+  showScreen('s-end');
+  document.getElementById('finalScore').textContent=score;document.getElementById('trophy').textContent=trophy;
+  document.getElementById('rankMsg').textContent=pct>=.85?'¡EXPERTO EN CIFRADO ASIMÉTRICO! Dominas todos los temas.':pct>=.6?'¡Muy bien! Conoces RSA, Diffie-Hellman y ElGamal.':pct>=.35?'Buen esfuerzo. Repasa RSA y Diffie-Hellman.':'Sigue practicando. ¡La criptografía asimétrica es fascinante!';
+  ['t41','t42','t43','t44','t45'].forEach(k=>document.getElementById('s'+k).textContent=`${scores[k]}/3`);
+  document.getElementById('stBoss').textContent=`${bScore}/3`;
+  for(let i=0;i<10;i++)setTimeout(()=>burst(Math.random()*innerWidth,Math.random()*innerHeight*.6,pct>=.6?'255,224,0':'0,255,255',28),i*160);
+}
+
+// ══ SCOREBOARD ══
+function showSB(){
+  showScreen('s-sb');
+  const players=getAll();
+  if(!players.length){document.getElementById('sbContent').innerHTML='<div class="sb-empty">// Sin participantes aún.<br>¡Sé el primero en completar la misión!</div>';return;}
+  const M=['🥇','🥈','🥉'],RC=['g','s','b'];
+  let html=`<table class="sb-t"><thead><tr><th>#</th><th>NOMBRE</th><th>SCORE</th><th>FECHA</th><th>NIVEL</th></tr></thead><tbody>`;
+  players.forEach((p,i)=>{
+    const isMe=p.name.toLowerCase()===pName.toLowerCase();
+    const badge=p.score>=1800?'<span class="sb-badge exp">EXPERTO</span>':p.score>=1100?'<span class="sb-badge adv">AVANZADO</span>':'<span class="sb-badge ok">EN PROGRESO</span>';
+    html+=`<tr${isMe?' class="me"':''}><td><span class="sb-rank ${i<3?RC[i]:''}">${i<3?M[i]:i+1}</span></td><td style="color:rgba(240,248,255,.9);font-size:15px;">${esc(p.name)}${isMe?' <span style="font-family:var(--mono);color:var(--gold);font-size:10px;">(tú)</span>':''}</td><td class="sb-score">${p.score}</td><td style="font-family:var(--mono);font-size:12px;color:rgba(240,248,255,.35);">${p.date||'—'}</td><td>${badge}</td></tr>`;
+  });
+  html+=`</tbody></table><div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:rgba(255,224,0,.25);text-align:center;letter-spacing:3px;">${players.length} participante${players.length!==1?'s':''} · Score máx: 1,950</div>`;
+  document.getElementById('sbContent').innerHTML=html;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+calcRSA();runKeyDemo();randomizeDH();
+</script>
+</body>
+</html>
