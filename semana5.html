@@ -1,0 +1,560 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+.s{display:none}.s.active{display:block}
+body,html{background:#f1f5f9}
+.w{max-width:820px;margin:0 auto;padding:1.5rem 1rem 5rem;font-family:'Outfit',sans-serif}
+/* ---- LAYOUT ---- */
+.card{background:#fff;border-radius:16px;padding:1.75rem;margin-bottom:14px;border:1px solid #e2e8f0}
+.card-flat{background:#fff;border-radius:16px;margin-bottom:14px;border:1px solid #e2e8f0;overflow:hidden}
+.surface{background:#f8fafc;border-radius:10px;padding:1.25rem;margin-bottom:12px;border:1px solid #e2e8f0}
+.dv{height:1px;background:#f1f5f9;margin:1.25rem 0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ft{text-align:center;font-size:13px;color:#0f172a;margin-top:2rem;padding-top:1rem;border-top:1px solid #e2e8f0;font-family:'Outfit',sans-serif}
+/* ---- FADE IN ---- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fi{animation:fadeUp .4s ease both}
+.fi-1{animation-delay:.05s}.fi-2{animation-delay:.12s}.fi-3{animation-delay:.19s}.fi-4{animation-delay:.26s}
+/* ---- COLORES POR MÓDULO ---- */
+.c1{color:#0e7490}.c2{color:#5b21b6}.c3{color:#c2410c}
+.bg1{background:#0e7490}.bg2{background:#5b21b6}.bg3{background:#c2410c}
+.bg1l{background:#ecfeff}.bg2l{background:#f5f3ff}.bg3l{background:#fff7ed}
+.bdr1{border-color:#a5f3fc}.bdr2{border-color:#ddd6fe}.bdr3{border-color:#fed7aa}
+/* ---- TIPOGRAFÍA ---- */
+.t-hero{font-size:36px;font-weight:700;color:#0f172a;line-height:1.1}
+.t-hero span{color:#059669}
+.t-h1{font-size:22px;font-weight:700;color:#fff}
+.t-h2{font-size:18px;font-weight:600;color:#0f172a}
+.t-label{font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.8px}
+.t-body{font-size:15px;color:#475569;line-height:1.6}
+.t-num{font-family:'JetBrains Mono',monospace;font-weight:500}
+/* ---- BOTONES ---- */
+.btn{border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:transform .12s,opacity .12s;display:block;width:100%;padding:15px;text-align:center}
+.btn:hover{transform:translateY(-1px);opacity:.92}
+.btn:active{transform:translateY(0)}
+.btn-dark{background:#0f172a;color:#fff}
+.btn-g{background:#059669;color:#fff}
+.btn-1{background:#0e7490;color:#fff}
+.btn-2{background:#5b21b6;color:#fff}
+.btn-3{background:#c2410c;color:#fff}
+.btn-out{background:#fff;color:#475569;border:1.5px solid #cbd5e1;padding:14px}
+.btn-out:hover{border-color:#94a3b8;background:#f8fafc}
+.btn-sm{background:#f8fafc;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;display:inline-flex;align-items:center;gap:6px;margin-bottom:1.25rem}
+.btn-sm:hover{background:#f1f5f9}
+.btn-inline{border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:'JetBrains Mono',monospace;padding:9px 16px;transition:opacity .12s}
+.btn-inline:hover{opacity:.85}
+.btn-inline.g{background:#059669;color:#fff}
+.btn-inline.c{background:#0e7490;color:#fff}
+.btn-inline.muted{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
+/* ---- MODULE CARD ---- */
+.mod-hdr{padding:1.5rem 1.75rem;display:flex;align-items:flex-start;justify-content:space-between}
+.mod-num{font-size:72px;font-weight:700;color:rgba(255,255,255,.18);line-height:1;font-family:'JetBrains Mono',monospace}
+.mod-sup{font-size:11px;font-weight:600;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.mod-body{padding:1.25rem 1.75rem 1.5rem}
+.mod-desc{font-size:14px;color:#475569;line-height:1.6;margin-bottom:1rem}
+.mod-foot{display:flex;justify-content:space-between;align-items:center}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:11px;padding:4px 10px;border-radius:99px;font-weight:500;border:1px solid}
+.p1{background:#ecfeff;color:#0e7490;border-color:#a5f3fc}
+.p2{background:#f5f3ff;color:#5b21b6;border-color:#ddd6fe}
+.p3{background:#fff7ed;color:#c2410c;border-color:#fed7aa}
+/* ---- BADGE ---- */
+.badge{font-size:11px;padding:4px 10px;border-radius:6px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.badge-1{background:#ecfeff;color:#0e7490;border:1px solid #a5f3fc}
+.badge-2{background:#f5f3ff;color:#5b21b6;border:1px solid #ddd6fe}
+.badge-3{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.badge-g{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.badge-n{background:#f8fafc;color:#475569;border:1px solid #e2e8f0}
+/* ---- PROGRESS ---- */
+.pb-wrap{background:#f1f5f9;border-radius:99px;height:6px;margin-bottom:1.5rem;overflow:hidden}
+.pb-fill{height:6px;border-radius:99px;transition:width .4s ease}
+.pb-1{background:#0e7490}.pb-2{background:#5b21b6}.pb-3{background:#c2410c}.pb-g{background:#059669}
+/* ---- OPCIONES QUIZ ---- */
+.qtxt{font-size:18px;font-weight:600;color:#0f172a;margin-bottom:1.25rem;line-height:1.5}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:14px 16px;cursor:pointer;font-size:15px;color:#1e293b;text-align:left;font-family:'Outfit',sans-serif;display:flex;align-items:flex-start;gap:12px;line-height:1.5;transition:all .15s;font-weight:400}
+.opt:hover:not(:disabled){border-color:#0e7490;background:#ecfeff;color:#0e7490}
+.opt.c{background:#ecfdf5;border-color:#059669;color:#065f46}
+.opt.w{background:#fef2f2;border-color:#ef4444;color:#7f1d1d}
+.opt:disabled{cursor:default}
+.ol{width:28px;height:28px;min-width:28px;border-radius:7px;background:#fff;border:2px solid #e2e8f0;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:1px}
+.opt.c .ol{background:#059669;color:#fff;border-color:#059669}
+.opt.w .ol{background:#ef4444;color:#fff;border-color:#ef4444}
+.opt:hover:not(:disabled) .ol{border-color:#0e7490;color:#0e7490}
+.fb{border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;margin-top:1rem;display:none;font-weight:400}
+.fb.show{display:block}
+.fbg{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.fbr{background:#fef2f2;color:#7f1d1d;border:1px solid #fecaca}
+/* ---- ALERTS ---- */
+.alg{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;border-radius:10px;padding:11px 14px;font-size:14px;line-height:1.5}
+.alr{background:#fef2f2;color:#7f1d1d;border:1px solid #fecaca;border-radius:10px;padding:11px 14px;font-size:14px}
+.aly{background:#fffbeb;color:#78350f;border:1px solid #fde68a;border-radius:10px;padding:11px 14px;font-size:14px}
+.emsg{background:#fef2f2;color:#7f1d1d;border:1px solid #fecaca;border-radius:10px;padding:11px 14px;font-size:14px;display:none;margin-top:8px}
+.ibox{background:#f8fafc;border-radius:10px;padding:12px 14px;font-size:14px;color:#475569;line-height:1.5;border-left:3px solid #cbd5e1;border-top-left-radius:0;border-bottom-left-radius:0;margin-top:1rem}
+/* ---- TERMINAL ---- */
+.term{background:#0f172a;border-radius:12px;overflow:hidden;margin-bottom:1rem;border:1px solid #1e293b}
+.tbar{display:flex;align-items:center;gap:6px;padding:.7rem 1rem;border-bottom:1px solid #1e293b}
+.tdd{width:10px;height:10px;border-radius:50%}
+.tn{font-size:11px;color:#64748b;font-family:'JetBrains Mono',monospace;margin-left:4px;flex:1}
+.stag{background:#0e4152;color:#38bdf8;font-size:10px;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;border:1px solid #155e75}
+.tbody{padding:1rem}
+.tl{font-size:11px;color:#64748b;font-family:'JetBrains Mono',monospace;margin-bottom:5px;display:block;margin-top:10px}
+.tl:first-child{margin-top:0}
+.ho{font-family:'JetBrains Mono',monospace;font-size:10px;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:9px 11px;word-break:break-all;line-height:1.8;min-height:36px;color:#94a3b8}
+.ho.g{color:#4ade80}.ho.b{color:#38bdf8}
+.hs{color:#334155}.hd{color:#f87171;font-weight:500}
+.dk-ti{width:100%;padding:9px 11px;font-size:13px;border:1px solid #334155;border-radius:6px;background:#1e293b;color:#e2e8f0;font-family:'JetBrains Mono',monospace}
+.dk-ti:focus{outline:none;border-color:#38bdf8}
+.st-row{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.st{background:#1e293b;border:1px solid #334155;border-radius:4px;padding:4px 9px;font-size:11px;color:#64748b;font-family:'JetBrains Mono',monospace}
+.st .v{color:#4ade80}
+/* ---- INPUTS ---- */
+.inp{width:100%;padding:13px 15px;font-size:15px;border:2px solid #e2e8f0;border-radius:10px;background:#fff;color:#0f172a;font-family:'Outfit',sans-serif;transition:border-color .15s}
+.inp:focus{outline:none;border-color:#059669}
+/* ---- SECTION HEADER ---- */
+.sec-hdr{background:#fff;border-radius:16px;padding:1.1rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;border:1px solid #e2e8f0}
+/* ---- MFA ---- */
+.mstep{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;border:2px solid #e2e8f0;background:#f8fafc;color:#94a3b8;transition:all .3s}
+.mstep.act{background:#059669;color:#fff;border-color:#059669}
+.mstep.dn{background:#ecfdf5;color:#059669;border-color:#a7f3d0}
+.mstep-l{font-size:11px;color:#94a3b8;text-align:center;line-height:1.3;margin-top:5px;font-weight:500}
+.mstep-l.act{color:#059669;font-weight:600}
+.mstep-l.dn{color:#059669}
+.mcon{flex:1;height:2px;background:#e2e8f0;margin:0 8px;margin-bottom:24px;transition:background .3s}
+.mcon.dn{background:#a7f3d0}
+.mpanel{display:none}.mpanel.act{display:block}
+.ftag{display:inline-flex;align-items:center;gap:7px;background:#ecfdf5;color:#065f46;font-size:13px;padding:7px 13px;border-radius:8px;border:1px solid #a7f3d0;margin-bottom:1.1rem;font-weight:600}
+.fro{font-size:14px;color:#475569;background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;padding:11px 14px;margin-bottom:1rem}
+.flbl{font-size:14px;color:#374151;display:block;margin-bottom:7px;font-weight:500}
+.notif{background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:16px;display:flex;align-items:flex-start;gap:14px;margin-bottom:1.25rem}
+.notif-ic{width:44px;height:44px;background:#059669;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.napp{font-size:12px;color:#64748b;margin-bottom:3px;font-family:'JetBrains Mono',monospace}
+.notp{font-size:38px;font-weight:700;color:#059669;letter-spacing:10px;font-family:'JetBrains Mono',monospace;margin-top:5px}
+.otmr{display:flex;align-items:center;gap:8px;margin-top:7px}
+.otms{font-size:12px;color:#64748b;font-family:'JetBrains Mono',monospace}
+.otmb{width:80px;height:4px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.otmf{height:4px;border-radius:99px;background:#059669;transition:width 1s linear}
+.oexp{font-size:13px;color:#dc2626;margin-top:5px;display:none}
+.otpi{width:100%;padding:16px;font-size:24px;text-align:center;letter-spacing:10px;font-family:'JetBrains Mono',monospace;border:2px solid #e2e8f0;border-radius:10px;background:#fff;color:#0f172a;transition:border-color .15s}
+.otpi:focus{outline:none;border-color:#059669}
+.otpi.err{border-color:#ef4444;background:#fef2f2}
+.bio-c{text-align:center;padding:1.5rem 0}
+.bio-r{width:96px;height:96px;border-radius:50%;border:2.5px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;cursor:pointer;transition:all .2s;background:#f8fafc}
+.bio-r:hover,.bio-r.scan,.bio-r.dn2{border-color:#059669;border-style:solid;background:#ecfdf5}
+.bio-h{font-size:14px;color:#475569;margin-bottom:5px;font-weight:500}
+.bio-s{font-size:13px;color:#64748b;font-family:'JetBrains Mono',monospace;min-height:20px}
+.mfa-ok{text-align:center;padding:1.5rem 0}
+.mfa-ck{width:68px;height:68px;border-radius:50%;background:#ecfdf5;border:2px solid #a7f3d0;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.vil{display:flex;flex-direction:column;gap:9px;margin-bottom:1.25rem}
+.vi{display:flex;align-items:center;gap:12px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px}
+.vic{width:24px;height:24px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.vitx{font-size:14px;color:#065f46;font-weight:600}
+.vifc{font-size:11px;color:#059669;font-family:'JetBrains Mono',monospace}
+/* ---- SCENARIO BOX ---- */
+.scen{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:1.25rem;margin-bottom:1.25rem}
+.scen-title{font-size:12px;font-weight:700;color:#b45309;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
+.scen-ctx{font-size:13px;color:#78350f;font-family:'JetBrains Mono',monospace;line-height:1.6;margin-bottom:1rem}
+</style>
+
+<div class="w">
+
+<!-- ======= WELCOME ======= -->
+<div id="sw" class="s active">
+
+  <div class="card fi fi-1" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border:none;padding:2rem">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.75rem">
+      <div style="width:40px;height:40px;background:#059669;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#4ade80;font-family:'JetBrains Mono',monospace;font-weight:500;text-transform:uppercase;letter-spacing:.7px">UTEL Universidad · Maestría</div>
+        <div style="font-size:14px;color:#94a3b8">Cifrado y Criptografía · Semana 5</div>
+      </div>
+    </div>
+    <div style="font-size:36px;font-weight:700;color:#f1f5f9;line-height:1.1;margin-bottom:.75rem">Laboratorio<br>interactivo de<br><span style="color:#4ade80">criptografía</span></div>
+    <div style="font-size:14px;color:#64748b;font-family:'JetBrains Mono',monospace;margin-bottom:2rem">Integridad · Autenticación · HASH · Casos reales</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div style="background:#0e7490;border-radius:12px;padding:1.25rem;text-align:center">
+        <div style="font-size:52px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;line-height:1">10</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;margin-top:8px;font-weight:500">Preguntas<br>Quiz</div>
+      </div>
+      <div style="background:#5b21b6;border-radius:12px;padding:1.25rem;text-align:center">
+        <div style="font-size:52px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;line-height:1">5</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;margin-top:8px;font-weight:500">Escenarios<br>Práctica</div>
+      </div>
+      <div style="background:#c2410c;border-radius:12px;padding:1.25rem;text-align:center">
+        <div style="font-size:52px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;line-height:1">4</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;margin-top:8px;font-weight:500">Simuladores<br>Interactivos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card fi fi-2">
+    <div style="font-size:12px;font-weight:700;color:#059669;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;margin-bottom:1.1rem">¿Cómo funciona?</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:1.5rem">
+      <div style="display:flex;gap:13px;align-items:flex-start">
+        <div style="width:28px;height:28px;min-width:28px;background:#0e7490;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-family:'JetBrains Mono',monospace;font-weight:700">01</div>
+        <div><div style="font-size:15px;font-weight:600;color:#0f172a;margin-bottom:2px">Simuladores</div><div style="font-size:14px;color:#475569;line-height:1.5">SHA-256 en tiempo real, efecto avalancha, sal (salt) y login MFA completo con código OTP.</div></div>
+      </div>
+      <div style="display:flex;gap:13px;align-items:flex-start">
+        <div style="width:28px;height:28px;min-width:28px;background:#5b21b6;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-family:'JetBrains Mono',monospace;font-weight:700">02</div>
+        <div><div style="font-size:15px;font-weight:600;color:#0f172a;margin-bottom:2px">Quiz de evaluación</div><div style="font-size:14px;color:#475569;line-height:1.5">10 preguntas de opción múltiple con retroalimentación y explicación detallada.</div></div>
+      </div>
+      <div style="display:flex;gap:13px;align-items:flex-start">
+        <div style="width:28px;height:28px;min-width:28px;background:#c2410c;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-family:'JetBrains Mono',monospace;font-weight:700">03</div>
+        <div><div style="font-size:15px;font-weight:600;color:#0f172a;margin-bottom:2px">Práctica guiada</div><div style="font-size:14px;color:#475569;line-height:1.5">5 escenarios situacionales con simuladores integrados. Interactúa y descubre la respuesta.</div></div>
+      </div>
+    </div>
+    <div class="dv"></div>
+    <label style="font-size:15px;font-weight:600;color:#0f172a;display:block;margin-bottom:9px">Nombre del estudiante</label>
+    <input id="nm" type="text" class="inp" placeholder="Escribe tu nombre completo..." style="margin-bottom:13px"/>
+    <button class="btn btn-dark" onclick="startApp()">Ingresar a la Actividad →</button>
+  </div>
+
+  <div class="ft">Creado por: <strong>José Luis Perales Trejo</strong> · Semana 5 · Cifrado y Criptografía · UTEL Universidad</div>
+</div>
+
+<!-- ======= HUB ======= -->
+<div id="sh" class="s">
+  <div class="card fi" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border:none;display:flex;align-items:center;justify-content:space-between;padding:1.5rem 1.75rem">
+    <div>
+      <div style="font-size:12px;color:#4ade80;font-family:'JetBrains Mono',monospace;font-weight:600;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Sesión activa</div>
+      <div style="font-size:22px;font-weight:700;color:#f1f5f9" id="nm-show"></div>
+    </div>
+    <div style="text-align:center;background:rgba(255,255,255,.08);border-radius:12px;padding:1rem 1.5rem;border:1px solid rgba(255,255,255,.12)">
+      <div style="font-size:44px;font-weight:700;color:#4ade80;font-family:'JetBrains Mono',monospace;line-height:1" id="hub-pts">0</div>
+      <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-top:5px;font-weight:600">Puntos</div>
+    </div>
+  </div>
+
+  <div class="card-flat fi fi-1 mod-card" onclick="show('ss')" style="cursor:pointer">
+    <div class="mod-hdr bg1">
+      <div>
+        <div class="mod-sup">Módulo 01 · Simuladores</div>
+        <div class="t-h1" style="font-size:24px;font-weight:700">SHA-256 · Avalancha · Salt · MFA</div>
+      </div>
+      <div class="mod-num">01</div>
+    </div>
+    <div class="mod-body">
+      <div class="mod-desc">Genera hashes SHA-256 en tiempo real, experimenta el efecto avalancha, demuestra la sal (salt) y completa un login MFA con código OTP y temporizador de 30 segundos.</div>
+      <div class="mod-foot">
+        <div class="pills"><span class="pill p1">SHA-256</span><span class="pill p1">Avalancha</span><span class="pill p1">Salt</span><span class="pill p1">MFA</span></div>
+        <div style="font-size:13px;font-weight:700;color:#0e7490;font-family:'JetBrains Mono',monospace" id="mod1-arrow">EXPLORAR →</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-flat fi fi-2 mod-card" onclick="openQuiz()" style="cursor:pointer">
+    <div class="mod-hdr bg2">
+      <div>
+        <div class="mod-sup" id="qs-sup">Módulo 02 · Quiz</div>
+        <div class="t-h1" style="font-size:24px;font-weight:700">Evaluación — 10 preguntas</div>
+      </div>
+      <div class="mod-num">02</div>
+    </div>
+    <div class="mod-body">
+      <div class="mod-desc">Evaluación de opción múltiple sobre integridad de datos, autenticación, hashes MD5/SHA-1/SHA-256, efecto avalancha, salt y casos reales con retroalimentación inmediata.</div>
+      <div class="mod-foot">
+        <div class="pills"><span class="pill p2">10 preguntas</span><span class="pill p2">1 pt c/u</span><span class="pill p2">Feedback por respuesta</span></div>
+        <div style="font-size:13px;font-weight:700;color:#5b21b6;font-family:'JetBrains Mono',monospace" id="qs-arrow">INICIAR →</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-flat fi fi-3 mod-card" onclick="openPrac()" style="cursor:pointer">
+    <div class="mod-hdr bg3">
+      <div>
+        <div class="mod-sup" id="ps-sup">Módulo 03 · Práctica guiada</div>
+        <div class="t-h1" style="font-size:24px;font-weight:700">Escenarios con simuladores</div>
+      </div>
+      <div class="mod-num">03</div>
+    </div>
+    <div class="mod-body">
+      <div class="mod-desc">5 escenarios situacionales con simuladores integrados. Usa el generador SHA-256, salt demo, inspector de integridad y el simulador MFA para responder cada pregunta.</div>
+      <div class="mod-foot">
+        <div class="pills"><span class="pill p3">5 escenarios</span><span class="pill p3">Simulador integrado</span><span class="pill p3">Casos reales</span></div>
+        <div style="font-size:13px;font-weight:700;color:#c2410c;font-family:'JetBrains Mono',monospace" id="ps-arrow">INICIAR →</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="hub-summary" style="display:none">
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:#64748b;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;margin-bottom:1rem">Progreso acumulado</div>
+      <div id="hub-bars"></div>
+      <button class="btn btn-dark" style="margin-top:1rem" onclick="show('sr')">Ver resultados completos →</button>
+    </div>
+  </div>
+  <div class="ft">Creado por: <strong>José Luis Perales Trejo</strong> · Semana 5 · UTEL Universidad</div>
+</div>
+
+<!-- ======= SIMULADORES ======= -->
+<div id="ss" class="s">
+  <div class="card-flat fi" style="background:linear-gradient(135deg,#0e7490,#0891b2);border:none;padding:1.25rem 1.5rem;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+      <div><div style="font-size:12px;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;font-weight:600">Módulo 01</div><div style="font-size:17px;font-weight:700;color:#fff">Simuladores</div></div>
+    </div>
+    <div class="badge" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)">4 herramientas</div>
+  </div>
+  <button class="btn-sm" onclick="show('sh')">← Menú principal</button>
+
+  <div class="term">
+    <div class="tbar"><div class="tdd" style="background:#ff5f56"></div><div class="tdd" style="background:#ffbd2e"></div><div class="tdd" style="background:#27c93f"></div><div class="tn">01 — sha256_generator.sh</div><div class="stag">SHA-256 en vivo</div></div>
+    <div class="tbody">
+      <p style="font-size:12px;color:#64748b;margin-bottom:.875rem;line-height:1.5;font-family:'JetBrains Mono',monospace">// Genera SHA-256 en tiempo real. Siempre produce 256 bits (64 hex chars) sin importar el tamaño del input.</p>
+      <div class="tl">$ texto_entrada:</div>
+      <textarea id="s1in" rows="2" oninput="s1Upd()" class="dk-ti" style="resize:none;margin-bottom:.75rem" placeholder="Escribe cualquier texto..."></textarea>
+      <div class="tl">$ sha256_output:</div>
+      <div class="ho" id="s1out" style="color:#64748b">Escribe algo para generar el hash...</div>
+      <div class="st-row"><span class="st" id="s1b"></span><span class="st" id="s1c"></span></div>
+      <div style="margin-top:9px"><button class="btn-inline muted" id="s1cp" onclick="s1Copy()" style="display:none">Copiar hash</button></div>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="tbar"><div class="tdd" style="background:#ff5f56"></div><div class="tdd" style="background:#ffbd2e"></div><div class="tdd" style="background:#27c93f"></div><div class="tn">02 — efecto_avalancha.sh</div><div class="stag">Avalancha</div></div>
+    <div class="tbody">
+      <p style="font-size:12px;color:#64748b;margin-bottom:.875rem;line-height:1.5;font-family:'JetBrains Mono',monospace">// Compara dos textos. Un cambio mínimo produce un hash completamente diferente.</p>
+      <div class="g2">
+        <div><div class="tl">$ texto_A:</div><input id="ava" class="dk-ti" type="text" value="Hola clase" oninput="avUpd()" style="margin-bottom:6px"/><div class="tl">$ hash_A:</div><div class="ho" id="avha" style="font-size:9.5px;color:#64748b">—</div></div>
+        <div><div class="tl">$ texto_B:</div><input id="avb" class="dk-ti" type="text" value="hola clase" oninput="avUpd()" style="margin-bottom:6px"/><div class="tl">$ hash_B:</div><div class="ho" id="avhb" style="font-size:9.5px;color:#64748b">—</div></div>
+      </div>
+      <div id="avinfo" style="margin-top:.75rem"></div>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="tbar"><div class="tdd" style="background:#ff5f56"></div><div class="tdd" style="background:#ffbd2e"></div><div class="tdd" style="background:#27c93f"></div><div class="tn">03 — salt_demonstrator.sh</div><div class="stag">Salt</div></div>
+    <div class="tbody">
+      <p style="font-size:12px;color:#64748b;margin-bottom:.875rem;line-height:1.5;font-family:'JetBrains Mono',monospace">// Misma contraseña + diferente sal = hashes únicos. Modifica la contraseña base.</p>
+      <div class="tl">$ contraseña_base:</div>
+      <input id="spw" class="dk-ti" type="text" value="123456" oninput="saltUpd()" style="margin-bottom:.875rem"/>
+      <div id="srows"><div style="color:#64748b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px">Calculando...</div></div>
+    </div>
+  </div>
+
+  <div class="card-flat">
+    <div style="background:linear-gradient(135deg,#059669,#047857);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div><div style="font-size:12px;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;font-weight:600">04 — MFA Login Simulator</div><div style="font-size:17px;font-weight:700;color:#fff">BBVA Banca Digital</div></div>
+      </div>
+      <div class="badge" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)">MFA ACTIVO</div>
+    </div>
+    <div style="display:flex;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid #f1f5f9;background:#f8fafc">
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div class="mstep act" id="mc1">1</div><div class="mstep-l act" id="ml1">Contraseña</div></div>
+      <div class="mcon" id="mco1"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div class="mstep" id="mc2">2</div><div class="mstep-l" id="ml2">Código OTP</div></div>
+      <div class="mcon" id="mco2"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div class="mstep" id="mc3">3</div><div class="mstep-l" id="ml3">Biometría</div></div>
+    </div>
+    <div style="padding:1.5rem">
+      <div class="mpanel act" id="mp1">
+        <div class="ftag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"><path d="M15 2H9a7 7 0 0 0 0 14h6a7 7 0 0 0 0-14z"/><circle cx="17" cy="9" r="1"/></svg>Factor 1 de 3 · Algo que <strong>sabes</strong></div>
+        <div style="font-size:19px;font-weight:700;color:#0f172a;margin-bottom:6px">Inicio de sesión</div>
+        <div style="font-size:14px;color:#475569;margin-bottom:1.25rem;line-height:1.5">Ingresa tu contraseña. Es el primer factor de autenticación multifactor.</div>
+        <span class="flbl">Correo electrónico</span><div class="fro">usuario@correo.com</div>
+        <span class="flbl">Contraseña</span>
+        <input id="mpw" type="password" class="inp" placeholder="Escribe cualquier contraseña..." style="margin-bottom:6px"/>
+        <div style="font-size:13px;color:#94a3b8">Para este simulador, cualquier texto funciona.</div>
+        <div class="emsg" id="mp1err">Escribe una contraseña para continuar.</div>
+        <button class="btn btn-g" style="margin-top:1rem" onclick="mfaGo(1)">Verificar contraseña →</button>
+        <div class="ibox">Un atacante que solo tiene tu contraseña NO puede entrar con MFA activo.</div>
+      </div>
+      <div class="mpanel" id="mp2">
+        <div class="ftag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>Factor 2 de 3 · Algo que <strong>tienes</strong></div>
+        <div style="font-size:19px;font-weight:700;color:#0f172a;margin-bottom:6px">Código de verificación</div>
+        <div style="font-size:14px;color:#475569;margin-bottom:1.25rem">Factor 1 verificado. Se envió un código temporal a tu teléfono.</div>
+        <div class="notif">
+          <div class="notif-ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div><div class="napp">BBVA · Mensaje de texto · ahora</div><div style="font-size:14px;color:#475569">Tu código es:</div><div class="notp" id="mdisplay">------</div><div class="otmr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="otms" id="msecs">30s</span><div class="otmb"><div class="otmf" id="mbar" style="width:100%"></div></div></div><div class="oexp" id="mexp">Código expirado — <button onclick="mfaRenew()" style="background:none;border:none;cursor:pointer;color:#dc2626;text-decoration:underline;font-size:13px;padding:0;font-family:'Outfit',sans-serif">Generar nuevo</button></div></div>
+        </div>
+        <span class="flbl">Ingresa el código de 6 dígitos:</span>
+        <input id="motpi" class="otpi" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="— — — — — —" oninput="mfaOtpInput(this)"/>
+        <div class="emsg" id="mp2err"></div>
+        <button class="btn btn-g" style="margin-top:1rem" onclick="mfaGo(2)">Verificar código →</button>
+        <div class="ibox">El código OTP caduca en 30 segundos y solo existe en tu teléfono.</div>
+      </div>
+      <div class="mpanel" id="mp3">
+        <div class="ftag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M12 2C9.3 2 7 4.2 7 7c0 2.4 1.5 4.4 3.7 5.2L10 18h4l-.7-5.8C15.5 11.4 17 9.4 17 7c0-2.8-2.3-5-5-5z"/><path d="M8 22h8"/></svg>Factor 3 de 3 · Algo que <strong>eres</strong></div>
+        <div style="font-size:19px;font-weight:700;color:#0f172a;margin-bottom:6px">Autenticación biométrica</div>
+        <div style="font-size:14px;color:#475569;margin-bottom:.875rem">Último paso. Verifica tu identidad con la huella dactilar registrada.</div>
+        <div class="bio-c"><div class="bio-r" id="mbior" onclick="mfaBio()"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 14.8A6 6 0 0 1 6 12a6 6 0 0 1 6-6 5.9 5.9 0 0 1 4.9 2.6"/><path d="M12 9a3 3 0 0 1 3 3c0 1-.4 1.8-1 2.5"/><path d="M9.5 15.4A3 3 0 0 1 9 13.9"/><path d="M6.6 17.4A7.5 7.5 0 0 1 4.5 12a7.5 7.5 0 0 1 7.5-7.5 7.4 7.4 0 0 1 5.5 2.4"/><path d="M19 12a7.5 7.5 0 0 1-.7 3.2"/><path d="M3 19.5A11 11 0 0 1 2 14"/><path d="M4.5 6.4A11 11 0 0 1 12 3a11 11 0 0 1 9.3 5.1"/><path d="M22 14a11 11 0 0 1-1.4 5.2"/></svg></div><div class="bio-h" id="mbioh">Toca para simular la huella dactilar</div><div class="bio-s" id="mbios"></div></div>
+        <div class="ibox">La biometría es inherente: no puede robarse ni olvidarse.</div>
+      </div>
+      <div class="mpanel" id="mp4">
+        <div class="mfa-ok"><div class="mfa-ck"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:22px;font-weight:700;color:#065f46;margin-bottom:5px">Acceso concedido</div><div style="font-size:14px;color:#059669;margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;font-weight:500">3/3 FACTORES VERIFICADOS</div></div>
+        <div class="vil">
+          <div class="vi"><div class="vic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><div><div class="vitx">Factor 1 · Contraseña verificada</div><div class="vifc">Algo que sabes · conocimiento</div></div></div>
+          <div class="vi"><div class="vic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><div><div class="vitx">Factor 2 · Código OTP verificado</div><div class="vifc">Algo que tienes · posesión</div></div></div>
+          <div class="vi"><div class="vic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><div><div class="vitx">Factor 3 · Huella dactilar verificada</div><div class="vifc">Algo que eres · inherencia</div></div></div>
+        </div>
+        <div class="ibox" style="margin-bottom:1rem">Comprometer los 3 factores independientes simultáneamente es estadísticamente inviable.</div>
+        <button class="btn btn-g" onclick="mfaReset()">Reiniciar simulador →</button>
+      </div>
+    </div>
+  </div>
+  <div class="ft">Creado por: <strong>José Luis Perales Trejo</strong></div>
+</div>
+
+<!-- ======= QUIZ ======= -->
+<div id="sq" class="s">
+  <div class="card-flat fi" style="background:linear-gradient(135deg,#5b21b6,#6d28d9);border:none;padding:1.25rem 1.5rem;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div><div style="font-size:12px;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;font-weight:600">Módulo 02 · Quiz</div><div style="font-size:17px;font-weight:700;color:#fff">Evaluación — 10 preguntas</div></div>
+    </div>
+    <div class="badge" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)" id="qbadge">1 / 10</div>
+  </div>
+  <button class="btn-sm" onclick="show('sh')">← Menú principal</button>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <span style="font-size:12px;font-weight:700;color:#5b21b6;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px">Pregunta actual</span>
+      <span style="font-size:13px;color:#64748b;font-family:'JetBrains Mono',monospace;font-weight:500" id="qn">01 / 10</span>
+    </div>
+    <div class="pb-wrap"><div class="pb-fill pb-2" id="qpf" style="width:10%"></div></div>
+    <div id="qarea"></div>
+    <button id="qnxt" class="btn btn-2" style="display:none;margin-top:1.25rem" onclick="qNext()">Siguiente pregunta →</button>
+    <button id="qfin" class="btn btn-dark" style="display:none;margin-top:1.25rem" onclick="qFinish()">Ver puntaje →</button>
+  </div>
+  <div class="ft">Creado por: <strong>José Luis Perales Trejo</strong></div>
+</div>
+
+<!-- ======= PRÁCTICA ======= -->
+<div id="sp" class="s">
+  <div class="card-flat fi" style="background:linear-gradient(135deg,#c2410c,#ea580c);border:none;padding:1.25rem 1.5rem;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+      <div><div style="font-size:12px;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;font-weight:600">Módulo 03 · Práctica guiada</div><div style="font-size:17px;font-weight:700;color:#fff">5 escenarios con simuladores</div></div>
+    </div>
+    <div class="badge" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)" id="pbadge">1 / 5</div>
+  </div>
+  <button class="btn-sm" onclick="show('sh')">← Menú principal</button>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <span style="font-size:12px;font-weight:700;color:#c2410c;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px">Escenario actual</span>
+      <span style="font-size:13px;color:#64748b;font-family:'JetBrains Mono',monospace;font-weight:500" id="pn">01 / 05</span>
+    </div>
+    <div class="pb-wrap"><div class="pb-fill pb-3" id="ppf" style="width:20%"></div></div>
+    <div id="parea"></div>
+    <button id="pnxt" class="btn btn-3" style="display:none;margin-top:1.25rem" onclick="pNext()">Siguiente escenario →</button>
+    <button id="pfin" class="btn btn-dark" style="display:none;margin-top:1.25rem" onclick="pFinish()">Ver puntaje →</button>
+  </div>
+  <div class="ft">Creado por: <strong>José Luis Perales Trejo</strong></div>
+</div>
+
+<!-- ======= RESULTS ======= -->
+<div id="sr" class="s">
+  <div class="card-flat fi" style="background:linear-gradient(135deg,#0f172a,#1e293b);border:none;margin-bottom:14px">
+    <div style="padding:1.75rem 2rem;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="font-size:12px;color:#4ade80;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;font-weight:600">Resultados finales · Semana 5</div>
+      <div style="font-size:24px;font-weight:700;color:#f1f5f9" id="res-nm"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr">
+      <div style="padding:2rem 1.5rem;border-right:1px solid rgba(255,255,255,.07);text-align:center">
+        <div style="font-size:12px;color:#a78bfa;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;margin-bottom:.875rem;font-weight:600">Quiz</div>
+        <div style="font-size:88px;font-weight:700;color:#a78bfa;font-family:'JetBrains Mono',monospace;line-height:1" id="res-q">—</div>
+        <div style="font-size:13px;color:#475569;font-family:'JetBrains Mono',monospace;margin-top:10px">de 10 puntos</div>
+      </div>
+      <div style="padding:2rem 1.5rem;text-align:center">
+        <div style="font-size:12px;color:#fb923c;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px;margin-bottom:.875rem;font-weight:600">Práctica</div>
+        <div style="font-size:88px;font-weight:700;color:#fb923c;font-family:'JetBrains Mono',monospace;line-height:1" id="res-p">—</div>
+        <div style="font-size:13px;color:#475569;font-family:'JetBrains Mono',monospace;margin-top:10px">de 5 puntos</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div id="res-msg" style="margin-bottom:1.25rem"></div>
+    <div id="res-bars" style="margin-bottom:1.25rem"></div>
+    <div class="dv"></div>
+    <button class="btn btn-dark" style="margin-bottom:10px" onclick="show('sh')">← Volver al menú</button>
+    <button class="btn btn-out" onclick="resetAll()">Reiniciar actividad completa</button>
+  </div>
+  <div class="ft">Creado por: <strong>José Luis Perales Trejo</strong> · Semana 5 · Cifrado y Criptografía · UTEL Universidad</div>
+</div>
+
+</div>
+<script>
+const G={name:'',qSc:0,pSc:0,qI:0,pI:0,qDone:false,pDone:false,mCode:'',mTimer:null,mScanning:false,pmCode:'',pmScanning:false};
+async function h256(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s||''));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}catch{return'[error]';}}
+function show(id){if(id!=='ss'&&G.mTimer){clearInterval(G.mTimer);G.mTimer=null;}document.querySelectorAll('.s').forEach(s=>s.classList.remove('active'));const el=document.getElementById(id);if(el){el.classList.add('active');}window.scrollTo(0,0);}
+function startApp(){const n=document.getElementById('nm').value.trim();if(!n){document.getElementById('nm').style.borderColor='#ef4444';document.getElementById('nm').focus();return;}G.name=n;document.getElementById('nm-show').textContent=n;document.getElementById('res-nm').textContent=n;renderHub();show('sh');avUpd();saltUpd();}
+function renderHub(){
+  const pts=(G.qDone?G.qSc:0)+(G.pDone?G.pSc:0);
+  document.getElementById('hub-pts').textContent=pts;
+  if(G.qDone){document.getElementById('qs-sup').textContent='Módulo 02 · Quiz · '+G.qSc+'/10 pts';document.getElementById('qs-arrow').textContent='REPETIR →';}
+  if(G.pDone){document.getElementById('ps-sup').textContent='Módulo 03 · Práctica · '+G.pSc+'/5 pts';document.getElementById('ps-arrow').textContent='REPETIR →';}
+  const hs=document.getElementById('hub-summary');
+  if(G.qDone||G.pDone){
+    hs.style.display='block';
+    document.getElementById('hub-bars').innerHTML=
+      (G.qDone?`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-family:'JetBrains Mono',monospace;font-weight:500;margin-bottom:7px"><span style="color:#64748b">Quiz</span><span style="color:#5b21b6">${G.qSc}/10</span></div><div class="pb-wrap" style="margin-bottom:0"><div class="pb-fill pb-2" style="width:${G.qSc*10}%"></div></div></div>`:'')
+      +(G.pDone?`<div><div style="display:flex;justify-content:space-between;font-size:13px;font-family:'JetBrains Mono',monospace;font-weight:500;margin-bottom:7px"><span style="color:#64748b">Práctica</span><span style="color:#c2410c">${G.pSc}/5</span></div><div class="pb-wrap" style="margin-bottom:0"><div class="pb-fill pb-3" style="width:${G.pSc*20}%"></div></div></div>`:'');
+  }else hs.style.display='none';
+}
+function openQuiz(){G.qI=0;G.qSc=0;renderQ();show('sq');}
+function openPrac(){G.pI=0;G.pSc=0;renderP();show('sp');}
+let s1t=null;
+function s1Upd(){clearTimeout(s1t);s1t=setTimeout(async()=>{const v=document.getElementById('s1in').value,o=document.getElementById('s1out');if(!o)return;if(!v){o.className='ho';o.style.color='#64748b';o.textContent='Escribe algo...';document.getElementById('s1b').innerHTML='';document.getElementById('s1c').innerHTML='';document.getElementById('s1cp').style.display='none';return;}const h=await h256(v);o.className='ho g';o.textContent=h;document.getElementById('s1b').innerHTML='Bits: <span class="v">256</span>';document.getElementById('s1c').innerHTML='Chars hex: <span class="v">64</span>';document.getElementById('s1cp').style.display='inline-block';document.getElementById('s1cp').dataset.h=h;},150);}
+function s1Copy(){const h=document.getElementById('s1cp').dataset.h;if(h){navigator.clipboard.writeText(h).then(()=>{const b=document.getElementById('s1cp');b.textContent='¡Copiado!';setTimeout(()=>b.textContent='Copiar hash',1500);});}}
+let avt=null;
+function avUpd(){clearTimeout(avt);avt=setTimeout(async()=>{const a=(document.getElementById('ava')||{}).value,b=(document.getElementById('avb')||{}).value;if(!a||!b)return;const ha=await h256(a),hb=await h256(b);let r1='',r2='',d=0;for(let i=0;i<ha.length;i++){const s=ha[i]===hb[i];if(!s)d++;r1+=`<span class="${s?'hs':'hd'}">${ha[i]}</span>`;r2+=`<span class="${s?'hs':'hd'}">${hb[i]}</span>`;}const A=document.getElementById('avha'),B=document.getElementById('avhb'),I=document.getElementById('avinfo');if(A)A.innerHTML=r1;if(B)B.innerHTML=r2;const pct=Math.round((d/ha.length)*100);if(I)I.innerHTML=pct>30?`<div style="background:#2d1113;border:1px solid #7f1d1d;border-radius:6px;padding:9px 11px;font-size:11px;color:#f87171;font-family:'JetBrains Mono',monospace">EFECTO_AVALANCHA :: ${d}/64 chars distintos (${pct}%)</div>`:`<div style="background:#0d2a1a;border:1px solid #166534;border-radius:6px;padding:9px 11px;font-size:11px;color:#4ade80;font-family:'JetBrains Mono',monospace">HASHES_SIMILARES :: coinciden en ${100-pct}%</div>`;},200);}
+const SALTS=[{u:'Usuario A (María)',s:'xK9#mZ'},{u:'Usuario B (Carlos)',s:'pQ7!nR'},{u:'Usuario C (Ana)',s:'vB3&tL'}];
+let stt=null;
+function saltUpd(){clearTimeout(stt);stt=setTimeout(async()=>{const el=document.getElementById('spw');if(!el)return;const pw=el.value.trim()||'123456',rows=document.getElementById('srows');if(!rows)return;const base=await h256(pw);let html=`<div style="padding:10px;background:#2d1113;border:1px solid #7f1d1d;border-radius:6px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:11px;color:#f87171;font-family:'JetBrains Mono',monospace;font-weight:600">SIN SAL — hash compartido</span><span style="background:#450a0a;color:#f87171;font-size:9px;padding:2px 7px;border-radius:3px;font-family:'JetBrains Mono',monospace">[INSEGURO]</span></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#f87171;word-break:break-all;line-height:1.8">${base}</div></div>`;for(const{u,s}of SALTS){const sh=await h256(pw+s);html+=`<div style="padding:10px;background:#052e16;border:1px solid #166534;border-radius:6px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:11px;color:#4ade80;font-family:'JetBrains Mono',monospace;font-weight:600">${u}</span><span style="background:#14532d;color:#4ade80;font-size:9px;padding:2px 7px;border-radius:3px;font-family:'JetBrains Mono',monospace;border:1px solid #166534">salt: ${s}</span></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#4ade80;word-break:break-all;line-height:1.8">${sh}</div></div>`;}rows.innerHTML=html;},250);}
+function genOTP(){return String(Math.floor(100000+Math.random()*900000));}
+function mfaSetStep(n){for(let i=1;i<=4;i++){const p=document.getElementById('mp'+i);if(p)p.className='mpanel'+(i===n?' act':'');}for(let i=1;i<=3;i++){const c=document.getElementById('mc'+i),l=document.getElementById('ml'+i);if(!c||!l)continue;c.className='mstep'+(i<n?' dn':i===n?' act':'');l.className='mstep-l'+(i<n?' dn':i===n?' act':'');if(i<n)c.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';else c.textContent=String(i);}for(let i=1;i<=2;i++){const con=document.getElementById('mco'+i);if(con)con.className='mcon'+(n>i?' dn':'');}}
+function mfaStartTimer(){clearInterval(G.mTimer);let secs=30;const upd=()=>{const s=document.getElementById('msecs'),b=document.getElementById('mbar'),exp=document.getElementById('mexp');if(s)s.textContent=secs+'s';if(b)b.style.width=Math.round((secs/30)*100)+'%';if(secs<=0){clearInterval(G.mTimer);G.mTimer=null;const d=document.getElementById('mdisplay');if(d)d.textContent='------';if(exp)exp.style.display='block';if(s)s.textContent='0s';if(b)b.style.width='0%';G.mCode='';}};upd();G.mTimer=setInterval(()=>{secs--;upd();},1000);}
+function mfaGo(step){if(step===1){const pw=document.getElementById('mpw'),err=document.getElementById('mp1err');if(!pw.value.trim()){err.style.display='block';pw.style.borderColor='#ef4444';pw.focus();return;}err.style.display='none';pw.style.borderColor='';G.mCode=genOTP();document.getElementById('mdisplay').textContent=G.mCode;document.getElementById('mexp').style.display='none';const oi=document.getElementById('motpi');oi.value='';oi.className='otpi';document.getElementById('mp2err').style.display='none';mfaStartTimer();mfaSetStep(2);setTimeout(()=>{if(oi)oi.focus();},200);}else if(step===2){const oi=document.getElementById('motpi'),err=document.getElementById('mp2err');if(!G.mCode){err.textContent='El código expiró. Genera uno nuevo.';err.style.display='block';return;}const v=oi.value.replace(/\D/g,'');if(v.length<6){err.textContent='El código tiene 6 dígitos.';err.style.display='block';oi.className='otpi err';oi.focus();return;}if(v!==G.mCode){err.textContent='Código incorrecto. Verifica el número en la notificación.';err.style.display='block';oi.className='otpi err';oi.select();return;}clearInterval(G.mTimer);G.mTimer=null;err.style.display='none';oi.className='otpi';G.mScanning=false;const r=document.getElementById('mbior');if(r)r.className='bio-r';document.getElementById('mbioh').textContent='Toca para simular la huella dactilar';document.getElementById('mbios').textContent='';mfaSetStep(3);}else if(step===3){mfaSetStep(4);}}
+function mfaOtpInput(el){el.value=el.value.replace(/\D/g,'');if(el.className.includes('err'))el.className='otpi';document.getElementById('mp2err').style.display='none';}
+function mfaRenew(){G.mCode=genOTP();document.getElementById('mdisplay').textContent=G.mCode;document.getElementById('mexp').style.display='none';const oi=document.getElementById('motpi');oi.value='';oi.className='otpi';document.getElementById('mp2err').style.display='none';mfaStartTimer();setTimeout(()=>{if(oi)oi.focus();},100);}
+function mfaBio(){if(G.mScanning)return;G.mScanning=true;const r=document.getElementById('mbior'),h=document.getElementById('mbioh'),s=document.getElementById('mbios');r.className='bio-r scan';h.textContent='Leyendo huella...';s.textContent='Comparando...';s.style.color='#059669';let d=0;const a=setInterval(()=>{d=(d+1)%4;s.textContent='Comparando'+'.'.repeat(d);},400);setTimeout(()=>{clearInterval(a);r.className='bio-r dn2';h.textContent='Huella verificada';s.textContent='✓ Identidad confirmada';s.style.color='#059669';setTimeout(()=>mfaSetStep(4),700);},2000);}
+function mfaReset(){clearInterval(G.mTimer);G.mTimer=null;G.mCode='';G.mScanning=false;document.getElementById('mpw').value='';const oi=document.getElementById('motpi');oi.value='';oi.className='otpi';document.getElementById('mp1err').style.display='none';document.getElementById('mp2err').style.display='none';document.getElementById('mdisplay').textContent='------';document.getElementById('mexp').style.display='none';document.getElementById('msecs').textContent='30s';document.getElementById('mbar').style.width='100%';mfaSetStep(1);}
+const QS=[{q:"¿Cuál analogía describe con mayor precisión el concepto de integridad de datos?",opts:["Una carta sellada con lacre: si el sello está roto, alguien modificó el contenido","Un sobre ordinario que cualquiera puede abrir y cerrar sin rastro","Una caja fuerte que solo puede abrir el destinatario con la llave correcta","Un archivo ZIP protegido con contraseña alfanumérica"],ans:0,exp:"La integridad garantiza que los datos recibidos son exactamente los enviados. El sello roto equivale al hash diferente: cualquier modificación en tránsito queda expuesta."},{q:"¿Cuál es la diferencia fundamental entre HASH y Cifrado?",opts:["El hash usa llave pública; el cifrado siempre usa llave privada","El HASH es irreversible y no necesita llave; el cifrado es reversible y requiere llave","El hash solo funciona con texto plano; el cifrado con cualquier dato","El hash es más lento pero produce resultados más seguros"],ans:1,exp:"HASH: irreversible (como licuadora), sin llave, verifica integridad. CIFRADO: reversible (como caja fuerte), necesita llave, protege confidencialidad."},{q:"¿Qué describe el Efecto Avalancha en los algoritmos HASH?",opts:["El hash crece proporcionalmente al tamaño del archivo","Cambiar un solo carácter produce un hash completamente diferente","El mismo hash puede generarse desde múltiples entradas distintas","El cálculo tarda más tiempo con texto más largo"],ans:1,exp:"El efecto avalancha garantiza que cualquier modificación mínima (una coma, una mayúscula) produce un hash radicalmente diferente."},{q:"¿Cuáles son los tres factores clásicos de autenticación en ciberseguridad?",opts:["Algo que SABES + algo que TIENES + algo que ERES","Usuario + contraseña + PIN de respaldo","Correo electrónico + teléfono + documento de identidad","Biométrico + token + contraseña maestra"],ans:0,exp:"Los tres factores independientes: SABER (contraseña, PIN), TENER (teléfono, token, tarjeta) y SER (huella, reconocimiento facial)."},{q:"¿Para qué sirve la 'sal' (salt) en el almacenamiento de contraseñas?",opts:["Para alargar el hash y hacerlo más difícil de adivinar","Para que contraseñas iguales produzcan hashes distintos, evitando ataques masivos","Para cifrar el hash con una clave adicional","Para comprimir el hash y ahorrar espacio"],ans:1,exp:"Sin sal, '123456' siempre produce el mismo hash. Con sal, cada usuario recibe texto aleatorio único. Adobe 2013: 153M cuentas sin salt."},{q:"En el hackeo a Linux Mint (2016) la ISO fue reemplazada con malware. ¿Cómo lo detectaron?",opts:["El antivirus detectó el malware automáticamente","Calcularon el hash SHA-256 y no coincidió con el oficial","Linux Mint envió alertas por correo","El navegador mostró advertencia de SSL inválido"],ans:1,exp:"Los usuarios que calcularon el SHA-256 de su descarga y compararon con el hash oficial detectaron la discrepancia al instante."},{q:"¿Qué almacena Netflix cuando creas una contraseña?",opts:["La contraseña completa cifrada con AES-256","Solo el hash de la contraseña, nunca el texto plano","La contraseña dividida en dos bases de datos","La contraseña en formato codificado"],ans:1,exp:"Netflix calcula el hash de tu contraseña y guarda SOLO ese hash. Si un atacante roba la base de datos, solo obtiene hashes irreversibles."},{q:"¿Cuántos factores combina MFA como mínimo?",opts:["Exactamente 3 factores en orden específico","Exactamente 2 factores, sin excepción","2 o más factores distintos e independientes","Solo 1 factor extremadamente robusto"],ans:2,exp:"MFA combina 2 O MÁS factores distintos. BBVA: tarjeta + NIP. Google: contraseña + código de 30s."},{q:"En las Firmas Digitales del SAT (CFDI), ¿qué algoritmo de hash se usa para el sello digital?",opts:["MD5 — rápido y compatible","SHA-1 — estándar fiscal","SHA-256 — hash del XML que se cifra con la e.firma","AES-256 — cifrado simétrico"],ans:2,exp:"CFDI: XML → hash SHA-256 → se firma con tu e.firma = sello digital. Si alguien altera el monto, el hash cambia y la firma no coincide."},{q:"¿Por qué el hackeo a Adobe en 2013 fue especialmente grave al no usar salt?",opts:["Los hashes eran demasiado cortos","Todos con la misma contraseña tenían el mismo hash: descifrar uno descifra a todos","Los hashes no estaban cifrados con AES","La filtración eliminó toda la base de datos"],ans:1,exp:"Sin salt, '123456' siempre produce el mismo hash. Descifrar ese hash una vez comprometió automáticamente todas las cuentas que usaron esa contraseña."}];
+function renderQ(){const i=G.qI,q=QS[i],L=['A','B','C','D'];document.getElementById('qn').textContent=String(i+1).padStart(2,'0')+' / 10';document.getElementById('qpf').style.width=Math.round(((i+1)/10)*100)+'%';document.getElementById('qbadge').textContent=(i+1)+' / 10';document.getElementById('qnxt').style.display='none';document.getElementById('qfin').style.display='none';document.getElementById('qarea').innerHTML=`<div class="qtxt">${q.q}</div><div class="opts" id="qopts">${q.opts.map((o,j)=>`<button class="opt" onclick="ansQ(${j})"><span class="ol">${L[j]}</span>${o}</button>`).join('')}</div><div id="qfb" class="fb"></div>`;}
+function ansQ(i){const q=QS[G.qI];document.querySelectorAll('#qopts .opt').forEach(b=>b.disabled=true);const ok=i===q.ans;if(ok)G.qSc++;document.querySelectorAll('#qopts .opt')[q.ans].classList.add('c');if(!ok)document.querySelectorAll('#qopts .opt')[i].classList.add('w');const fb=document.getElementById('qfb');fb.className='fb show '+(ok?'fbg':'fbr');fb.textContent=(ok?'✓ Correcto. ':'✗ Incorrecto. ')+q.exp;document.getElementById(G.qI+1<10?'qnxt':'qfin').style.display='block';}
+function qNext(){G.qI++;renderQ();}
+function qFinish(){G.qDone=true;showScore();}
+const PS=[{title:'Escenario 01 — Generador SHA-256',context:'// Usa el generador para calcular el hash SHA-256 de cualquier texto. Observa siempre el mismo número de caracteres.',sim:'hash',q:'El texto puede ser de 1 carácter o de 1,000 palabras. ¿Cuántos bits produce siempre SHA-256?',opts:['128 bits','256 bits — independiente del tamaño del texto','512 bits — varía según la entrada','64 bits — equivalente a los caracteres hex'],ans:1,exp:'SHA-256 siempre produce 256 bits (64 caracteres hexadecimales), sin importar el tamaño del texto.'},{title:'Escenario 02 — Efecto avalancha',context:'// Textos A y B son casi idénticos: solo cambia la capitalización. ¿Cuántos caracteres del hash cambian?',sim:'avalanche',q:'¿Qué propiedad explica que un cambio tan pequeño produzca hashes completamente distintos?',opts:['Determinismo: el mismo texto siempre da el mismo hash','Efecto avalancha: un cambio mínimo transforma completamente el hash','Irreversibilidad: no se puede recuperar el texto','Colisión: dos textos pueden producir el mismo hash'],ans:1,exp:'El efecto avalancha garantiza que modificar un solo bit cambia estadísticamente el 50% del hash.'},{title:'Escenario 03 — Contraseñas sin sal vs. con sal',context:'// La misma contraseña "123456" produce hashes idénticos sin sal (rojo) y únicos con sal (verde).',sim:'salt',q:'Adobe (2013) almacenó 153M contraseñas sin sal. Si un atacante descifró el hash de "123456", ¿qué sucedió?',opts:['Solo se comprometió la cuenta directamente descifrada','Nada, cada usuario tiene variaciones propias','Todas las cuentas que usaron "123456" quedaron expuestas automáticamente','El sistema detectó el ataque'],ans:2,exp:'Sin sal, descifrar ese hash una vez compromete TODAS las cuentas que usaron esa contraseña.'},{title:'Escenario 04 — Login con MFA',context:'// Completa el proceso MFA. Observa que cada factor es independiente del anterior.',sim:'pmfa',q:'Un atacante tiene la contraseña (Factor 1). ¿Por qué no puede acceder con MFA activo?',opts:['La contraseña robada expira en 24 horas','El sistema bloquea la IP tras 3 intentos','Sin el Factor 2 (OTP) y Factor 3 (huella), el acceso es imposible','MFA alerta al usuario de logins inusuales'],ans:2,exp:'MFA requiere múltiples factores independientes. Conocer la contraseña es insuficiente sin el OTP y la huella.'},{title:'Escenario 05 — Inspector de integridad (Linux Mint 2016)',context:'// La ISO fue reemplazada en un servidor espejo. Verifica cuál archivo es auténtico comparando hashes.',sim:'integrity',q:'El hash de tu descarga NO coincide con el oficial. ¿Qué conclusión sacas?',opts:['Error menor de transmisión — reintenta','Reporta al soporte y espera','El archivo fue alterado — posiblemente malware. NO instalar','Reinicia e intenta de nuevo'],ans:2,exp:'Un hash diferente indica inequívocamente que el archivo fue modificado. En Linux Mint 2016, la ISO contenía malware.'}];
+let pt={};
+async function renderP(){const i=G.pI,p=PS[i],L=['A','B','C','D'];document.getElementById('pn').textContent=String(i+1).padStart(2,'0')+' / 05';document.getElementById('ppf').style.width=Math.round(((i+1)/5)*100)+'%';document.getElementById('pbadge').textContent=(i+1)+' / 5';document.getElementById('pnxt').style.display='none';document.getElementById('pfin').style.display='none';const simHTML=await buildSim(p.sim);document.getElementById('parea').innerHTML=`<div class="scen"><div class="scen-title">${p.title}</div><div class="scen-ctx">${p.context}</div>${simHTML}</div><div class="qtxt">${p.q}</div><div class="opts" id="popts">${p.opts.map((o,j)=>`<button class="opt" onclick="ansP(${j})"><span class="ol">${L[j]}</span>${o}</button>`).join('')}</div><div id="pfb" class="fb"></div>`;initSim(p.sim);}
+async function buildSim(type){
+  if(type==='hash')return`<div class="term"><div class="tbar"><div class="tdd" style="background:#ff5f56"></div><div class="tdd" style="background:#ffbd2e"></div><div class="tdd" style="background:#27c93f"></div><div class="tn">sha256_mini.sh</div></div><div class="tbody" style="padding:.75rem"><div class="tl" style="margin-top:0">$ texto:</div><input id="p1in" class="dk-ti" type="text" value="UTEL 2026" oninput="p1h()" style="margin-bottom:7px"/><div class="tl">$ hash:</div><div class="ho" id="p1out" style="color:#4ade80">Calculando...</div><div class="st-row"><span class="st">Bits: <span class="v">256</span></span><span class="st">Chars: <span class="v">64</span></span></div></div></div>`;
+  if(type==='avalanche')return`<div class="term"><div class="tbar"><div class="tdd" style="background:#ff5f56"></div><div class="tdd" style="background:#ffbd2e"></div><div class="tdd" style="background:#27c93f"></div><div class="tn">avalanche_mini.sh</div></div><div class="tbody" style="padding:.75rem"><div class="g2"><div><div class="tl" style="margin-top:0">$ "Datos Seguros"</div><div class="ho" id="p2ha" style="font-size:9px">Calculando...</div></div><div><div class="tl" style="margin-top:0">$ "datos seguros"</div><div class="ho" id="p2hb" style="font-size:9px">Calculando...</div></div></div><div id="p2info" style="margin-top:8px"></div></div></div>`;
+  if(type==='salt')return`<div class="term"><div class="tbar"><div class="tdd" style="background:#ff5f56"></div><div class="tdd" style="background:#ffbd2e"></div><div class="tdd" style="background:#27c93f"></div><div class="tn">salt_mini.sh</div></div><div class="tbody" style="padding:.75rem"><div id="p3rows"><div style="color:#64748b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:4px">Calculando...</div></div></div></div>`;
+  if(type==='pmfa')return`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden"><div style="display:flex;align-items:center;padding:.875rem 1rem;background:#fff;border-bottom:1px solid #f1f5f9"><div style="display:flex;flex-direction:column;align-items:center;flex:1"><div class="mstep act" id="pmc1">1</div><div class="mstep-l act" id="pml1">Contraseña</div></div><div class="mcon" id="pmco1"></div><div style="display:flex;flex-direction:column;align-items:center;flex:1"><div class="mstep" id="pmc2">2</div><div class="mstep-l" id="pml2">OTP</div></div><div class="mcon" id="pmco2"></div><div style="display:flex;flex-direction:column;align-items:center;flex:1"><div class="mstep" id="pmc3">3</div><div class="mstep-l" id="pml3">Biometría</div></div></div><div style="padding:1rem"><div class="mpanel act" id="pmp1"><input id="pmpw" type="password" class="inp" placeholder="Contraseña..." style="font-size:13px;padding:10px 13px;margin-bottom:5px"/><div class="emsg" id="pmerr1">Escribe una contraseña.</div><button class="btn btn-g" style="margin-top:9px;font-size:13px;padding:12px" onclick="pmfaGo(1)">Verificar →</button></div><div class="mpanel" id="pmp2"><div class="alg" style="margin-bottom:.875rem;font-size:13px">✓ Factor 1 verificado</div><div style="background:#f0fdf4;border:1px solid #a7f3d0;border-radius:10px;padding:12px;margin-bottom:.875rem;display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;background:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><div style="font-size:11px;color:#64748b;font-family:'JetBrains Mono',monospace">BBVA · Código OTP</div><div style="font-size:26px;font-weight:700;color:#059669;letter-spacing:8px;font-family:'JetBrains Mono',monospace" id="pmdisp">------</div></div></div><input id="pmotpi" class="otpi" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="— — — — — —" oninput="pmOtpIn(this)"/><div class="emsg" id="pmerr2"></div><button class="btn btn-g" style="margin-top:9px;font-size:13px;padding:12px" onclick="pmfaGo(2)">Verificar código →</button></div><div class="mpanel" id="pmp3"><div class="alg" style="margin-bottom:.875rem;font-size:13px">✓ Factor 2 verificado</div><div class="bio-c" style="padding:.875rem 0"><div class="bio-r" id="pmbior" onclick="pmBio()" style="width:74px;height:74px"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"><path d="M17.9 14.8A6 6 0 0 1 6 12a6 6 0 0 1 6-6 5.9 5.9 0 0 1 4.9 2.6"/><path d="M12 9a3 3 0 0 1 3 3c0 1-.4 1.8-1 2.5"/><path d="M9.5 15.4A3 3 0 0 1 9 13.9"/><path d="M6.6 17.4A7.5 7.5 0 0 1 4.5 12a7.5 7.5 0 0 1 7.5-7.5 7.4 7.4 0 0 1 5.5 2.4"/><path d="M19 12a7.5 7.5 0 0 1-.7 3.2"/><path d="M3 19.5A11 11 0 0 1 2 14"/><path d="M4.5 6.4A11 11 0 0 1 12 3a11 11 0 0 1 9.3 5.1"/><path d="M22 14a11 11 0 0 1-1.4 5.2"/></svg></div><div class="bio-h" id="pmbioh" style="font-size:13px">Toca para simular huella</div><div class="bio-s" id="pmbios" style="font-size:12px"></div></div></div><div class="mpanel" id="pmp4"><div style="text-align:center;padding:1rem 0"><div class="mfa-ck" style="width:52px;height:52px;margin-bottom:.875rem"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:17px;font-weight:700;color:#065f46;margin-bottom:4px">Acceso concedido</div><div style="font-size:12px;color:#059669;font-family:'JetBrains Mono',monospace;font-weight:500;margin-bottom:.875rem">3/3 FACTORES ✓</div><div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap"><span class="badge badge-g" style="font-size:11px">Contraseña ✓</span><span class="badge badge-g" style="font-size:11px">OTP ✓</span><span class="badge badge-g" style="font-size:11px">Huella ✓</span></div></div></div></div></div>`;
+  if(type==='integrity'){const ok=await h256('Actualización v3.2 — firmado y verificado por UTEL.');const bad=await h256('Actualización v3.2 — firmado y verificado por utel.');pt.ok=ok;pt.bad=bad;return`<div class="term"><div class="tbar"><div class="tdd" style="background:#ff5f56"></div><div class="tdd" style="background:#ffbd2e"></div><div class="tdd" style="background:#27c93f"></div><div class="tn">hash_inspector.sh</div></div><div class="tbody" style="padding:.75rem"><div class="tl" style="margin-top:0">$ hash_oficial:</div><div class="ho g" style="margin-bottom:9px;font-size:9px">${ok}</div><div class="g2"><button class="opt" id="piA" onclick="piChk('A')" style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:10px 11px"><span class="ol" style="font-size:10px">A</span>server-oficial.utel.edu.mx</button><button class="opt" id="piB" onclick="piChk('B')" style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:10px 11px"><span class="ol" style="font-size:10px">B</span>mirror-externo.net</button></div><div id="piR" style="display:none;margin-top:9px"><div class="tl">$ hash_calculado:</div><div class="ho b" id="piH" style="margin-bottom:7px;font-size:9px"></div><div id="piV"></div></div></div></div>`;}
+  return'';
+}
+function initSim(type){if(type==='hash')setTimeout(()=>p1h(),60);if(type==='avalanche')setTimeout(()=>p2av(),60);if(type==='salt')setTimeout(()=>p3salt(),60);if(type==='pmfa'){G.pmCode='';G.pmScanning=false;}}
+let p1t=null;
+function p1h(){clearTimeout(p1t);p1t=setTimeout(async()=>{const i=document.getElementById('p1in'),o=document.getElementById('p1out');if(!i||!o)return;const v=i.value;if(!v){o.className='ho';o.style.color='#64748b';o.textContent='Escribe algo...';return;}const h=await h256(v);o.className='ho g';o.textContent=h;},150);}
+async function p2av(){const ha=document.getElementById('p2ha'),hb=document.getElementById('p2hb'),info=document.getElementById('p2info');if(!ha||!hb)return;const a=await h256('Datos Seguros'),b=await h256('datos seguros');let r1='',r2='',d=0;for(let i=0;i<a.length;i++){const s=a[i]===b[i];if(!s)d++;r1+=`<span class="${s?'hs':'hd'}">${a[i]}</span>`;r2+=`<span class="${s?'hs':'hd'}">${b[i]}</span>`;}ha.innerHTML=r1;hb.innerHTML=r2;const pct=Math.round((d/a.length)*100);if(info)info.innerHTML=`<div style="background:#2d1113;border:1px solid #7f1d1d;border-radius:6px;padding:9px 11px;font-size:11px;color:#f87171;font-family:'JetBrains Mono',monospace">EFECTO_AVALANCHA: ${d}/64 chars distintos (${pct}%) — solo capitalización distinta</div>`;}
+async function p3salt(){const rows=document.getElementById('p3rows');if(!rows)return;const pw='123456',base=await h256(pw),s1=await h256(pw+'xK9#mZ'),s2=await h256(pw+'pQ7!nR');rows.innerHTML=`<div style="padding:9px;background:#2d1113;border:1px solid #7f1d1d;border-radius:4px;margin-bottom:6px"><div style="font-size:11px;color:#f87171;font-family:'JetBrains Mono',monospace;font-weight:600;margin-bottom:3px">SIN SAL — hash compartido</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#f87171;word-break:break-all;line-height:1.8">${base}</div></div><div style="padding:9px;background:#052e16;border:1px solid #166534;border-radius:4px;margin-bottom:6px"><div style="font-size:11px;color:#4ade80;font-family:'JetBrains Mono',monospace;font-weight:600;margin-bottom:3px">Usuario A · salt: xK9#mZ</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4ade80;word-break:break-all;line-height:1.8">${s1}</div></div><div style="padding:9px;background:#052e16;border:1px solid #166534;border-radius:4px"><div style="font-size:11px;color:#4ade80;font-family:'JetBrains Mono',monospace;font-weight:600;margin-bottom:3px">Usuario B · salt: pQ7!nR</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4ade80;word-break:break-all;line-height:1.8">${s2}</div></div>`;}
+function pmSetStep(n){for(let i=1;i<=4;i++){const p=document.getElementById('pmp'+i);if(p)p.className='mpanel'+(i===n?' act':'');}for(let i=1;i<=3;i++){const c=document.getElementById('pmc'+i),l=document.getElementById('pml'+i);if(!c||!l)continue;c.className='mstep'+(i<n?' dn':i===n?' act':'');l.className='mstep-l'+(i<n?' dn':i===n?' act':'');if(i<n)c.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';else c.textContent=String(i);}for(let i=1;i<=2;i++){const con=document.getElementById('pmco'+i);if(con)con.className='mcon'+(n>i?' dn':'');}}
+function pmfaGo(s){if(s===1){const pw=document.getElementById('pmpw'),err=document.getElementById('pmerr1');if(!pw||!pw.value.trim()){if(err)err.style.display='block';if(pw)pw.focus();return;}if(err)err.style.display='none';G.pmCode=genOTP();const d=document.getElementById('pmdisp');if(d)d.textContent=G.pmCode;const oi=document.getElementById('pmotpi');if(oi){oi.value='';oi.className='otpi';}const e2=document.getElementById('pmerr2');if(e2)e2.style.display='none';pmSetStep(2);setTimeout(()=>{const i=document.getElementById('pmotpi');if(i)i.focus();},150);}else if(s===2){const oi=document.getElementById('pmotpi'),err=document.getElementById('pmerr2');if(!oi||!err)return;const v=oi.value.replace(/\D/g,'');if(v.length<6){err.textContent='El código tiene 6 dígitos.';err.style.display='block';oi.className='otpi err';oi.focus();return;}if(v!==G.pmCode){err.textContent='Código incorrecto. Verifica el número mostrado arriba.';err.style.display='block';oi.className='otpi err';oi.select();return;}err.style.display='none';oi.className='otpi';G.pmScanning=false;const r=document.getElementById('pmbior');if(r)r.className='bio-r';const h=document.getElementById('pmbioh');if(h)h.textContent='Toca para simular huella';const bs=document.getElementById('pmbios');if(bs)bs.textContent='';pmSetStep(3);}}
+function pmOtpIn(el){el.value=el.value.replace(/\D/g,'');if(el.className.includes('err'))el.className='otpi';const e=document.getElementById('pmerr2');if(e)e.style.display='none';}
+function pmBio(){if(G.pmScanning)return;G.pmScanning=true;const r=document.getElementById('pmbior'),h=document.getElementById('pmbioh'),s=document.getElementById('pmbios');if(!r||!h||!s)return;r.className='bio-r scan';h.textContent='Leyendo...';s.textContent='Verificando...';s.style.color='#059669';let d=0;const a=setInterval(()=>{d=(d+1)%4;s.textContent='Verificando'+'.'.repeat(d);},350);setTimeout(()=>{clearInterval(a);r.className='bio-r dn2';h.textContent='Huella verificada';s.textContent='✓ Identidad confirmada';s.style.color='#059669';setTimeout(()=>pmSetStep(4),600);},1800);}
+function piChk(ch){const h=ch==='A'?pt.ok:pt.bad,match=h===pt.ok;document.getElementById('piH').textContent=h;document.getElementById('piR').style.display='block';const v=document.getElementById('piV');v.className=match?'alg':'alr';v.textContent=match?'✓ HASH_MATCH — Archivo íntegro. Seguro para instalar.':'✗ HASH_MISMATCH — El atacante cambió "UTEL" por "utel". NO instalar.';['piA','piB'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});const btn=document.getElementById(ch==='A'?'piA':'piB');if(btn)btn.classList.add(match?'c':'w');}
+function ansP(i){const p=PS[G.pI];document.querySelectorAll('#popts .opt').forEach(b=>b.disabled=true);const ok=i===p.ans;if(ok)G.pSc++;document.querySelectorAll('#popts .opt')[p.ans].classList.add('c');if(!ok)document.querySelectorAll('#popts .opt')[i].classList.add('w');const fb=document.getElementById('pfb');fb.className='fb show '+(ok?'fbg':'fbr');fb.textContent=(ok?'✓ Correcto. ':'✗ Incorrecto. ')+p.exp;document.getElementById(G.pI+1<5?'pnxt':'pfin').style.display='block';}
+function pNext(){G.pI++;renderP();}
+function pFinish(){G.pDone=true;showScore();}
+function showScore(){
+  document.getElementById('res-q').textContent=G.qDone?G.qSc:'—';
+  document.getElementById('res-p').textContent=G.pDone?G.pSc:'—';
+  let total=0,possible=0;if(G.qDone){total+=G.qSc;possible+=10;}if(G.pDone){total+=G.pSc;possible+=5;}
+  const msg=document.getElementById('res-msg');const pct=possible>0?Math.round((total/possible)*100):0;
+  if(pct>=90){msg.className='alg';msg.textContent='Excelente desempeño. Dominas los conceptos de criptografía aplicada de la Semana 5.';}
+  else if(pct>=70){msg.className='alg';msg.textContent='Buen trabajo. Comprensión sólida. Repasa los temas con menor puntaje.';}
+  else if(pct>=50){msg.className='aly';msg.textContent='Resultado regular. Repasa los materiales de la Semana 5 y vuelve a intentarlo.';}
+  else{msg.className='alr';msg.textContent='Necesitas reforzar los conceptos. Revisa las diapositivas antes del siguiente módulo.';}
+  document.getElementById('res-bars').innerHTML=
+    (G.qDone?`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-family:'JetBrains Mono',monospace;font-weight:500;margin-bottom:7px"><span style="color:#64748b">Quiz</span><span style="color:#5b21b6">${G.qSc}/10 pts</span></div><div class="pb-wrap" style="margin-bottom:0"><div class="pb-fill pb-2" style="width:${G.qSc*10}%"></div></div></div>`:'')
+    +(G.pDone?`<div><div style="display:flex;justify-content:space-between;font-size:13px;font-family:'JetBrains Mono',monospace;font-weight:500;margin-bottom:7px"><span style="color:#64748b">Práctica</span><span style="color:#c2410c">${G.pSc}/5 pts</span></div><div class="pb-wrap" style="margin-bottom:0"><div class="pb-fill pb-3" style="width:${G.pSc*20}%"></div></div></div>`:'');
+  renderHub();show('sr');
+}
+function resetAll(){clearInterval(G.mTimer);Object.assign(G,{name:'',qSc:0,pSc:0,qI:0,pI:0,qDone:false,pDone:false,mCode:'',mTimer:null,mScanning:false,pmCode:'',pmScanning:false});document.getElementById('nm').value='';show('sw');}
+window.addEventListener('load',()=>{setTimeout(()=>{avUpd();saltUpd();},300);});
+</script>
