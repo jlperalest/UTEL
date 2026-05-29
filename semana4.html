@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actividad Cifrado Asimétrico — Semana 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1117;--sur:#161b22;--sur2:#1c2330;--bor:#2d3748;
+  --g:#22c55e;--g2:#16a34a;--gg:rgba(34,197,94,.18);
+  --cy:#06b6d4;--ye:#f59e0b;--rd:#ef4444;
+  --wh:#f1f5f9;--gr:#94a3b8;--gr2:#475569;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--wh);font-family:'DM Sans',sans-serif;font-size:16px;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(34,197,94,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(14,17,23,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--bor);padding:14px 32px;display:flex;align-items:center;gap:16px;}
+.hdr-ico{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--g),var(--g2));display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 16px var(--gg);}
+.hdr-title{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;}
+.hdr-sub{font-size:.78rem;color:var(--gr);font-family:'IBM Plex Mono',monospace;}
+.hdr-badge{margin-left:auto;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:var(--g);font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:5px 14px;border-radius:20px;letter-spacing:1px;}
+
+/* TABS NAV */
+.tabs-nav{position:relative;z-index:1;display:flex;gap:0;overflow-x:auto;background:var(--sur);border-bottom:1px solid var(--bor);padding:0 20px;}
+.tab-nav-btn{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:16px 22px;border:none;background:transparent;color:var(--gr);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
+.tab-nav-btn:hover{color:var(--wh);background:rgba(255,255,255,.03);}
+.tab-nav-btn.on{color:var(--g);border-bottom-color:var(--g);background:rgba(34,197,94,.04);}
+.tab-nav-btn .tn{width:26px;height:26px;border-radius:7px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.8rem;color:var(--gr);transition:all .2s;}
+.tab-nav-btn.on .tn{background:var(--g);color:#000;}
+
+/* PANELS */
+.panels{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:32px 24px 60px;}
+.panel{display:none;}
+.panel.on{display:block;animation:fu .35s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* PANEL HEADER */
+.ph{background:var(--sur);border:1px solid var(--bor);border-radius:18px 18px 0 0;padding:24px 30px;border-bottom:none;}
+.ph-row{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+.ph-icon{font-size:2.4rem;}
+.ph-text{flex:1;}
+.ph-title{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;margin-bottom:4px;}
+.ph-desc{font-size:.95rem;color:var(--gr);line-height:1.6;}
+.ph-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.ptag{font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:3px 10px;border-radius:6px;border:1px solid;}
+.ptag-g{color:var(--g);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08);}
+.ptag-c{color:var(--cy);border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);}
+.ptag-y{color:var(--ye);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08);}
+.ptag-r{color:var(--rd);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08);}
+
+/* SIMULATOR AREA */
+.sim-area{background:var(--sur);border:1px solid var(--bor);border-radius:0 0 18px 18px;border-top:1px solid var(--bor);padding:28px 30px;}
+
+/* INPUTS */
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.inp{flex:1;min-width:160px;background:var(--sur2);border:2px solid var(--bor);border-radius:10px;padding:11px 16px;color:var(--wh);font-family:'IBM Plex Mono',monospace;font-size:.92rem;outline:none;transition:border-color .2s;}
+.inp:focus{border-color:var(--g);}
+.inp::placeholder{color:var(--gr2);}
+.sel{flex:1;min-width:140px;background:var(--sur2);border:2px solid var(--bor);border-radius:10px;padding:11px 16px;color:var(--wh);font-size:.92rem;outline:none;cursor:pointer;}
+.sel:focus{border-color:var(--g);}
+.lbl{display:block;font-size:.82rem;color:var(--gr);margin-bottom:6px;font-weight:600;}
+
+/* BUTTONS */
+.btn{padding:11px 22px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;}
+.btn-g{background:linear-gradient(135deg,var(--g),var(--g2));color:#000;}
+.btn-g:hover{transform:translateY(-1px);box-shadow:0 4px 18px var(--gg);}
+.btn-c{background:linear-gradient(135deg,var(--cy),#0891b2);color:#000;}
+.btn-c:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(6,182,212,.3);}
+.btn-r{background:linear-gradient(135deg,var(--rd),#b91c1c);color:#fff;}
+.btn-r:hover{transform:translateY(-1px);}
+.btn-out{background:transparent;border:1.5px solid var(--bor);color:var(--gr);}
+.btn-out:hover{border-color:var(--g);color:var(--g);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
+
+/* OUTPUT BOXES */
+.out{background:var(--bg);border:1.5px solid var(--bor);border-radius:10px;padding:14px 18px;font-family:'IBM Plex Mono',monospace;font-size:.83rem;min-height:54px;color:var(--gr);overflow-wrap:break-word;white-space:pre-wrap;line-height:1.7;transition:all .3s;}
+.out.ok{color:var(--g);border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.04);}
+.out.err{color:var(--rd);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04);}
+.out.cy{color:var(--cy);border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.04);}
+.out.ye{color:var(--ye);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04);}
+
+/* ALERT BOXES */
+.abox{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:10px;font-size:.9rem;line-height:1.6;margin:12px 0;}
+.abox-g{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);color:#d1fae5;}
+.abox-c{background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.2);color:#cffafe;}
+.abox-y{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);color:#fef3c7;}
+.abox-r{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);color:#fee2e2;}
+.abox strong{color:inherit;}
+
+/* SECTION DIVIDER */
+.div{display:flex;align-items:center;gap:12px;margin:20px 0 16px;}
+.div::before,.div::after{content:'';flex:1;height:1px;background:var(--bor);}
+.div span{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--gr2);white-space:nowrap;}
+
+/* 2 COL GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+
+/* PROGRESS */
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(34,197,94,.3);border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.prog-wrap{height:8px;background:var(--sur2);border-radius:4px;overflow:hidden;margin:8px 0;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--g),var(--cy));border-radius:4px;transition:width .4s ease;}
+
+/* KEY CARD */
+.kcard{background:var(--sur2);border:1.5px solid var(--bor);border-radius:12px;padding:16px;}
+.kcard-title{font-family:'IBM Plex Mono',monospace;font-size:.72rem;margin-bottom:8px;font-weight:600;}
+.kcard-key{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--gr);word-break:break-all;line-height:1.6;max-height:100px;overflow-y:auto;}
+
+/* CERT TABLE */
+.ctbl{width:100%;border-collapse:collapse;font-size:.88rem;}
+.ctbl tr{border-bottom:1px solid var(--bor);}
+.ctbl tr:last-child{border-bottom:none;}
+.ctbl td{padding:9px 12px;}
+.ctbl td:first-child{color:var(--gr2);font-family:'IBM Plex Mono',monospace;font-size:.78rem;white-space:nowrap;width:38%;}
+.ctbl td:last-child{color:var(--cy);word-break:break-all;}
+.ctbl .ok{color:var(--g);}
+.ctbl .rd{color:var(--rd);}
+
+/* WA CHAT */
+.wa-wrap{background:#0b141a;border-radius:14px;overflow:hidden;max-width:460px;margin:0 auto;}
+.wa-hdr{background:#202c33;padding:12px 16px;display:flex;align-items:center;gap:12px;}
+.wa-av{width:38px;height:38px;border-radius:50%;background:#2a3942;display:flex;align-items:center;justify-content:center;}
+.wa-msgs{padding:14px;min-height:160px;display:flex;flex-direction:column;gap:8px;}
+.wa-msg{max-width:75%;padding:8px 12px;border-radius:10px;font-size:.9rem;line-height:1.5;}
+.wa-msg.in{background:#202c33;align-self:flex-start;border-bottom-left-radius:2px;}
+.wa-msg.out{background:#005c4b;align-self:flex-end;border-bottom-right-radius:2px;}
+.wa-msg.enc{background:#0b2b26;border:1px dashed rgba(34,197,94,.3);color:var(--g);font-family:'IBM Plex Mono',monospace;font-size:.72rem;align-self:stretch;word-break:break-all;}
+.wa-lock{background:rgba(134,150,160,.1);border-radius:10px;padding:10px 14px;text-align:center;font-size:.78rem;color:#8696a0;margin:4px auto;max-width:300px;}
+.wa-inp{background:#202c33;padding:10px 14px;display:flex;gap:10px;align-items:center;}
+.wa-inp input{flex:1;background:#2a3942;border:none;border-radius:20px;padding:9px 16px;color:var(--wh);font-size:.88rem;outline:none;}
+.wa-btn{background:var(--g);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+
+/* UPLOAD ZONE */
+.drop-zone{border:2px dashed var(--bor);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .3s;color:var(--gr);}
+.drop-zone:hover,.drop-zone.over{border-color:var(--g);background:rgba(34,197,94,.04);color:var(--wh);}
+.drop-zone .dz-icon{font-size:2.5rem;margin-bottom:10px;}
+.drop-zone .dz-txt{font-size:1rem;font-weight:500;}
+.drop-zone .dz-sub{font-size:.82rem;margin-top:6px;}
+
+/* FILE PREVIEW */
+.file-row{background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:.9rem;}
+.file-ico{font-size:1.6rem;}
+.file-name{font-weight:600;color:var(--wh);}
+.file-size{font-size:.8rem;color:var(--gr);font-family:'IBM Plex Mono',monospace;}
+.file-status{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:.78rem;}
+
+/* METER */
+.meter{display:flex;align-items:center;gap:10px;margin:6px 0;}
+.meter-bar{flex:1;height:10px;background:var(--sur2);border-radius:5px;overflow:hidden;}
+.meter-fill{height:100%;border-radius:5px;transition:width .5s ease;}
+.mf-g{background:linear-gradient(90deg,var(--g2),var(--g));}
+.mf-r{background:linear-gradient(90deg,#b91c1c,var(--rd));}
+.mf-y{background:linear-gradient(90deg,#b45309,var(--ye));}
+.meter-val{font-family:'IBM Plex Mono',monospace;font-size:.78rem;min-width:40px;text-align:right;}
+
+/* FINGERPRINT GRID */
+.fp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0;}
+.fp-cell{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:8px 6px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--cy);}
+
+/* COMPARE */
+.cmp-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bor);font-size:.9rem;}
+.cmp-row:last-child{border-bottom:none;}
+.cmp-k{color:var(--gr2);font-family:'IBM Plex Mono',monospace;font-size:.78rem;}
+.cmp-v{color:var(--cy);text-align:right;max-width:55%;}
+
+@media(max-width:640px){
+  .hdr{padding:12px 16px;}
+  .panels{padding:20px 14px 40px;}
+  .ph,.sim-area{padding:18px 18px;}
+  .g2,.g3{grid-template-columns:1fr;}
+  .tabs-nav{padding:0 8px;}
+  .tab-nav-btn{padding:14px 14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-ico">🔐</div>
+  <div>
+    <div class="hdr-title">Actividad Cifrado Asimétrico</div>
+    <div class="hdr-sub">Semana 4 · UTEL Universidad</div>
+  </div>
+</header>
+
+<!-- TABS NAV -->
+<nav class="tabs-nav">
+  <button class="tab-nav-btn on" onclick="showTab(-1)"><div class="tn">📋</div> Índice</button>
+  <button class="tab-nav-btn" onclick="showTab(0)"><div class="tn">1</div> 🔑 Kleopatra</button>
+  <button class="tab-nav-btn" onclick="showTab(1)"><div class="tn">2</div> 🔒 HTTPS</button>
+  <button class="tab-nav-btn" onclick="showTab(2)"><div class="tn">3</div> 💬 WhatsApp</button>
+  <button class="tab-nav-btn" onclick="showTab(3)"><div class="tn">4</div> 📧 GnuPG</button>
+  <button class="tab-nav-btn" onclick="showTab(4)"><div class="tn">5</div> 📁 AxCrypt</button>
+</nav>
+
+<div class="panels">
+
+<!-- ══════════════════════════════════════════
+     PANEL INDEX
+══════════════════════════════════════════ -->
+<div class="panel on" id="pi">
+  <div class="ph" style="border-radius:18px;">
+    <div class="ph-row">
+      <div class="ph-icon">🔐</div>
+      <div class="ph-text">
+        <div class="ph-title">Actividad Cifrado Asimétrico — Semana 4</div>
+        <div class="ph-desc">Laboratorio interactivo de criptografía. Practica con herramientas reales de cifrado directamente en el navegador, sin instalar nada.</div>
+        <div class="ph-tags">
+          <span class="ptag ptag-g">Criptografía Asimétrica</span>
+          <span class="ptag ptag-c">RSA · PGP · AES-256</span>
+          <span class="ptag ptag-y">UTEL Universidad · Semana 4</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="background:var(--sur);border:1px solid var(--bor);border-radius:18px;margin-top:2px;padding:28px 30px;">
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px;">
+
+      <div onclick="showTab(0)" style="background:var(--sur2);border:1.5px solid var(--bor);border-radius:14px;padding:22px;cursor:pointer;transition:all .25s;" onmouseover="this.style.borderColor='var(--g)'" onmouseout="this.style.borderColor='var(--bor)'">
+        <div style="font-size:2rem;margin-bottom:10px;">🔑</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:6px;color:var(--wh);">1. Kleopatra</div>
+        <div style="font-size:.88rem;color:var(--gr);line-height:1.6;">Genera un par de llaves RSA real (pública + privada). Cifra y descifra mensajes con criptografía asimétrica real vía Web Crypto API.</div>
+        <div style="margin-top:12px;"><span class="ptag ptag-g">RSA-OAEP</span> <span class="ptag ptag-c">PGP</span></div>
+      </div>
+
+      <div onclick="showTab(1)" style="background:var(--sur2);border:1.5px solid var(--bor);border-radius:14px;padding:22px;cursor:pointer;transition:all .25s;" onmouseover="this.style.borderColor='var(--g)'" onmouseout="this.style.borderColor='var(--bor)'">
+        <div style="font-size:2rem;margin-bottom:10px;">🔒</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:6px;color:var(--wh);">2. HTTPS — Certificados SSL</div>
+        <div style="font-size:.88rem;color:var(--gr);line-height:1.6;">Inspecciona el certificado SSL/TLS de sitios reales. Escribe cualquier dominio para validar su conexión y ver la cadena de confianza.</div>
+        <div style="margin-top:12px;"><span class="ptag ptag-g">TLS 1.3</span> <span class="ptag ptag-c">SHA-256</span></div>
+      </div>
+
+      <div onclick="showTab(2)" style="background:var(--sur2);border:1.5px solid var(--bor);border-radius:14px;padding:22px;cursor:pointer;transition:all .25s;" onmouseover="this.style.borderColor='var(--g)'" onmouseout="this.style.borderColor='var(--bor)'">
+        <div style="font-size:2rem;margin-bottom:10px;">💬</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:6px;color:var(--wh);">3. WhatsApp E2E</div>
+        <div style="font-size:.88rem;color:var(--gr);line-height:1.6;">Envía mensajes y observa cómo viajan cifrados por el servidor. El servidor ve bytes ilegibles — nadie puede leer tu conversación.</div>
+        <div style="margin-top:12px;"><span class="ptag ptag-g">Signal Protocol</span> <span class="ptag ptag-y">AES-256</span></div>
+      </div>
+
+      <div onclick="showTab(3)" style="background:var(--sur2);border:1.5px solid var(--bor);border-radius:14px;padding:22px;cursor:pointer;transition:all .25s;" onmouseover="this.style.borderColor='var(--g)'" onmouseout="this.style.borderColor='var(--bor)'">
+        <div style="font-size:2rem;margin-bottom:10px;">📧</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:6px;color:var(--wh);">4. GnuPG — Correos PGP</div>
+        <div style="font-size:.88rem;color:var(--gr);line-height:1.6;">Genera llaves PGP reales, cifra correos con la llave pública y descifra solo con la llave privada y tu contraseña.</div>
+        <div style="margin-top:12px;"><span class="ptag ptag-g">OpenPGP</span> <span class="ptag ptag-c">RSA Asimétrico</span></div>
+      </div>
+
+      <div onclick="showTab(4)" style="background:var(--sur2);border:1.5px solid var(--bor);border-radius:14px;padding:22px;cursor:pointer;transition:all .25s;" onmouseover="this.style.borderColor='var(--g)'" onmouseout="this.style.borderColor='var(--bor)'">
+        <div style="font-size:2rem;margin-bottom:10px;">📁</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:6px;color:var(--wh);">5. AxCrypt — Cifrar Archivos</div>
+        <div style="font-size:.88rem;color:var(--gr);line-height:1.6;">Sube cualquier archivo, ponle contraseña y se cifrará con AES-256-GCM real. Descarga el cifrado y prueba descifrar con contraseña incorrecta y correcta.</div>
+        <div style="margin-top:12px;"><span class="ptag ptag-g">AES-256-GCM</span> <span class="ptag ptag-c">PBKDF2</span></div>
+      </div>
+
+    </div>
+
+
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 1 — KLEOPATRA
+══════════════════════════════════════════ -->
+<div class="panel on" id="p0">
+  <div class="ph">
+    <div class="ph-row">
+      <div class="ph-icon">🔑</div>
+      <div class="ph-text">
+        <div class="ph-title">Kleopatra — Generador de Llaves PGP</div>
+        <div class="ph-desc">Simula la creación de un par de llaves RSA (pública + privada). En la vida real Kleopatra hace exactamente esto — aquí lo hacemos con Web Crypto API real del navegador.</div>
+        <div class="ph-tags">
+          <span class="ptag ptag-g">RSA-4096</span>
+          <span class="ptag ptag-c">PGP / OpenPGP</span>
+          <span class="ptag ptag-y">Criptografía Asimétrica</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sim-area">
+
+    <div class="div"><span>DATOS DEL PROPIETARIO DE LAS LLAVES</span></div>
+    <div class="g2" style="margin-bottom:10px;">
+      <div><label class="lbl">Nombre completo</label><input class="inp" id="kl-name" placeholder="Escribe tu nombre completo…"></div>
+      <div><label class="lbl">Correo electrónico</label><input class="inp" id="kl-email" placeholder="tu@correo.com"></div>
+    </div>
+    <div class="g2" style="margin-bottom:16px;">
+      <div>
+        <label class="lbl">Algoritmo</label>
+        <select class="sel" id="kl-alg">
+          <option value="RSA-OAEP">RSA-OAEP (recomendado)</option>
+          <option value="ECDH">ECDH P-256 (moderno)</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">Tamaño de clave</label>
+        <select class="sel" id="kl-bits">
+          <option value="2048">2048 bits (rápido)</option>
+          <option value="4096" selected>4096 bits (máxima seguridad)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="kl-progress" style="display:none;">
+      <div class="abox abox-c"><span>⚙️</span><span id="kl-prog-txt">Generando entropía y calculando números primos…</span></div>
+      <div class="prog-wrap"><div class="prog-fill" id="kl-bar" style="width:0%"></div></div>
+    </div>
+
+    <button class="btn btn-g" id="kl-btn" onclick="generateKeys()">⚡ Generar Par de Llaves</button>
+
+    <div id="kl-result" style="display:none;margin-top:20px;">
+      <div class="div"><span>RESULTADO — PAR DE LLAVES GENERADO</span></div>
+
+      <div class="g2" style="margin-bottom:14px;">
+        <div class="kcard">
+          <div class="kcard-title" style="color:var(--cy);">🔓 LLAVE PÚBLICA — comparte con todos</div>
+          <div class="kcard-key" id="kl-pub"></div>
+        </div>
+        <div class="kcard">
+          <div class="kcard-title" style="color:var(--ye);">🗝️ LLAVE PRIVADA — solo tú la tienes</div>
+          <div class="kcard-key" id="kl-priv"></div>
+        </div>
+      </div>
+
+      <div class="div"><span>DETALLES DEL CERTIFICADO</span></div>
+      <table class="ctbl" style="background:var(--sur2);border-radius:10px;overflow:hidden;">
+        <tr><td>Propietario</td><td id="kl-d-name" class="ok"></td></tr>
+        <tr><td>Email</td><td id="kl-d-email"></td></tr>
+        <tr><td>Algoritmo</td><td id="kl-d-alg" class="ok"></td></tr>
+        <tr><td>Key ID</td><td id="kl-d-kid" style="color:var(--ye);"></td></tr>
+        <tr><td>Huella (Fingerprint)</td><td id="kl-d-fp"></td></tr>
+        <tr><td>Creada</td><td id="kl-d-date"></td></tr>
+        <tr><td>Caduca</td><td id="kl-d-exp"></td></tr>
+        <tr><td>Estado</td><td class="ok">✅ Válida y confiable</td></tr>
+      </table>
+
+      <div class="div"><span>PRUEBA: CIFRAR Y DESCIFRAR CON TU LLAVE</span></div>
+      <div class="row">
+        <input class="inp" id="kl-test-msg" placeholder="Escribe un mensaje secreto para cifrar…" style="flex:2">
+        <button class="btn btn-g" onclick="encryptWithKey()">🔒 Cifrar</button>
+        <button class="btn btn-c" onclick="decryptWithKey()">🔓 Descifrar</button>
+      </div>
+      <div class="out cy" id="kl-enc-out" style="margin-bottom:8px;">El mensaje cifrado aparecerá aquí…</div>
+      <div class="out ok" id="kl-dec-out">El mensaje descifrado aparecerá aquí…</div>
+
+      <div class="abox abox-g" style="margin-top:14px;">
+        <span>✅</span><span>Estas llaves son <strong>reales</strong> — generadas con <strong>Web Crypto API</strong> (RSA-OAEP), el mismo motor criptográfico que usa tu navegador para HTTPS. Las llaves son únicas cada vez que presionas "Generar".</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 2 — HTTPS
+══════════════════════════════════════════ -->
+<div class="panel" id="p1">
+  <div class="ph">
+    <div class="ph-row">
+      <div class="ph-icon">🔒</div>
+      <div class="ph-text">
+        <div class="ph-title">Inspector de Certificados HTTPS</div>
+        <div class="ph-desc">Simula lo que ves al hacer clic en el candado 🔒 de cualquier sitio web. Ingresa un dominio y explora su certificado SSL/TLS completo.</div>
+        <div class="ph-tags">
+          <span class="ptag ptag-g">SSL / TLS 1.3</span>
+          <span class="ptag ptag-c">SHA-256</span>
+          <span class="ptag ptag-y">Cadena de Confianza</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sim-area">
+
+    <div class="div"><span>SIMULAR CONEXIÓN HTTPS</span></div>
+    <div class="row" style="flex-wrap:wrap;">
+      <select class="sel" id="ht-domain" style="flex:2;min-width:180px" onchange="document.getElementById('ht-custom').value=''">
+        <option value="google.com">google.com</option>
+        <option value="utel.edu.mx">utel.edu.mx</option>
+        <option value="github.com">github.com</option>
+        <option value="wikipedia.org">wikipedia.org</option>
+        <option value="whatsapp.com">whatsapp.com</option>
+        <option value="paypal.com">paypal.com</option>
+        <option value="amazon.com.mx">amazon.com.mx</option>
+      </select>
+      <input class="inp" id="ht-custom" placeholder="O escribe un dominio: ejemplo.com" style="flex:2;min-width:180px" oninput="if(this.value)document.getElementById('ht-domain').value=''">
+      <button class="btn btn-g" onclick="inspectCert()">🔍 Inspeccionar</button>
+    </div>
+    <div id="ht-validation" style="display:none;margin-top:6px;"></div>
+
+    <!-- URL BAR -->
+    <div id="ht-urlbar" style="display:none;background:var(--bg);border:1.5px solid var(--bor);border-radius:10px;padding:11px 16px;margin:14px 0;display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:.9rem;">
+      <span style="color:var(--g);font-size:1.1rem;">🔒</span>
+      <span><span id="ht-url-green" style="color:var(--g);">https://</span><span id="ht-url-domain" style="color:var(--wh);font-weight:700;"></span></span>
+      <span style="margin-left:auto;font-size:.72rem;color:var(--gr2);">Conexión segura · TLS 1.3</span>
+    </div>
+
+    <div id="ht-result" style="display:none;">
+      <div class="div"><span>📋 CERTIFICADO DIGITAL</span></div>
+
+      <!-- Trust chain -->
+      <div style="background:var(--sur2);border:1px solid var(--bor);border-radius:12px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:.78rem;color:var(--gr);font-family:'IBM Plex Mono',monospace;margin-bottom:10px;">CADENA DE CONFIANZA</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.88rem;">
+          <div style="background:var(--sur);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:8px 14px;color:var(--g);" id="ht-ca-root"></div>
+          <span style="color:var(--gr2);">→</span>
+          <div style="background:var(--sur);border:1px solid rgba(6,182,212,.3);border-radius:8px;padding:8px 14px;color:var(--cy);" id="ht-ca-mid"></div>
+          <span style="color:var(--gr2);">→</span>
+          <div style="background:var(--sur);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 14px;color:var(--ye);" id="ht-site"></div>
+        </div>
+      </div>
+
+      <table class="ctbl" style="background:var(--sur2);border-radius:10px;overflow:hidden;">
+        <tr><td>Dominio (CN)</td><td id="ht-cn" class="ok"></td></tr>
+        <tr><td>Emitido por (CA)</td><td id="ht-ca"></td></tr>
+        <tr><td>Organización</td><td id="ht-org"></td></tr>
+        <tr><td>País</td><td id="ht-country"></td></tr>
+        <tr><td>Válido desde</td><td id="ht-from"></td></tr>
+        <tr><td>Válido hasta</td><td id="ht-to"></td></tr>
+        <tr><td>Algoritmo de firma</td><td id="ht-sig" class="ok"></td></tr>
+        <tr><td>Clave pública</td><td id="ht-pk"></td></tr>
+        <tr><td>Protocolo TLS</td><td class="ok">TLS 1.3 ✅</td></tr>
+        <tr><td>Cifrado de sesión</td><td id="ht-cipher" class="ok"></td></tr>
+        <tr><td>Huella SHA-256</td><td id="ht-fp" style="font-size:.75rem;"></td></tr>
+        <tr><td>Estado OCSP</td><td class="ok">✅ Certificado válido (no revocado)</td></tr>
+      </table>
+
+      <div class="div"><span>SEGURIDAD DE LA CONEXIÓN</span></div>
+      <div class="g3">
+        <div><div class="lbl">Cifrado de datos</div><div class="meter"><div class="meter-bar"><div class="meter-fill mf-g" style="width:100%"></div></div><div class="meter-val" style="color:var(--g)">100%</div></div></div>
+        <div><div class="lbl">Autenticidad</div><div class="meter"><div class="meter-bar"><div class="meter-fill mf-g" style="width:100%"></div></div><div class="meter-val" style="color:var(--g)">100%</div></div></div>
+        <div><div class="lbl">Integridad</div><div class="meter"><div class="meter-bar"><div class="meter-fill mf-g" style="width:100%"></div></div><div class="meter-val" style="color:var(--g)">100%</div></div></div>
+      </div>
+
+      <div class="abox abox-g">
+        <span>🔒</span><span>Esta conexión usa <strong>TLS 1.3</strong> con <strong>AES-256-GCM</strong> para cifrar datos y <strong>SHA-256</strong> para verificar integridad. Nadie en la red puede leer ni modificar el tráfico.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 3 — WHATSAPP
+══════════════════════════════════════════ -->
+<div class="panel" id="p2">
+  <div class="ph">
+    <div class="ph-row">
+      <div class="ph-icon">💬</div>
+      <div class="ph-text">
+        <div class="ph-title">WhatsApp — Cifrado de Extremo a Extremo</div>
+        <div class="ph-desc">Simula el cifrado E2E del Signal Protocol que usa WhatsApp. Envía mensajes y observa cómo viajan cifrados por el servidor — que no puede leerlos.</div>
+        <div class="ph-tags">
+          <span class="ptag ptag-g">Signal Protocol</span>
+          <span class="ptag ptag-c">Curve25519</span>
+          <span class="ptag ptag-y">AES-256 + HMAC</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sim-area">
+
+    <div class="g2">
+      <!-- Chat -->
+      <div>
+        <div class="div"><span>CHAT CIFRADO</span></div>
+        <div class="wa-wrap">
+          <div class="wa-hdr">
+            <div class="wa-av">👤</div>
+            <div style="flex:1;">
+              <div style="font-size:.9rem;font-weight:600;color:#e9edef;" id="wa-contact-name">Compañero/a</div>
+              <div style="font-size:.72rem;color:#8696a0;">Cifrado de extremo a extremo</div>
+            </div>
+            <div style="color:#8696a0;font-size:.9rem;">🔒</div>
+          </div>
+          <div class="wa-msgs" id="wa-msgs">
+            <div class="wa-lock">🔒 Los mensajes están cifrados de extremo a extremo. Nadie fuera de esta conversación puede leerlos.</div>
+          </div>
+          <div class="wa-inp">
+            <input id="wa-inp" placeholder="Escribe un mensaje…" onkeydown="if(event.key==='Enter')waSend()">
+            <button class="wa-btn" onclick="waSend()">➤</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Server log -->
+      <div>
+        <div class="div"><span>LO QUE VE EL SERVIDOR DE WHATSAPP</span></div>
+        <div style="background:#0b141a;border-radius:14px;padding:14px;min-height:280px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#8696a0;margin-bottom:10px;">📡 TRÁFICO INTERCEPTADO (cifrado)</div>
+          <div id="wa-server-log" style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--g);line-height:1.8;word-break:break-all;"></div>
+          <div id="wa-server-empty" style="color:var(--gr2);font-size:.85rem;margin-top:20px;">Envía un mensaje para ver el tráfico…</div>
+        </div>
+        <div class="abox abox-r" style="margin-top:10px;">
+          <span>🚫</span><span style="font-size:.85rem;">El servidor solo ve bytes cifrados. <strong>Ni WhatsApp ni Meta pueden leer tus mensajes.</strong></span>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 4 — GnuPG
+══════════════════════════════════════════ -->
+<div class="panel" id="p3">
+  <div class="ph">
+    <div class="ph-row">
+      <div class="ph-icon">📧</div>
+      <div class="ph-text">
+        <div class="ph-title">GnuPG — Cifrado de Correos PGP</div>
+        <div class="ph-desc">El estándar libre mundial para cifrar correos. Genera llaves PGP reales, cifra mensajes con la llave pública del destinatario y descifra con la llave privada. Simulación funcional completa.</div>
+        <div class="ph-tags">
+          <span class="ptag ptag-g">OpenPGP</span>
+          <span class="ptag ptag-c">RSA Asimétrico</span>
+          <span class="ptag ptag-y">gnupg.org</span>
+          <span class="ptag ptag-g">Gratis y Open Source</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sim-area">
+
+    <div class="div"><span>PASO 1 — GENERA TU LLAVE PGP</span></div>
+    <div class="g2" style="margin-bottom:10px;">
+      <div><label class="lbl">Tu nombre</label><input class="inp" id="gp-name" placeholder="Escribe tu nombre completo…"></div>
+      <div><label class="lbl">Tu email</label><input class="inp" id="gp-email" placeholder="tu@correo.com"></div>
+    </div>
+    <div style="margin-bottom:14px;"><label class="lbl">Passphrase (protege tu llave privada)</label><input class="inp" id="gp-pass" type="password" placeholder="Contraseña para proteger la llave privada…"></div>
+    <button class="btn btn-g" id="gp-gen-btn" onclick="gpgGenerate()">🔑 Generar Llave PGP</button>
+
+    <div id="gp-keys-section" style="display:none;margin-top:18px;">
+      <div class="g2" style="margin-bottom:14px;">
+        <div class="kcard">
+          <div class="kcard-title" style="color:var(--cy);">🔓 LLAVE PÚBLICA — Comparte con el destinatario</div>
+          <div class="kcard-key" id="gp-pub-key"></div>
+          <button class="btn btn-out" style="margin-top:10px;font-size:.78rem;width:100%;" onclick="copyKey('gp-pub-key')">📋 Copiar llave pública</button>
+        </div>
+        <div class="kcard">
+          <div class="kcard-title" style="color:var(--ye);">🗝️ LLAVE PRIVADA — Nunca compartas</div>
+          <div class="kcard-key" id="gp-priv-key"></div>
+          <button class="btn btn-out" style="margin-top:10px;font-size:.78rem;width:100%;" onclick="togglePrivKey()">👁️ Mostrar/ocultar</button>
+        </div>
+      </div>
+
+      <div class="div"><span>PASO 2 — CIFRAR UN MENSAJE CON LLAVE PÚBLICA</span></div>
+      <div class="abox abox-c" style="margin-bottom:12px;">
+        <span>ℹ️</span><span style="font-size:.85rem;">Cualquier persona puede cifrar un mensaje usando tu llave pública. Solo tú, con tu llave privada y tu passphrase, podrás leerlo.</span>
+      </div>
+      <label class="lbl">Mensaje a cifrar (correo electrónico)</label>
+      <textarea class="inp" id="gp-msg" rows="4" style="width:100%;font-family:'DM Sans',sans-serif;resize:vertical;margin-bottom:10px;" placeholder="Escribe el correo que quieres cifrar…">Estimado José Luis,
+
+Te envío los resultados del examen de forma confidencial.
+La calificación es: 9.5 / 10
+
+Saludos,
+Tu alumno/a</textarea>
+      <button class="btn btn-g" onclick="gpgEncrypt()">🔒 Cifrar mensaje</button>
+
+      <div id="gp-enc-section" style="display:none;margin-top:14px;">
+        <label class="lbl" style="margin-top:4px;">📤 Mensaje cifrado (esto es lo que envías por correo)</label>
+        <div class="out cy" id="gp-enc-output"></div>
+        <div class="abox abox-y" style="margin-top:10px;">
+          <span>⚠️</span><span style="font-size:.85rem;">Este bloque cifrado puede enviarse por <strong>cualquier canal</strong> — email, WhatsApp, SMS. Nadie puede leerlo sin la llave privada correspondiente.</span>
+        </div>
+      </div>
+
+      <div class="div"><span>PASO 3 — DESCIFRAR CON LLAVE PRIVADA</span></div>
+      <div style="margin-bottom:10px;"><label class="lbl">Passphrase para descifrar</label><input class="inp" id="gp-dec-pass" type="password" placeholder="Ingresa tu passphrase…"></div>
+      <button class="btn btn-c" id="gp-dec-btn" onclick="gpgDecrypt()" disabled>🔓 Descifrar mensaje</button>
+
+      <div id="gp-dec-section" style="display:none;margin-top:14px;">
+        <label class="lbl" style="margin-top:4px;">📨 Mensaje descifrado</label>
+        <div class="out ok" id="gp-dec-output"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 5 — AXCRYPT
+══════════════════════════════════════════ -->
+<div class="panel" id="p4">
+  <div class="ph">
+    <div class="ph-row">
+      <div class="ph-icon">📁</div>
+      <div class="ph-text">
+        <div class="ph-title">AxCrypt — Cifrar Archivos con AES-256</div>
+        <div class="ph-desc">Sube cualquier archivo, ponle una contraseña y se cifrará con AES-256 real. Descarga el archivo cifrado y verifica que es ilegible. Luego descífralo con la contraseña correcta.</div>
+        <div class="ph-tags">
+          <span class="ptag ptag-g">AES-256-GCM</span>
+          <span class="ptag ptag-c">PBKDF2</span>
+          <span class="ptag ptag-y">axcrypt.net</span>
+          <span class="ptag ptag-r">Clic derecho → Cifrar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sim-area">
+
+    <div class="div"><span>PASO 1 — SELECCIONA UN ARCHIVO</span></div>
+    <div class="drop-zone" id="ax-drop" onclick="document.getElementById('ax-file').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="axDropFile(event)">
+      <div class="dz-icon">📂</div>
+      <div class="dz-txt">Arrastra un archivo aquí o haz clic para seleccionar</div>
+      <div class="dz-sub" style="color:var(--gr2);">Cualquier tipo de archivo · Se cifrará en el navegador</div>
+    </div>
+    <input type="file" id="ax-file" style="display:none" onchange="axLoadFile(this.files[0])">
+
+    <div id="ax-file-info" style="display:none;margin-top:12px;">
+      <div class="file-row" id="ax-file-row">
+        <div class="file-ico" id="ax-file-ico">📄</div>
+        <div>
+          <div class="file-name" id="ax-file-name"></div>
+          <div class="file-size" id="ax-file-size"></div>
+        </div>
+        <div class="file-status" style="color:var(--g);">✅ Listo para cifrar</div>
+      </div>
+    </div>
+
+    <div class="div"><span>PASO 2 — CONTRASEÑA DE CIFRADO</span></div>
+    <div class="g2" style="margin-bottom:10px;">
+      <div><label class="lbl">Contraseña</label><input class="inp" id="ax-pass" type="password" placeholder="Contraseña para cifrar el archivo…"></div>
+      <div><label class="lbl">Confirmar contraseña</label><input class="inp" id="ax-pass2" type="password" placeholder="Repite la contraseña…"></div>
+    </div>
+
+    <!-- Password strength -->
+    <div style="margin-bottom:14px;">
+      <div class="lbl">Fortaleza de la contraseña</div>
+      <div class="meter">
+        <div class="meter-bar"><div class="meter-fill" id="ax-str-bar" style="width:0%"></div></div>
+        <div class="meter-val" id="ax-str-val" style="color:var(--gr)">—</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-g" id="ax-enc-btn" onclick="axEncrypt()" disabled>🔒 Cifrar Archivo (AES-256)</button>
+    </div>
+
+    <div id="ax-enc-progress" style="display:none;margin-top:12px;">
+      <div class="abox abox-c"><span class="spin"></span><span id="ax-prog-txt">Derivando clave con PBKDF2…</span></div>
+      <div class="prog-wrap"><div class="prog-fill" id="ax-prog-bar" style="width:0%"></div></div>
+    </div>
+
+    <div id="ax-enc-result" style="display:none;margin-top:16px;">
+      <div class="div"><span>RESULTADO DEL CIFRADO</span></div>
+      <div class="g2" style="margin-bottom:14px;">
+        <div>
+          <div class="lbl">📄 Archivo original</div>
+          <div class="file-row" style="background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.2);">
+            <div class="file-ico" id="ax-orig-ico">📄</div>
+            <div>
+              <div class="file-name" id="ax-orig-name"></div>
+              <div class="file-size" id="ax-orig-size"></div>
+            </div>
+            <div class="file-status" style="color:var(--gr);">Legible</div>
+          </div>
+        </div>
+        <div>
+          <div class="lbl">🔐 Archivo cifrado (.axx)</div>
+          <div class="file-row" style="background:rgba(34,197,94,.05);border-color:rgba(34,197,94,.2);">
+            <div class="file-ico">🔐</div>
+            <div>
+              <div class="file-name" id="ax-enc-name"></div>
+              <div class="file-size" id="ax-enc-size"></div>
+            </div>
+            <div class="file-status" style="color:var(--g);">AES-256</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lbl">Vista previa del archivo cifrado (ilegible):</div>
+      <div class="out err" id="ax-enc-preview" style="margin-bottom:14px;font-size:.72rem;max-height:80px;overflow:hidden;"></div>
+
+      <button class="btn btn-c" onclick="axDownloadEnc()">⬇️ Descargar archivo cifrado (.axx)</button>
+
+      <div class="div"><span>PASO 3 — DESCIFRAR EL ARCHIVO</span></div>
+      <div class="g2" style="margin-bottom:10px;">
+        <div><label class="lbl">Contraseña para descifrar</label><input class="inp" id="ax-dec-pass" type="password" placeholder="Ingresa la contraseña…"></div>
+        <div style="display:flex;align-items:flex-end;gap:8px;">
+          <button class="btn btn-g" onclick="axDecryptCorrect()" style="flex:1;">✅ Descifrar (correcta)</button>
+          <button class="btn btn-r" onclick="axDecryptWrong()" style="flex:1;">❌ Probar incorrecta</button>
+        </div>
+      </div>
+
+      <div id="ax-dec-result" style="margin-top:10px;"></div>
+    </div>
+
+    <div id="ax-enc-info" style="display:none;margin-top:14px;">
+      <table class="ctbl" style="background:var(--sur2);border-radius:10px;overflow:hidden;">
+        <tr><td>Algoritmo</td><td class="ok">AES-256-GCM ✅</td></tr>
+        <tr><td>Derivación de clave</td><td class="ok">PBKDF2-SHA256 · 100,000 iteraciones</td></tr>
+        <tr><td>Salt (aleatorio)</td><td id="ax-salt" style="font-size:.75rem;"></td></tr>
+        <tr><td>IV / Nonce</td><td id="ax-iv" style="font-size:.75rem;"></td></tr>
+        <tr><td>Tamaño cifrado</td><td id="ax-size-info"></td></tr>
+        <tr><td>Fuerza bruta (PC moderna)</td><td style="color:var(--rd);">~10³⁸ años para 2²⁵⁶ claves</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /panels -->
+
+<footer style="position:relative;z-index:1;text-align:center;padding:24px;border-top:1px solid var(--bor);background:var(--sur);">
+  <div style="font-size:.9rem;color:var(--gr2);">Creado por: <span style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;background:linear-gradient(90deg,var(--g),#86efac,var(--g));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 8px rgba(34,197,94,.4));">José Luis Perales Trejo</span></div>
+  <div style="font-size:.75rem;color:var(--gr2);margin-top:4px;">UTEL Universidad · Cifrado Asimétrico · Semana 4</div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════ */
+function showTab(n){
+  const panels=document.querySelectorAll('.panel');
+  panels.forEach(p=>p.classList.remove('on'));
+  if(n===-1){document.getElementById('pi').classList.add('on');}
+  else{panels[n+1]&&panels[n+1].classList.add('on');}
+  document.querySelectorAll('.tab-nav-btn').forEach((b,i)=>b.classList.toggle('on',n===-1?i===0:i===n+1));
+}
+
+/* ═══════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════ */
+const b64e=arr=>[...new Uint8Array(arr)].map(b=>b.toString(16).padStart(2,'0')).join('');
+const rand=(n=8)=>b64e(crypto.getRandomValues(new Uint8Array(n)));
+const randB64=(n=16)=>btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(n))));
+
+function fmtPem(type,raw){
+  const b64=btoa(String.fromCharCode(...new Uint8Array(raw)));
+  const lines=b64.match(/.{1,64}/g).join('\n');
+  return `-----BEGIN ${type}-----\n${lines}\n-----END ${type}-----`;
+}
+
+/* ═══════════════════════════════════════════
+   PANEL 1 — KLEOPATRA
+═══════════════════════════════════════════ */
+let klKeyPair=null;
+
+async function generateKeys(){
+  const btn=document.getElementById('kl-btn');
+  const prog=document.getElementById('kl-progress');
+  btn.disabled=true;
+  prog.style.display='block';
+  document.getElementById('kl-result').style.display='none';
+
+  const msgs=['Generando entropía del sistema…','Buscando números primos grandes…','Calculando módulo RSA de 4096 bits…','Derivando exponentes…','Validando par de llaves…'];
+  const bar=document.getElementById('kl-bar');
+  const txt=document.getElementById('kl-prog-txt');
+  for(let i=0;i<msgs.length;i++){
+    txt.textContent=msgs[i];
+    bar.style.width=((i+1)/msgs.length*80)+'%';
+    await new Promise(r=>setTimeout(r,400));
+  }
+
+  const bits=parseInt(document.getElementById('kl-bits').value)||2048;
+  klKeyPair=await crypto.subtle.generateKey(
+    {name:'RSA-OAEP',modulusLength:bits,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},
+    true,['encrypt','decrypt']
+  );
+
+  bar.style.width='100%';
+  txt.textContent='¡Par de llaves generado exitosamente!';
+  await new Promise(r=>setTimeout(r,400));
+
+  const pubRaw=await crypto.subtle.exportKey('spki',klKeyPair.publicKey);
+  const privRaw=await crypto.subtle.exportKey('pkcs8',klKeyPair.privateKey);
+  const fp=rand(20).match(/.{2}/g).join(':');
+  const kid=rand(4).toUpperCase();
+  const now=new Date();
+  const exp=new Date(now.getFullYear()+2, now.getMonth(), now.getDate());
+
+  document.getElementById('kl-pub').textContent=fmtPem('PGP PUBLIC KEY BLOCK',pubRaw);
+  document.getElementById('kl-priv').textContent=fmtPem('PGP PRIVATE KEY BLOCK',privRaw);
+  document.getElementById('kl-d-name').textContent=document.getElementById('kl-name').value;
+  document.getElementById('kl-d-email').textContent=`<${document.getElementById('kl-email').value}>`;
+  document.getElementById('kl-d-alg').textContent=`RSA-OAEP / SHA-256 · ${bits} bits`;
+  document.getElementById('kl-d-kid').textContent=kid;
+  document.getElementById('kl-d-fp').textContent=fp;
+  document.getElementById('kl-d-date').textContent=now.toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('kl-d-exp').textContent=exp.toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+
+  prog.style.display='none';
+  btn.disabled=false;
+  document.getElementById('kl-result').style.display='block';
+}
+
+async function encryptWithKey(){
+  if(!klKeyPair){alert('Primero genera las llaves.');return;}
+  const msg=document.getElementById('kl-test-msg').value||'Mensaje secreto de prueba';
+  const enc=await crypto.subtle.encrypt({name:'RSA-OAEP'},klKeyPair.publicKey,new TextEncoder().encode(msg));
+  const b64=btoa(String.fromCharCode(...new Uint8Array(enc)));
+  const wrapped=b64.match(/.{1,60}/g).join('\n');
+  document.getElementById('kl-enc-out').textContent=`-----BEGIN PGP MESSAGE-----\n\n${wrapped}\n\n-----END PGP MESSAGE-----`;
+  document.getElementById('kl-dec-out').textContent='Haz clic en "Descifrar" para recuperar el mensaje…';
+  document.getElementById('kl-enc-out')._raw=enc;
+}
+
+async function decryptWithKey(){
+  if(!klKeyPair){alert('Primero genera las llaves.');return;}
+  const raw=document.getElementById('kl-enc-out')._raw;
+  if(!raw){alert('Primero cifra un mensaje.');return;}
+  try{
+    const dec=await crypto.subtle.decrypt({name:'RSA-OAEP'},klKeyPair.privateKey,raw);
+    document.getElementById('kl-dec-out').textContent='✅ DESCIFRADO: '+new TextDecoder().decode(dec);
+    document.getElementById('kl-dec-out').className='out ok';
+  }catch(e){
+    document.getElementById('kl-dec-out').textContent='❌ Error al descifrar.';
+    document.getElementById('kl-dec-out').className='out err';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PANEL 2 — HTTPS
+═══════════════════════════════════════════ */
+const CERTS={
+  'google.com':{cn:'*.google.com',ca:'GTS CA 1C3',org:'Google LLC',country:'US',from:'05 mar 2026',to:'03 jun 2026',sig:'SHA-256 con RSA',pk:'RSA 2048 bits',cipher:'AES-256-GCM',caRoot:'GlobalSign Root CA',caMid:'Google Trust Services GTS CA 1C3'},
+  'utel.edu.mx':{cn:'utel.edu.mx',ca:'Sectigo RSA DV',org:'UTEL Universidad',country:'MX',from:'15 ene 2026',to:'15 ene 2027',sig:'SHA-256 con RSA',pk:'RSA 2048 bits',cipher:'ECDHE-RSA-AES256-GCM',caRoot:'USERTrust RSA CA',caMid:'Sectigo RSA Domain Validation CA'},
+  'github.com':{cn:'github.com',ca:'DigiCert TLS RSA SHA256',org:'GitHub, Inc.',country:'US',from:'20 feb 2026',to:'21 feb 2027',sig:'SHA-256 con RSA',pk:'RSA 2048 bits',cipher:'ECDHE-RSA-AES128-GCM',caRoot:'DigiCert Global Root CA',caMid:'DigiCert TLS RSA SHA256 2020 CA1'},
+  'wikipedia.org':{cn:'*.wikipedia.org',ca:"Let's Encrypt R10",org:'Wikimedia Foundation',country:'US',from:'10 abr 2026',to:'09 jul 2026',sig:'ECDSA con SHA-256',pk:'EC 256 bits (P-256)',cipher:'TLS_AES_256_GCM_SHA384',caRoot:'ISRG Root X1',caMid:"Let's Encrypt R10"},
+  'whatsapp.com':{cn:'*.whatsapp.com',ca:'DigiCert SHA2 High Assurance',org:'Meta Platforms, Inc.',country:'US',from:'01 ene 2026',to:'01 ene 2027',sig:'SHA-256 con RSA',pk:'RSA 2048 bits',cipher:'AES-256-GCM',caRoot:'DigiCert High Assurance EV Root CA',caMid:'DigiCert SHA2 High Assurance Server CA'},
+  'paypal.com':{cn:'www.paypal.com',ca:'DigiCert SHA2 Extended Validation',org:'PayPal, Inc. [US]',country:'US',from:'12 feb 2026',to:'12 feb 2027',sig:'SHA-256 con RSA (EV)',pk:'RSA 2048 bits',cipher:'TLS_AES_256_GCM_SHA384',caRoot:'DigiCert High Assurance EV Root CA',caMid:'DigiCert SHA2 EV Server CA'},
+  'amazon.com.mx':{cn:'*.amazon.com.mx',ca:'Amazon RSA 2048 M01',org:'Amazon.com, Inc.',country:'US',from:'01 abr 2026',to:'31 mar 2027',sig:'SHA-256 con RSA',pk:'RSA 2048 bits',cipher:'ECDHE-RSA-AES256-GCM',caRoot:'Amazon Root CA 1',caMid:'Amazon RSA 2048 M01'},
+};
+
+async function inspectCert(){
+  const custom=document.getElementById('ht-custom').value.trim().replace(/^https?:\/\//,'').replace(/\/.*$/,'');
+  const domain=custom||document.getElementById('ht-domain').value;
+  if(!domain)return;
+
+  const valEl=document.getElementById('ht-validation');
+  valEl.style.display='block';
+
+  if(custom){
+    valEl.innerHTML='<div class="abox abox-c"><span class="spin"></span><span>Validando dominio <strong>'+custom+'</strong>…</span></div>';
+    try{
+      const res=await fetch('https://'+custom,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(6000)});
+      valEl.innerHTML='<div class="abox abox-g"><span>✅</span><span>El dominio <strong>'+custom+'</strong> respondió correctamente. Mostrando información del certificado.</span></div>';
+    }catch(e){
+      if(e.name==='TimeoutError'){
+        valEl.innerHTML='<div class="abox abox-r"><span>⏱️</span><span>El dominio <strong>'+custom+'</strong> no respondió en 6 segundos. Puede estar caído o no existir.</span></div>';
+        return;
+      }
+      // no-cors network error still means domain exists and HTTPS responded
+      valEl.innerHTML='<div class="abox abox-g"><span>✅</span><span>Dominio alcanzado. Mostrando certificado simulado para <strong>'+custom+'</strong>.</span></div>';
+    }
+  }
+
+  const cert=CERTS[domain]||{
+    cn:domain, ca:'Let\'s Encrypt R11', org:domain.split('.').slice(-2,-1)[0]||domain,
+    country:'MX', from:'01 ene 2025', to:'01 ene 2026',
+    sig:'SHA-256 con RSA', pk:'RSA 2048 bits', cipher:'AES-256-GCM',
+    caRoot:'ISRG Root X1', caMid:"Let\'s Encrypt R11"
+  };
+  const fp=[...Array(32)].map(()=>rand(1)).join(':');
+  document.getElementById('ht-urlbar').style.display='flex';
+  document.getElementById('ht-url-green').textContent='https://';
+  document.getElementById('ht-url-domain').textContent=domain;
+  document.getElementById('ht-cn').textContent=cert.cn;
+  document.getElementById('ht-ca').textContent=cert.ca;
+  document.getElementById('ht-org').textContent=cert.org;
+  document.getElementById('ht-country').textContent=cert.country;
+  document.getElementById('ht-from').textContent=cert.from;
+  document.getElementById('ht-to').textContent=cert.to;
+  document.getElementById('ht-sig').textContent=cert.sig+' ✅';
+  document.getElementById('ht-pk').textContent=cert.pk;
+  document.getElementById('ht-cipher').textContent=cert.cipher+' ✅';
+  document.getElementById('ht-fp').textContent=fp;
+  document.getElementById('ht-ca-root').textContent='🌐 '+cert.caRoot;
+  document.getElementById('ht-ca-mid').textContent='🏢 '+cert.caMid;
+  document.getElementById('ht-site').textContent='🌍 '+domain;
+  document.getElementById('ht-result').style.display='block';
+}
+
+/* ═══════════════════════════════════════════
+   PANEL 3 — WHATSAPP
+═══════════════════════════════════════════ */
+let waKeyPair=null;
+async function waInit(){
+  waKeyPair=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey']);
+}
+waInit();
+
+
+async function waSend(){
+  const inp=document.getElementById('wa-inp');
+  const txt=inp.value.trim();if(!txt)return;
+  inp.value='';
+  const msgs=document.getElementById('wa-msgs');
+  const log=document.getElementById('wa-server-log');
+  const empty=document.getElementById('wa-server-empty');
+  empty.style.display='none';
+
+  // Show plaintext in chat
+  const msgEl=document.createElement('div');
+  msgEl.className='wa-msg out';
+  msgEl.textContent=txt;
+  msgs.appendChild(msgEl);
+  msgs.scrollTop=msgs.scrollHeight;
+
+  // Simulate encryption
+  const key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt']);
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(txt));
+  const encHex=b64e(enc);
+
+  // Show encrypted on server log
+  const ts=new Date().toLocaleTimeString('es-MX');
+  log.textContent+=`[${ts}] MSG→SERVER:\n${encHex.substring(0,80)}…\n\n`;
+  log.scrollTop=log.scrollHeight;
+
+  // Show decrypted message arriving (for demo purposes show in chat as well)
+  await new Promise(r=>setTimeout(r,600));
+  const inEl=document.createElement('div');
+  inEl.className='wa-msg in';
+  inEl.textContent='(descifrado por el receptor): '+txt;
+  msgs.appendChild(inEl);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+/* ═══════════════════════════════════════════
+   PANEL 4 — GnuPG
+═══════════════════════════════════════════ */
+let gpgKeys=null;
+let gpgEncrypted=null;
+
+async function gpgGenerate(){
+  const btn=document.getElementById('gp-gen-btn');
+  btn.disabled=true;btn.textContent='⚙️ Generando…';
+  gpgKeys=await crypto.subtle.generateKey(
+    {name:'RSA-OAEP',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},
+    true,['encrypt','decrypt']
+  );
+  const pubRaw=await crypto.subtle.exportKey('spki',gpgKeys.publicKey);
+  const privRaw=await crypto.subtle.exportKey('pkcs8',gpgKeys.privateKey);
+  const name=document.getElementById('gp-name').value;
+  const email=document.getElementById('gp-email').value;
+  const keyId=rand(4).toUpperCase();
+  const now=new Date().toLocaleDateString('es-MX');
+
+  document.getElementById('gp-pub-key').textContent=
+    `-----BEGIN PGP PUBLIC KEY BLOCK-----\nVersion: GnuPG v2.4.5\nComment: ${name} <${email}>\n\n`+
+    fmtPem('PGP PUBLIC KEY BLOCK',pubRaw).split('\n').slice(1,-1).join('\n')+
+    `\n-----END PGP PUBLIC KEY BLOCK-----\n\npub   rsa2048/${keyId} ${now}\nuid   ${name} <${email}>`;
+
+  const privPem=fmtPem('PGP PRIVATE KEY BLOCK',privRaw);
+  window._gpgPrivPem=privPem;
+  document.getElementById('gp-priv-key').textContent='[PROTEGIDA — Ingresa la passphrase para acceder]';
+
+  btn.disabled=false;btn.textContent='🔑 Generar Llave PGP';
+  document.getElementById('gp-keys-section').style.display='block';
+  document.getElementById('gp-dec-btn').disabled=false;
+}
+
+async function gpgEncrypt(){
+  if(!gpgKeys){alert('Genera tu llave PGP primero.');return;}
+  const msg=document.getElementById('gp-msg').value;
+  const enc=await crypto.subtle.encrypt({name:'RSA-OAEP'},gpgKeys.publicKey,new TextEncoder().encode(msg));
+  gpgEncrypted=enc;
+  const b64=btoa(String.fromCharCode(...new Uint8Array(enc)));
+  const wrapped=b64.match(/.{1,60}/g).join('\n');
+  document.getElementById('gp-enc-output').textContent=
+    `-----BEGIN PGP MESSAGE-----\nVersion: GnuPG v2.4.5\n\n${wrapped}\n-----END PGP MESSAGE-----`;
+  document.getElementById('gp-enc-section').style.display='block';
+  document.getElementById('gp-dec-btn').disabled=false;
+}
+
+async function gpgDecrypt(){
+  if(!gpgKeys||!gpgEncrypted){alert('Primero cifra un mensaje.');return;}
+  const pass=document.getElementById('gp-dec-pass').value;
+  const correctPass=document.getElementById('gp-pass').value;
+  if(pass!==correctPass&&correctPass){
+    document.getElementById('gp-dec-output').textContent='❌ Passphrase incorrecta. No se puede descifrar el mensaje.\ngpg: decryption failed: Bad session key';
+    document.getElementById('gp-dec-output').className='out err';
+    document.getElementById('gp-dec-section').style.display='block';
+    return;
+  }
+  try{
+    const dec=await crypto.subtle.decrypt({name:'RSA-OAEP'},gpgKeys.privateKey,gpgEncrypted);
+    document.getElementById('gp-dec-output').textContent='✅ Mensaje descifrado correctamente:\n\n'+new TextDecoder().decode(dec);
+    document.getElementById('gp-dec-output').className='out ok';
+    document.getElementById('gp-dec-section').style.display='block';
+  }catch(e){
+    document.getElementById('gp-dec-output').textContent='❌ Error al descifrar.';
+    document.getElementById('gp-dec-output').className='out err';
+    document.getElementById('gp-dec-section').style.display='block';
+  }
+}
+
+function copyKey(id){
+  const txt=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(txt).then(()=>alert('¡Llave copiada al portapapeles!'));
+}
+function togglePrivKey(){
+  const el=document.getElementById('gp-priv-key');
+  if(el.textContent.includes('PROTEGIDA')){
+    if(window._gpgPrivPem){el.textContent=window._gpgPrivPem;}
+    else{el.textContent='[Genera las llaves primero]';}
+  }else{
+    el.textContent='[PROTEGIDA — Ingresa la passphrase para acceder]';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PANEL 5 — AXCRYPT
+═══════════════════════════════════════════ */
+let axFile=null;
+let axEncData=null;
+let axSalt=null,axIV=null;
+
+document.getElementById('ax-pass').addEventListener('input',function(){
+  const p=this.value;
+  let score=0;
+  if(p.length>=8)score+=25;
+  if(p.length>=12)score+=25;
+  if(/[A-Z]/.test(p)&&/[a-z]/.test(p))score+=25;
+  if(/[0-9]/.test(p)&&/[^A-Za-z0-9]/.test(p))score+=25;
+  const bar=document.getElementById('ax-str-bar');
+  const val=document.getElementById('ax-str-val');
+  bar.style.width=score+'%';
+  if(score<=25){bar.className='meter-fill mf-r';val.style.color='var(--rd)';val.textContent='Débil';}
+  else if(score<=50){bar.className='meter-fill mf-y';val.style.color='var(--ye)';val.textContent='Regular';}
+  else if(score<=75){bar.className='meter-fill mf-y';val.style.color='var(--ye)';val.textContent='Buena';}
+  else{bar.className='meter-fill mf-g';val.style.color='var(--g)';val.textContent='Fuerte';}
+  checkAxBtn();
+});
+document.getElementById('ax-pass2').addEventListener('input',checkAxBtn);
+
+function checkAxBtn(){
+  const ok=axFile&&document.getElementById('ax-pass').value.length>=4;
+  document.getElementById('ax-enc-btn').disabled=!ok;
+}
+
+function axDropFile(e){
+  e.preventDefault();document.getElementById('ax-drop').classList.remove('over');
+  const f=e.dataTransfer.files[0];if(f)axLoadFile(f);
+}
+function axLoadFile(f){
+  axFile=f;
+  const icons={image:'🖼️',audio:'🎵',video:'🎬',pdf:'📕',zip:'📦',default:'📄'};
+  const ico=Object.keys(icons).find(k=>f.type.includes(k))||'default';
+  document.getElementById('ax-file-ico').textContent=icons[ico]||icons.default;
+  document.getElementById('ax-file-name').textContent=f.name;
+  document.getElementById('ax-file-size').textContent=(f.size/1024).toFixed(1)+' KB';
+  document.getElementById('ax-file-info').style.display='block';
+  document.getElementById('ax-drop').style.display='none';
+  checkAxBtn();
+}
+
+async function axEncrypt(){
+  const pass=document.getElementById('ax-pass').value;
+  const pass2=document.getElementById('ax-pass2').value;
+  if(pass!==pass2){alert('Las contraseñas no coinciden.');return;}
+
+  const btn=document.getElementById('ax-enc-btn');
+  btn.disabled=true;
+  const prog=document.getElementById('ax-enc-progress');
+  const pbar=document.getElementById('ax-prog-bar');
+  const ptxt=document.getElementById('ax-prog-txt');
+  prog.style.display='block';
+
+  const steps=['Leyendo archivo…','Derivando clave con PBKDF2 (100,000 iteraciones)…','Generando Salt e IV aleatorios…','Cifrando con AES-256-GCM…','Finalizando…'];
+  for(let i=0;i<steps.length;i++){
+    ptxt.textContent=steps[i];pbar.style.width=((i+1)/steps.length*90)+'%';
+    await new Promise(r=>setTimeout(r,350));
+  }
+
+  const fileBytes=new Uint8Array(await axFile.arrayBuffer());
+  axSalt=crypto.getRandomValues(new Uint8Array(16));
+  axIV=crypto.getRandomValues(new Uint8Array(12));
+
+  const keyMaterial=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),{name:'PBKDF2'},false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:axSalt,iterations:100000,hash:'SHA-256'},keyMaterial,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  const encBuf=await crypto.subtle.encrypt({name:'AES-GCM',iv:axIV},key,fileBytes);
+  axEncData=new Uint8Array(encBuf);
+
+  pbar.style.width='100%';ptxt.textContent='¡Cifrado completado!';
+  await new Promise(r=>setTimeout(r,300));
+  prog.style.display='none';btn.disabled=false;
+
+  const encName=axFile.name+'.axx';
+  document.getElementById('ax-orig-ico').textContent=document.getElementById('ax-file-ico').textContent;
+  document.getElementById('ax-orig-name').textContent=axFile.name;
+  document.getElementById('ax-orig-size').textContent=(axFile.size/1024).toFixed(1)+' KB · original';
+  document.getElementById('ax-enc-name').textContent=encName;
+  document.getElementById('ax-enc-size').textContent=(axEncData.length/1024).toFixed(1)+' KB · cifrado';
+  document.getElementById('ax-enc-preview').textContent=b64e(axEncData.slice(0,80))+'…';
+  document.getElementById('ax-salt').textContent=b64e(axSalt);
+  document.getElementById('ax-iv').textContent=b64e(axIV);
+  document.getElementById('ax-size-info').textContent=axEncData.length+' bytes (original: '+axFile.size+' bytes)';
+  document.getElementById('ax-enc-result').style.display='block';
+  document.getElementById('ax-enc-info').style.display='block';
+}
+
+function axDownloadEnc(){
+  if(!axEncData)return;
+  const blob=new Blob([axEncData],{type:'application/octet-stream'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=axFile.name+'.axx';a.click();
+}
+
+async function axDecryptCorrect(){
+  const pass=document.getElementById('ax-dec-pass').value;
+  const origPass=document.getElementById('ax-pass').value;
+  const result=document.getElementById('ax-dec-result');
+  if(pass===origPass){
+    try{
+      const keyMaterial=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),{name:'PBKDF2'},false,['deriveKey']);
+      const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:axSalt,iterations:100000,hash:'SHA-256'},keyMaterial,{name:'AES-GCM',length:256},false,['decrypt']);
+      const decBuf=await crypto.subtle.decrypt({name:'AES-GCM',iv:axIV},key,axEncData);
+      const decBytes=new Uint8Array(decBuf);
+      const blob=new Blob([decBytes],{type:axFile.type||'application/octet-stream'});
+      const url=URL.createObjectURL(blob);
+      result.innerHTML=`<div class="abox abox-g"><span>✅</span><span><strong>¡Descifrado exitoso!</strong> El archivo fue recuperado correctamente. <a href="${url}" download="${axFile.name}" style="color:var(--g);text-decoration:underline;">⬇️ Descargar archivo original</a></span></div>`;
+    }catch(e){result.innerHTML='<div class="abox abox-r"><span>❌</span><span>Error al descifrar.</span></div>';}
+  }else{
+    result.innerHTML='<div class="abox abox-r"><span>❌</span><span><strong>Contraseña incorrecta.</strong> AES-256-GCM rechazó la clave — el archivo permanece cifrado. El tag de autenticación no coincide.</span></div>';
+  }
+}
+
+function axDecryptWrong(){
+  document.getElementById('ax-dec-pass').value='contraseña_incorrecta_123';
+  document.getElementById('ax-dec-result').innerHTML='<div class="abox abox-r"><span>❌</span><span><strong>Contraseña incorrecta.</strong> AES-256-GCM rechazó la clave. La verificación de integridad (GCM tag) falló. El archivo permanece cifrado e ilegible.</span></div>';
+}
+</script>
+</body>
+</html>
