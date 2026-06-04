@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aplicaciones de la Criptografía Parte 1 – Semana 5</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg:#f4f7f4; --sur:#ffffff; --sur2:#edf5ed; --bor:#b8d4b8;
+  --p:#1b5e20;  --p2:#2e7d32; --p3:#43a047;
+  --ac:#0277bd; --ac2:#e65100; --red:#c62828; --yel:#f9a825;
+  --tx:#1a2a1a; --txm:#3a5a3a; --txs:#6a8a6a;
+  --sh:rgba(27,94,32,.10); --shm:rgba(27,94,32,.18);
+  --glow:rgba(27,94,32,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;font-size:17px;min-height:100vh;overflow-x:hidden;}
+#tbg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.6;}
+.scr{display:none;position:relative;z-index:1;}
+.scr.on{display:flex;flex-direction:column;min-height:100vh;}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,var(--p) 0%,#0a3d0a 100%);padding:14px 36px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px var(--shm);position:sticky;top:0;z-index:100;}
+.lgn{font-family:"Orbitron",sans-serif;font-size:.95rem;color:#fff;letter-spacing:2px;}
+.hn{font-size:.88rem;color:#b9f6ca;font-family:"Share Tech Mono";}
+.sbd{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:5px 16px;font-family:"Orbitron",sans-serif;font-size:.82rem;color:#fff;}
+.sbd span{color:#a5f3a5;font-size:1rem;}
+
+/* WELCOME */
+#sw{background:linear-gradient(155deg,#e8f5e9 0%,#f1f8e9 40%,#e3f2fd 100%);align-items:center;justify-content:center;padding:40px 20px;}
+.wc{background:var(--sur);border:1px solid var(--bor);border-radius:20px;padding:48px 56px;max-width:700px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(27,94,32,.13);animation:fu .7s ease;position:relative;overflow:hidden;}
+.wc::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--p),var(--ac),var(--p));}
+.ub{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:var(--p);font-family:"Orbitron",sans-serif;font-size:.88rem;font-weight:700;padding:8px 20px;border-radius:6px;margin-bottom:20px;letter-spacing:2px;}
+.wc h1{font-family:"Orbitron",sans-serif;font-size:1.8rem;color:var(--p);margin-bottom:8px;line-height:1.3;}
+.wss{color:var(--txm);font-size:1rem;margin-bottom:24px;}
+.tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:24px;}
+.tag{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:4px 14px;font-size:.85rem;color:var(--p);font-weight:600;}
+.ib{background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:16px 20px;margin-bottom:24px;text-align:left;}
+.ib h3{color:var(--p);font-size:.95rem;margin-bottom:10px;font-weight:700;}
+.ib ul{list-style:none;}
+.ib li{font-size:.98rem;color:var(--txm);margin-bottom:6px;padding-left:20px;position:relative;}
+.ib li::before{content:"▸";color:var(--p);position:absolute;left:0;}
+.ng{margin-bottom:22px;}
+.ng label{display:block;font-size:.88rem;color:var(--txm);margin-bottom:8px;text-align:left;font-weight:600;}
+.ng input{width:100%;background:var(--sur2);border:1.5px solid var(--bor);border-radius:10px;padding:14px 18px;color:var(--tx);font-size:1.05rem;font-family:"DM Sans",sans-serif;outline:none;transition:all .3s;}
+.ng input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(34,197,94,.1);}
+.bst{width:100%;padding:16px;background:linear-gradient(135deg,var(--p),var(--p2));border:none;border-radius:10px;color:#000;font-family:"Orbitron",sans-serif;font-size:.95rem;font-weight:900;letter-spacing:2px;cursor:pointer;transition:all .3s;box-shadow:0 4px 20px var(--glow);}
+.bst:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--glow);}
+.bst:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* MENU */
+#sm{padding:0 0 60px;}
+.mh{background:linear-gradient(135deg,var(--p) 0%,#0a3d0a 100%);padding:40px 44px 60px;text-align:center;position:relative;overflow:hidden;}
+.mh::after{content:"";position:absolute;bottom:-30px;left:0;right:0;height:60px;background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0;}
+.mh h2{font-family:"Orbitron",sans-serif;font-size:1.5rem;color:#fff;margin-bottom:8px;}
+.mh p{color:var(--txm);font-size:.98rem;}
+.pw{max-width:520px;margin:20px auto 0;}
+.pb{background:rgba(34,197,94,.1);border-radius:6px;height:8px;overflow:hidden;border:1px solid rgba(34,197,94,.2);}
+.pf{height:100%;background:linear-gradient(90deg,var(--p),var(--ac));border-radius:6px;transition:width .6s ease;box-shadow:0 0 8px var(--glow);}
+.pl{font-size:.85rem;color:var(--txm);margin-top:6px;}
+.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;padding:46px 36px 0;max-width:1200px;margin:0 auto;}
+.cc{background:var(--sur);border:1px solid var(--bor);border-radius:16px;padding:24px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.cc::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--p),var(--ac));opacity:.6;transition:opacity .25s;}
+.cc:hover{transform:translateY(-4px);box-shadow:0 8px 30px var(--glow);border-color:var(--p);}
+.cc:hover::before{opacity:1;}
+.cc.dn{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.03);}
+.cc.dn::before{opacity:1;}
+.cnu{font-family:"Share Tech Mono";font-size:.78rem;color:var(--txs);margin-bottom:4px;}
+.cic{font-size:2.4rem;margin-bottom:10px;filter:drop-shadow(0 0 6px rgba(34,197,94,.3));}
+.cti{font-family:"Orbitron",sans-serif;font-size:.95rem;color:var(--p);margin-bottom:8px;line-height:1.4;}
+.cde{font-size:.92rem;color:var(--txm);line-height:1.6;margin-bottom:12px;}
+.cst{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:600;}
+.dot{width:8px;height:8px;border-radius:50%;}
+.dp{background:var(--bor);}
+.dd{background:var(--p);box-shadow:0 0 6px var(--glow);}
+.cpt{margin-left:auto;font-size:.85rem;color:var(--p);font-family:"Orbitron",sans-serif;}
+
+/* ACTIVITY */
+#sa{padding:0 0 60px;}
+.aw{max-width:900px;margin:0 auto;padding:28px 28px 0;}
+.bcc{font-size:.82rem;color:var(--txs);margin-bottom:12px;}
+.bcc span{color:var(--p);font-weight:600;}
+.bbk{background:var(--sur);border:1.5px solid var(--bor);color:var(--txm);padding:9px 18px;border-radius:8px;cursor:pointer;font-size:.9rem;transition:all .2s;margin-bottom:8px;display:inline-flex;align-items:center;gap:6px;font-family:"DM Sans",sans-serif;font-weight:500;box-shadow:0 2px 8px var(--sh);}
+.bbk:hover{border-color:var(--p);color:var(--p);background:#e8f5e9;}
+
+/* STEP HEADERS */
+.step-hdr{display:flex;align-items:center;gap:12px;margin:24px 0 12px;padding:12px 18px;border-radius:10px;border:1px solid;}
+.step-hdr.th{background:rgba(34,197,94,.05);border-color:rgba(34,197,94,.2);}
+.step-hdr.sim{background:rgba(6,182,212,.05);border-color:rgba(6,182,212,.2);}
+.step-hdr.qz{background:rgba(245,158,11,.05);border-color:rgba(245,158,11,.2);}
+.step-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"Orbitron",sans-serif;font-size:.78rem;font-weight:900;flex-shrink:0;}
+.step-num.th{background:var(--p);color:#000;}
+.step-num.sim{background:var(--ac);color:#000;}
+.step-num.qz{background:var(--yel);color:#000;}
+.step-info{flex:1;}
+.step-title{font-family:"Orbitron",sans-serif;font-size:.88rem;font-weight:700;}
+.step-hdr.th .step-title{color:var(--p);}
+.step-hdr.sim .step-title{color:var(--ac);}
+.step-hdr.qz .step-title{color:var(--yel);}
+.step-sub{font-size:.78rem;color:var(--txs);margin-top:2px;}
+
+/* THEORY */
+.thc{background:var(--sur);border:1px solid var(--bor);border-top:3px solid var(--p);border-radius:0 0 14px 14px;padding:24px 28px;margin-bottom:0;}
+.thb{font-size:1rem;color:var(--txm);line-height:1.8;}
+.thb strong{color:var(--p);}
+.hl{background:rgba(34,197,94,.06);border-left:3px solid var(--p);padding:11px 14px;border-radius:0 8px 8px 0;margin:12px 0;color:var(--txm);font-size:.95rem;}
+.al{background:rgba(245,158,11,.06);border-left:3px solid var(--ac2);padding:11px 14px;border-radius:0 8px 8px 0;margin:12px 0;color:#b8860b;font-size:.95rem;}
+.rl{background:rgba(239,68,68,.06);border-left:3px solid var(--red);padding:11px 14px;border-radius:0 8px 8px 0;margin:12px 0;color:var(--red);font-size:.95rem;}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+.ii{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:10px 14px;}
+.ii .lb{font-size:.72rem;color:var(--txs);font-family:"Share Tech Mono";text-transform:uppercase;}
+.ii .vl{font-size:.95rem;color:var(--p);font-weight:700;margin-top:3px;}
+.ii.bad .vl{color:var(--red);}
+.ii.warn .vl{color:var(--yel);}
+.ii.good .vl{color:var(--p);}
+
+/* SIMULATOR */
+.sc{background:var(--sur);border:1px solid rgba(6,182,212,.25);border-top:3px solid var(--ac);border-radius:0 0 14px 14px;padding:24px 28px;margin-bottom:0;}
+.sh2{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sbdg{background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);color:var(--ac);font-family:"Orbitron",sans-serif;font-size:.68rem;padding:4px 10px;border-radius:5px;letter-spacing:1px;}
+.stt{font-family:"Orbitron",sans-serif;font-size:.95rem;color:var(--ac);}
+.sr{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.si{flex:1;min-width:160px;background:var(--sur2);border:1.5px solid var(--bor);border-radius:8px;padding:10px 14px;color:var(--tx);font-family:"Share Tech Mono";font-size:.92rem;outline:none;transition:border-color .2s;}
+.si:focus{border-color:var(--p);}
+.si::placeholder{color:var(--txs);}
+.sb2{padding:10px 18px;background:linear-gradient(135deg,var(--p),var(--p2));border:none;border-radius:8px;color:#000;font-family:"Orbitron",sans-serif;font-size:.72rem;font-weight:900;cursor:pointer;transition:all .25s;white-space:nowrap;letter-spacing:1px;}
+.sb2:hover{transform:translateY(-1px);box-shadow:0 4px 14px var(--glow);}
+.sb2.bl{background:linear-gradient(135deg,var(--ac),#0891b2);color:#000;}
+.sb2.rd{background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;}
+.so{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:11px 14px;font-family:"Share Tech Mono";font-size:.82rem;min-height:44px;color:var(--txs);overflow-wrap:break-word;word-break:break-all;white-space:pre-wrap;line-height:1.6;}
+.so.has{color:var(--p);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.04);}
+.so.err{color:var(--red);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04);}
+.s2c{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.sl{font-size:.82rem;font-weight:600;color:var(--txm);margin-bottom:5px;display:block;}
+.tb-row{display:flex;gap:0;border-bottom:1px solid var(--bor);overflow-x:auto;}
+.tb-btn{flex-shrink:0;padding:9px 14px;border:none;cursor:pointer;font-family:"Orbitron",sans-serif;font-size:.68rem;font-weight:700;background:transparent;color:var(--txs);letter-spacing:1px;transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tb-btn.on{color:var(--ac);border-bottom-color:var(--ac);}
+.tb-btn:hover:not(.on){color:var(--txm);}
+.tb-c{display:none;padding-top:14px;}
+.tb-c.on{display:block;animation:fu .3s ease;}
+.vd{padding:11px 14px;border-radius:8px;font-size:.88rem;font-weight:600;margin-top:10px;display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
+.vok{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);color:var(--p);}
+.vwn{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);color:var(--yel);}
+.vrr{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);color:var(--red);}
+.vif{background:var(--sur2);border:1px solid var(--bor);color:var(--txm);}
+
+/* TOTP */
+.totp-display{background:#0a1a0a;border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:24px;text-align:center;margin:12px 0;}
+.totp-code{font-family:"Orbitron",sans-serif;font-size:2.8rem;font-weight:900;color:var(--p);letter-spacing:10px;text-shadow:0 0 20px var(--glow);}
+.totp-bar-bg{height:5px;background:rgba(34,197,94,.1);border-radius:3px;overflow:hidden;margin:10px auto;max-width:180px;}
+.totp-bar-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--ac));border-radius:3px;transition:width 1s linear;}
+.totp-lbl{font-size:.78rem;color:var(--txs);font-family:"Share Tech Mono";}
+.terminal{background:#0d1117;border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:18px;font-family:"Share Tech Mono";font-size:.85rem;color:#22c55e;line-height:1.8;margin:10px 0;word-break:break-all;overflow-wrap:break-word;}
+
+/* QUIZ */
+.qc{background:var(--sur);border:1px solid rgba(245,158,11,.2);border-top:3px solid var(--yel);border-radius:0 0 14px 14px;padding:24px 28px;margin-bottom:0;}
+.qm{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.qb{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:var(--yel);font-family:"Orbitron",sans-serif;font-size:.68rem;padding:4px 10px;border-radius:5px;letter-spacing:1px;}
+.qp{font-size:.85rem;color:var(--txs);margin-left:auto;font-family:"Share Tech Mono";}
+.qq{font-size:1.15rem;color:var(--tx);font-weight:600;line-height:1.55;}
+.qow{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+.qo{background:var(--sur2);border:1.5px solid var(--bor);border-radius:10px;padding:14px 18px;cursor:pointer;transition:all .2s;font-size:1rem;display:flex;align-items:center;gap:12px;color:var(--txm);}
+.qo:hover:not(.dis){border-color:var(--p);background:rgba(34,197,94,.05);color:var(--tx);transform:translateX(3px);}
+.qo.sc{border-color:var(--p);background:rgba(34,197,94,.08);color:var(--p);}
+.qo.sw{border-color:var(--red);background:rgba(239,68,68,.08);color:var(--red);}
+.qo.dis{cursor:not-allowed;}
+.ol{width:32px;height:32px;border-radius:50%;background:var(--bor);display:flex;align-items:center;justify-content:center;font-family:"Orbitron",sans-serif;font-size:.72rem;flex-shrink:0;color:var(--txm);transition:all .2s;}
+.sc .ol{background:var(--p);color:#000;}
+.sw .ol{background:var(--red);color:#fff;}
+.qfb{margin-top:12px;padding:12px 16px;border-radius:8px;font-size:.95rem;line-height:1.6;display:none;}
+.qfb.c{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);color:var(--p);}
+.qfb.w{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);color:var(--red);}
+.qfb.show{display:block;animation:fu .3s ease;}
+.bnn{margin-top:12px;padding:12px 26px;background:linear-gradient(135deg,var(--p),var(--p2));border:none;border-radius:8px;color:#000;font-family:"Orbitron",sans-serif;font-size:.82rem;font-weight:900;cursor:pointer;transition:all .3s;display:none;letter-spacing:1px;box-shadow:0 4px 14px var(--glow);}
+.bnn.show{display:inline-flex;align-items:center;gap:8px;}
+.bnn:hover{transform:translateY(-2px);box-shadow:0 8px 20px var(--glow);}
+
+/* RESULTS */
+#sr{align-items:center;justify-content:center;padding:50px 20px;background:linear-gradient(155deg,#e8f5e9 0%,#f1f8e9 40%,#e3f2fd 100%);}
+.rc{background:var(--sur);border:1px solid var(--bor);border-radius:20px;padding:48px;max-width:720px;width:100%;text-align:center;box-shadow:0 0 60px rgba(34,197,94,.08);animation:fu .8s ease;position:relative;overflow:hidden;}
+.rc::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--p),var(--ac),var(--p));}
+.rw{position:relative;width:160px;height:160px;margin:22px auto;}
+.rw svg{transform:rotate(-90deg);}
+.rt{fill:none;stroke:var(--sur2);stroke-width:12;}
+.rfill{fill:none;stroke:url(#rg);stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease .2s;}
+.rctr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.rnum{font-family:"Orbitron",sans-serif;font-size:2.8rem;font-weight:900;color:var(--p);line-height:1;text-shadow:0 0 20px var(--glow);}
+.rden{font-size:.95rem;color:var(--txs);}
+.rname{font-size:1.3rem;color:var(--p);font-weight:700;margin-bottom:4px;}
+.rtit{font-family:"Orbitron",sans-serif;font-size:1.5rem;color:#fff;margin-bottom:8px;}
+.rsub{color:var(--txs);font-size:.95rem;margin-bottom:20px;}
+.gw{max-width:400px;margin:0 auto 24px;}
+.gbg{background:var(--sur2);border-radius:6px;height:10px;overflow:hidden;border:1px solid var(--bor);}
+.gfil{height:100%;background:linear-gradient(90deg,var(--p),var(--ac));border-radius:6px;transition:width 1.6s ease .4s;width:0%;box-shadow:0 0 6px var(--glow);}
+.bk2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0;text-align:left;}
+.bi{background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;}
+.bv{font-family:"Orbitron",sans-serif;font-size:.85rem;color:var(--p);}
+.brs{width:100%;padding:15px;background:linear-gradient(135deg,var(--p),var(--p2));border:none;border-radius:10px;color:#000;font-family:"Orbitron",sans-serif;font-size:.9rem;font-weight:900;cursor:pointer;transition:all .3s;letter-spacing:2px;margin-top:10px;box-shadow:0 4px 20px var(--glow);}
+.brs:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--glow);}
+
+/* SPECIAL ELEMENTS */
+.streak-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 12px;font-size:.8rem;color:#fff;font-family:"Orbitron",sans-serif;font-weight:700;margin-left:8px;transition:all .3s;}
+.streak-badge.active{background:rgba(245,158,11,.2);box-shadow:0 0 10px rgba(245,158,11,.3);}
+.flow-hint{background:rgba(34,197,94,.05);border-left:3px solid var(--p);padding:9px 14px;border-radius:0 8px 8px 0;margin-bottom:14px;font-size:.85rem;color:var(--txm);}
+
+/* FOOTER */
+footer{background:linear-gradient(135deg,var(--p) 0%,#0a3d0a 100%);text-align:center;padding:22px 20px;position:relative;z-index:1;border-top:3px solid var(--p3);}
+.fa{font-size:.88rem;color:rgba(255,255,255,.8);}
+.fn{font-family:"Orbitron",sans-serif;font-size:1.4rem;font-weight:900;letter-spacing:3px;display:inline-block;background:linear-gradient(90deg,#a5f3a5,#ffffff,#a5f3a5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 12px rgba(165,243,165,.7));}
+
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 8px var(--glow)}50%{box-shadow:0 0 20px var(--glow)}}
+@keyframes correct-flash{0%{background:rgba(34,197,94,.2)}50%{background:rgba(34,197,94,.08)}100%{background:rgba(34,197,94,.08)}}
+@keyframes wrong-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.qo.sc{animation:correct-flash .5s ease;}
+.qo.sw{animation:wrong-shake .4s ease;}
+@media(max-width:640px){
+  .wc{padding:28px 18px;}.wc h1{font-size:1.35rem;}.cg{padding:18px 14px;gap:12px;}
+  .aw{padding:14px 12px 0;}.ig,.s2c,.bk2{grid-template-columns:1fr;}
+  .hdr{padding:12px 16px;}.hn{display:none;}.rc{padding:26px 18px;}
+  .totp-code{font-size:2rem;letter-spacing:6px;}
+}
+
+</style>
+</head>
+<body>
+<svg id="tbg" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="cp" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <circle cx="30" cy="30" r="1" fill="#22c55e" opacity=".15"/>
+      <circle cx="0" cy="0" r="1" fill="#06b6d4" opacity=".1"/>
+      <circle cx="60" cy="60" r="1" fill="#22c55e" opacity=".1"/>
+      <line x1="0" y1="30" x2="60" y2="30" stroke="#22c55e" stroke-width=".4" opacity=".06"/>
+      <line x1="30" y1="0" x2="30" y2="60" stroke="#22c55e" stroke-width=".4" opacity=".06"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#cp)"/>
+</svg>
+
+<!-- WELCOME -->
+<div id="sw" class="scr on">
+  <div class="wc">
+    <div class="ub">🔐 UTEL UNIVERSIDAD</div>
+    <h1>Aplicaciones de la Criptografía</h1>
+    <p class="wss">Parte 1 &nbsp;·&nbsp; Integridad, Autentificación y HASH &nbsp;·&nbsp; Semana 5</p>
+    <div class="tags">
+      <span class="tag">3 Pilares</span><span class="tag">4 Aplicaciones</span>
+      <span class="tag">Integridad</span><span class="tag">Algoritmos HASH</span>
+      <span class="tag">Software</span><span class="tag">2FA</span>
+    </div>
+    <div class="ib">
+      <h3>📋 INSTRUCCIONES</h3>
+      <ul>
+        <li>Actividad con <strong>5 categorías</strong> basadas en la Open Class Semana 5</li>
+        <li>Cada categoría: <strong>① Lee la teoría → ② Usa el simulador → ③ Responde 8 preguntas</strong></li>
+        <li>Los simuladores usan <strong>criptografía real</strong> del navegador (Web Crypto API)</li>
+        <li>Calificación final en escala del <strong>1 al 10</strong></li>
+        <li>Racha de respuestas correctas: ¡puntos extra! 🔥</li>
+      </ul>
+    </div>
+    <div class="ng">
+      <label>▸ NOMBRE COMPLETO DEL ESTUDIANTE</label>
+      <input type="text" id="ni" placeholder="Escribe tu nombre y apellidos completos…" autocomplete="off"/>
+    </div>
+    <button class="bst" id="bst" disabled onclick="startApp()">⚡ INICIAR ACTIVIDAD</button>
+  </div>
+  <footer><div class="fa">Creado por: <span class="fn">José Luis Perales Trejo</span></div></footer>
+</div>
+
+<!-- MENU -->
+<div id="sm" class="scr">
+  <div class="hdr">
+    <div class="lgn">⚡ CRIPTO S5</div>
+    <div class="hn" id="hn"></div>
+    <div class="sbd">Pts: <span id="hp">0</span>/80</div>
+  </div>
+  <div class="mh">
+    <h2>Selecciona una Categoría</h2>
+    <p>Completa las 5 categorías para ver tu calificación final</p>
+    <div class="pw">
+      <div class="pb"><div class="pf" id="mpf" style="width:0%"></div></div>
+      <div class="pl">Progreso: <span id="mpt">0 de 5 completadas</span></div>
+    </div>
+  </div>
+  <div class="cg" id="cg"></div>
+  <div style="text-align:center;margin-top:28px;" id="fw">
+    <button onclick="showRes()" style="padding:14px 40px;background:linear-gradient(135deg,var(--ac),#0891b2);border:none;border-radius:10px;color:#000;font-family:Orbitron,sans-serif;font-size:.9rem;font-weight:900;cursor:pointer;letter-spacing:2px;box-shadow:0 4px 20px rgba(6,182,212,.3);">📊 VER CALIFICACIÓN FINAL</button>
+  </div>
+  <footer><div class="fa">Creado por: <span class="fn">José Luis Perales Trejo</span></div></footer>
+</div>
+
+<!-- ACTIVITY -->
+<div id="sa" class="scr">
+  <div class="hdr">
+    <div class="lgn">⚡ CRIPTO S5</div>
+    <div class="hn" id="hn2"></div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="sbd">Pts: <span id="hp2">0</span>/80</div>
+      <div class="streak-badge" id="streak-badge">🔥 <span id="streak-count">0</span></div>
+    </div>
+  </div>
+  <div class="aw">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+      <button class="bbk" onclick="goMenu()">◀ Menú</button>
+      <div class="bcc">INICIO &nbsp;›&nbsp; <span id="abc"></span></div>
+    </div>
+    <div class="flow-hint">📌 <strong>Flujo de trabajo:</strong> ① Lee la teoría → ② Practica en el simulador → ③ Responde el quiz</div>
+    <div id="ac"></div>
+  </div>
+  <footer><div class="fa">Creado por: <span class="fn">José Luis Perales Trejo</span></div></footer>
+</div>
+
+<!-- RESULTS -->
+<div id="sr" class="scr">
+  <div class="rc">
+    <div style="font-size:3rem;margin-bottom:10px;">🏆</div>
+    <div class="rname" id="rn"></div>
+    <div class="rtit" id="rti"></div>
+    <div class="rsub">Aplicaciones de la Criptografía · Parte 1 · Semana 5</div>
+    <div class="rw">
+      <svg viewBox="0 0 170 170" width="160" height="160">
+        <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#06b6d4"/>
+        </linearGradient></defs>
+        <circle class="rt" cx="85" cy="85" r="72"/>
+        <circle class="rfill" id="rri" cx="85" cy="85" r="72" stroke-dasharray="452.4" stroke-dashoffset="452.4"/>
+      </svg>
+      <div class="rctr"><div class="rnum" id="rsc">0</div><div class="rden">/10</div></div>
+    </div>
+    <div class="gw"><div class="gbg"><div class="gfil" id="rb"></div></div></div>
+    <div style="font-size:1rem;color:var(--txm);margin-bottom:8px;font-style:italic;" id="rm"></div>
+    <div class="bk2" id="rbk"></div>
+    <button class="brs" onclick="restart()">🔄 REPETIR ACTIVIDAD</button>
+  </div>
+  <footer style="width:100%;margin-top:20px;"><div class="fa">Creado por: <span class="fn">José Luis Perales Trejo</span></div></footer>
+</div>
+
+<script>
+
+/* ═══ MD5 ═══ */
+function md5(s){
+  function rh(n){var j,s="";for(j=0;j<=3;j++)s+="0123456789abcdef".charAt((n>>(j*8+4))&0xF)+"0123456789abcdef".charAt((n>>(j*8))&0xF);return s;}
+  function ad(x,y){var l=(x&0xFFFF)+(y&0xFFFF),m=(x>>16)+(y>>16)+(l>>16);return(m<<16)|(l&0xFFFF);}
+  function rl(n,c){return(n<<c)|(n>>>(32-c));}
+  function cm(q,a,b,x,s,t){return ad(rl(ad(ad(a,q),ad(x,t)),s),b);}
+  function ff(a,b,c,d,x,s,t){return cm((b&c)|((~b)&d),a,b,x,s,t);}
+  function gg(a,b,c,d,x,s,t){return cm((b&d)|(c&(~d)),a,b,x,s,t);}
+  function hh(a,b,c,d,x,s,t){return cm(b^c^d,a,b,x,s,t);}
+  function ii(a,b,c,d,x,s,t){return cm(c^(b|(~d)),a,b,x,s,t);}
+  function sb(x){var i,nb=((x.length+8)>>6)+1,blk=new Array(nb*16);for(i=0;i<nb*16;i++)blk[i]=0;for(i=0;i<x.length;i++)blk[i>>2]|=x.charCodeAt(i)<<((i%4)*8);blk[i>>2]|=0x80<<((i%4)*8);blk[nb*16-2]=x.length*8;return blk;}
+  var m=sb(s),i,a=1732584193,b=-271733879,c=-1732584194,d=271733878,oa,ob,oc,od;
+  for(i=0;i<m.length;i+=16){oa=a;ob=b;oc=c;od=d;
+    a=ff(a,b,c,d,m[i],7,-680876936);d=ff(d,a,b,c,m[i+1],12,-389564586);c=ff(c,d,a,b,m[i+2],17,606105819);b=ff(b,c,d,a,m[i+3],22,-1044525330);
+    a=ff(a,b,c,d,m[i+4],7,-176418897);d=ff(d,a,b,c,m[i+5],12,1200080426);c=ff(c,d,a,b,m[i+6],17,-1473231341);b=ff(b,c,d,a,m[i+7],22,-45705983);
+    a=ff(a,b,c,d,m[i+8],7,1770035416);d=ff(d,a,b,c,m[i+9],12,-1958414417);c=ff(c,d,a,b,m[i+10],17,-42063);b=ff(b,c,d,a,m[i+11],22,-1990404162);
+    a=ff(a,b,c,d,m[i+12],7,1804603682);d=ff(d,a,b,c,m[i+13],12,-40341101);c=ff(c,d,a,b,m[i+14],17,-1502002290);b=ff(b,c,d,a,m[i+15],22,1236535329);
+    a=gg(a,b,c,d,m[i+1],5,-165796510);d=gg(d,a,b,c,m[i+6],9,-1069501632);c=gg(c,d,a,b,m[i+11],14,643717713);b=gg(b,c,d,a,m[i],20,-373897302);
+    a=gg(a,b,c,d,m[i+5],5,-701558691);d=gg(d,a,b,c,m[i+10],9,38016083);c=gg(c,d,a,b,m[i+15],14,-660478335);b=gg(b,c,d,a,m[i+4],20,-405537848);
+    a=gg(a,b,c,d,m[i+9],5,568446438);d=gg(d,a,b,c,m[i+14],9,-1019803690);c=gg(c,d,a,b,m[i+3],14,-187363961);b=gg(b,c,d,a,m[i+8],20,1163531501);
+    a=gg(a,b,c,d,m[i+13],5,-1444681467);d=gg(d,a,b,c,m[i+2],9,-51403784);c=gg(c,d,a,b,m[i+7],14,1735328473);b=gg(b,c,d,a,m[i+12],20,-1926607734);
+    a=hh(a,b,c,d,m[i+5],4,-378558);d=hh(d,a,b,c,m[i+8],11,-2022574463);c=hh(c,d,a,b,m[i+11],16,1839030562);b=hh(b,c,d,a,m[i+14],23,-35309556);
+    a=hh(a,b,c,d,m[i+1],4,-1530992060);d=hh(d,a,b,c,m[i+4],11,1272893353);c=hh(c,d,a,b,m[i+7],16,-155497632);b=hh(b,c,d,a,m[i+10],23,-1094730640);
+    a=hh(a,b,c,d,m[i+13],4,681279174);d=hh(d,a,b,c,m[i],11,-358537222);c=hh(c,d,a,b,m[i+3],16,-722521979);b=hh(b,c,d,a,m[i+6],23,76029189);
+    a=hh(a,b,c,d,m[i+9],4,-640364487);d=hh(d,a,b,c,m[i+12],11,-421815835);c=hh(c,d,a,b,m[i+15],16,530742520);b=hh(b,c,d,a,m[i+2],23,-995338651);
+    a=ii(a,b,c,d,m[i],6,-198630844);d=ii(d,a,b,c,m[i+7],10,1126891415);c=ii(c,d,a,b,m[i+14],15,-1416354905);b=ii(b,c,d,a,m[i+5],21,-57434055);
+    a=ii(a,b,c,d,m[i+12],6,1700485571);d=ii(d,a,b,c,m[i+3],10,-1894986606);c=ii(c,d,a,b,m[i+10],15,-1051523);b=ii(b,c,d,a,m[i+1],21,-2054922799);
+    a=ii(a,b,c,d,m[i+8],6,1873313359);d=ii(d,a,b,c,m[i+15],10,-30611744);c=ii(c,d,a,b,m[i+6],15,-1560198380);b=ii(b,c,d,a,m[i+13],21,1309151649);
+    a=ii(a,b,c,d,m[i+4],6,-145523070);d=ii(d,a,b,c,m[i+11],10,-1120210379);c=ii(c,d,a,b,m[i+2],15,718787259);b=ii(b,c,d,a,m[i+9],21,-343485551);
+    a=ad(a,oa);b=ad(b,ob);c=ad(c,oc);d=ad(d,od);}
+  return rh(a)+rh(b)+rh(c)+rh(d);
+}
+async function sha(t,alg){const b=await crypto.subtle.digest(alg,new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+async function sha256(t){return sha(t,"SHA-256");}
+async function sha1(t){return sha(t,"SHA-1");}
+
+/* ═══ TOTP ═══ */
+function b32Bytes(s){
+  const ch="ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  s=s.toUpperCase().replace(/[^A-Z2-7]/g,"");
+  let bits=0,val=0,out=[];
+  for(let i=0;i<s.length;i++){val=(val<<5)|ch.indexOf(s[i]);bits+=5;if(bits>=8){out.push((val>>>(bits-8))&255);bits-=8;}}
+  return new Uint8Array(out);
+}
+async function computeTOTP(secret){
+  const key=b32Bytes(secret||"JBSWY3DPEHPK3PXP");
+  const ctr=Math.floor(Date.now()/1000/30);
+  const msg=new ArrayBuffer(8);
+  new DataView(msg).setUint32(4,ctr,false);
+  const ck=await crypto.subtle.importKey("raw",key,{name:"HMAC",hash:"SHA-1"},false,["sign"]);
+  const sig=new Uint8Array(await crypto.subtle.sign("HMAC",ck,msg));
+  const off=sig[sig.length-1]&0xf;
+  const code=((sig[off]&0x7f)<<24|(sig[off+1]&0xff)<<16|(sig[off+2]&0xff)<<8|(sig[off+3]&0xff))%1000000;
+  return String(code).padStart(6,"0");
+}
+function totpSecs(){return 30-Math.floor(Date.now()/1000)%30;}
+
+/* ═══ STATE ═══ */
+const ST={name:"",pts:0,max:80,cp:{},done:new Set(),cur:null,qi:0,ans:false};
+let streak=0;
+let totpInterval=null;
+
+/* ═══ CATEGORIES ═══ */
+const CATS=[
+/* ── CAT 1 ── */
+{id:"pilares",icon:"🏛️",num:"1",title:"Aplicaciones de la Criptografía",
+desc:"Los 3 pilares (confidencialidad, integridad, autenticidad) y las 4 aplicaciones reales: comunicaciones, archivos, identidad y dinero.",maxPts:16,
+theory:`<p>La criptografía es el <strong>arte y la ciencia de PROTEGER información mediante códigos secretos</strong>. Convierte información LEGIBLE en ILEGIBLE para protegerla. Con más de 4,000 años de historia, hoy se basa en matemáticas avanzadas.</p>
+<div class="hl"><strong>Los 3 Pilares de la Criptografía:</strong><br>
+🔒 <strong>Confidencialidad</strong> = Privacidad: nadie más puede LEER tu información<br>
+✅ <strong>Integridad</strong> = No alteración: los datos NO fueron MODIFICADOS<br>
+🪪 <strong>Autenticidad</strong> = Identidad real: sabes QUIÉN envía el mensaje</div>
+<p>Los 3 pilares sostienen <em>toda la seguridad digital moderna</em>. Sin ellos no existirían HTTPS, WhatsApp, Bitcoin, ni banca en línea.</p>
+<div class="ig">
+<div class="ii good"><div class="lb">APLICACIÓN 1</div><div class="vl">Proteger Comunicaciones — HTTPS, WhatsApp, Correos PGP/GPG</div></div>
+<div class="ii good"><div class="lb">APLICACIÓN 2</div><div class="vl">Proteger Archivos y Discos — VeraCrypt, BitLocker, 7-Zip, AxCrypt</div></div>
+<div class="ii good"><div class="lb">APLICACIÓN 3</div><div class="vl">Identidad Digital — Contraseñas como HASH, Biometría, 2FA</div></div>
+<div class="ii good"><div class="lb">APLICACIÓN 4</div><div class="vl">Dinero Digital — Banca online, PayPal, Bitcoin/Blockchain</div></div>
+</div>
+<div class="hl">💡 <strong>Cada mensaje que envías, cada pago que haces, cada contraseña que usas</strong> está protegido por criptografía en este momento.</div>`,
+simType:"pilares",
+questions:[
+{q:"¿Cuál es la definición de criptografía según la clase?",opts:["El arte de escribir mensajes cortos","El arte y la ciencia de PROTEGER información mediante códigos secretos","La ciencia de hackear sistemas","El proceso de comprimir archivos"],ans:1,fb:'✅ La criptografía es "el arte y la ciencia de PROTEGER información mediante códigos secretos". Convierte información LEGIBLE en ILEGIBLE para protegerla.'},
+{q:"¿Cuáles son los 3 Pilares de la Criptografía según la presentación?",opts:["Cifrado, Descifrado y Clave","Confidencialidad, Integridad y Autenticidad","Hash, Firma y Certificado","RSA, AES y SHA"],ans:1,fb:"✅ Los <strong>3 Pilares</strong> son: Confidencialidad (privacidad), Integridad (no alteración) y Autenticidad (identidad real). Los 3 sostienen toda la seguridad digital moderna."},
+{q:"¿Qué garantiza el pilar de INTEGRIDAD?",opts:["Que nadie más puede leer la información","Que sabes quién envía el mensaje","Que los datos NO fueron MODIFICADOS","Que la información viaja rápido"],ans:2,fb:"✅ La <strong>Integridad</strong> garantiza que los datos NO fueron MODIFICADOS en tránsito. Es como un sello de cera: si está roto, no confíes en el mensaje."},
+{q:"¿Qué pilar de la criptografía equivale a saber QUIÉN envía el mensaje?",opts:["Confidencialidad","Integridad","Autenticidad","Disponibilidad"],ans:2,fb:"✅ La <strong>Autenticidad</strong> = Identidad real: sabes QUIÉN envía el mensaje. Sin autenticidad, cualquiera podría falsificar mensajes en tu nombre."},
+{q:"¿Cuál es la Aplicación 2 de la criptografía según la clase?",opts:["Proteger comunicaciones como HTTPS","Proteger archivos y discos (VeraCrypt, BitLocker, 7-Zip, AxCrypt)","Identidad digital y contraseñas","Dinero digital y Bitcoin"],ans:1,fb:"✅ La <strong>Aplicación 2</strong> es proteger archivos y discos: USB cifrados con VeraCrypt/BitLocker, archivos personales con 7-Zip/AxCrypt, y discos completos con BitLocker/FileVault."},
+{q:"Si pierdes tu USB cifrado con VeraCrypt, ¿qué ocurre con tus datos?",opts:["Cualquiera puede leerlos","Los datos se borran automáticamente","Los datos siguen ilegibles sin la contraseña","El USB deja de funcionar"],ans:2,fb:"✅ Con cifrado de disco completo, si pierdes el USB, <strong>los datos siguen ilegibles</strong> sin la contraseña. Tus datos están seguros aunque el dispositivo caiga en manos equivocadas."},
+{q:"¿Qué herramientas se mencionan para proteger COMUNICACIONES en la clase?",opts:["VeraCrypt, BitLocker, FileVault","HTTPS, WhatsApp, Correos cifrados (PGP/GPG)","Bitwarden, Google Authenticator, YubiKey","Bitcoin, PayPal, banca online"],ans:1,fb:"✅ Para proteger comunicaciones: <strong>HTTPS</strong> (web), <strong>WhatsApp</strong> (cifrado extremo a extremo) y <strong>Correos cifrados PGP/GPG</strong>. Cada mensaje viaja protegido aunque sea interceptado."},
+{q:"¿Cómo protege la criptografía el Dinero Digital (Aplicación 4)?",opts:["Almacenando billetes en la nube","Cada transacción bancaria, pago PayPal y bloque Bitcoin se firma criptográficamente","Guardando contraseñas en texto plano","Usando Wi-Fi seguro"],ans:1,fb:"✅ La criptografía protege el dinero digital: cada <strong>transacción bancaria</strong> está cifrada, cada <strong>pago con tarjeta</strong> se autentica, y cada <strong>bloque de Bitcoin</strong> se firma con SHA-256."},
+]},
+/* ── CAT 2 ── */
+{id:"integridad",icon:"🛡️",num:"2",title:"Integridad y Esquemas de Autentificación",
+desc:"¿Nadie modificó el mensaje? Los 3 esquemas: algo que sabes, tienes y eres. Doble Factor.",maxPts:16,
+theory:`<p><strong>Integridad</strong> es como un sello de cera en una carta: si el sello está roto, sabes que alguien la abrió. En criptografía, el hash del mensaje actúa como ese sello.</p>
+<div class="ig">
+<div class="ii good"><div class="lb">INTEGRIDAD OK ✅</div><div class="vl">"HOLA BRUNO" — sello intacto — el mensaje es auténtico</div></div>
+<div class="ii bad"><div class="lb">INTEGRIDAD ROTA ❌</div><div class="vl">"HOLA HACKER" — sello roto — el mensaje fue MODIFICADO</div></div>
+</div>
+<div class="hl">Integridad = los datos NO fueron alterados desde el origen. Si cambia 1 bit del mensaje, el hash cambia completamente (efecto avalancha).</div>
+<p><strong>Autentificación: ¿Quién eres?</strong> — Demostrar tu identidad antes de entrar. Los 3 Esquemas de Autentificación:</p>
+<div class="ig">
+<div class="ii good"><div class="lb">ALGO QUE SABES 🔑</div><div class="vl">Contraseñas, PIN, preguntas secretas</div></div>
+<div class="ii good"><div class="lb">ALGO QUE TIENES 📱</div><div class="vl">Token, tarjeta, móvil, llave USB (YubiKey)</div></div>
+<div class="ii good"><div class="lb">ALGO QUE ERES 👁️</div><div class="vl">Huella, rostro, voz, iris (biometría)</div></div>
+<div class="ii good"><div class="lb">DOBLE FACTOR (2FA) ⭐</div><div class="vl">Combinar 2 o más esquemas = MUCHO más seguro</div></div>
+</div>
+<div class="hl">💡 Tu identidad digital es tan importante como tu DNI físico. Las contraseñas se guardan como HASH, no en texto plano.</div>`,
+simType:"integridad",
+questions:[
+{q:"¿Con qué se compara la INTEGRIDAD en la clase para explicarla de forma sencilla?",opts:["Con una caja fuerte","Con un sello de cera: si está roto, no confíes","Con un candado de combinación","Con una llave pública"],ans:1,fb:"✅ La clase compara la integridad con un <strong>sello de cera</strong>: si el sello está roto, sabes que alguien manipuló la carta. En criptografía, si el hash no coincide, el mensaje fue alterado."},
+{q:"¿Qué significa que la INTEGRIDAD está ROTA?",opts:["Que el mensaje viajó lento","Que el mensaje fue MODIFICADO por alguien","Que la clave es débil","Que el servidor está caído"],ans:1,fb:"✅ Integridad rota significa que el mensaje fue <strong>MODIFICADO</strong> en tránsito. Ejemplo de la clase: el mensaje cambió de 'HOLA BRUNO' a 'HOLA HACKER' — el sello está roto."},
+{q:"¿Cuáles son los 3 Esquemas de Autentificación según la clase?",opts:["Clave, Token y Biometría","Algo que SABES, algo que TIENES, algo que ERES","Contraseña, PIN y huella","Usuario, email y token"],ans:1,fb:"✅ Los 3 esquemas son: <strong>Algo que SABES</strong> (contraseñas, PIN), <strong>Algo que TIENES</strong> (token, tarjeta, móvil, llave USB) y <strong>Algo que ERES</strong> (huella, rostro, voz, iris)."},
+{q:"¿A qué esquema de autentificación pertenece la huella dactilar?",opts:["Algo que SABES","Algo que TIENES","Algo que ERES (biometría)","Algo que HACES"],ans:2,fb:"✅ La huella dactilar es <strong>biometría = Algo que ERES</strong>. También entran en esta categoría: rostro, iris y voz. Son características físicas únicas de cada persona."},
+{q:"¿Qué es el Doble Factor de Autentificación (2FA)?",opts:["Usar dos contraseñas diferentes","Combinar 2 o más esquemas de autentificación simultáneamente","Cambiar la contraseña dos veces","Usar contraseñas de doble longitud"],ans:1,fb:"✅ El <strong>2FA</strong> combina 2 o más esquemas: por ejemplo, contraseña (algo que SABES) + código del teléfono (algo que TIENES). Si roban tu contraseña, aún necesitan tu teléfono."},
+{q:"Según la clase, ¿cómo se guardan las contraseñas en los sistemas seguros?",opts:["En texto plano en una base de datos","Como HASH (huella digital irreversible)","Cifradas con RSA","En cookies del navegador"],ans:1,fb:"✅ Las contraseñas se guardan como <strong>HASH</strong>, no en texto plano. Cuando inicias sesión, el sistema calcula el hash de tu contraseña y lo compara con el hash guardado — nunca ve tu contraseña real."},
+{q:"¿A qué esquema de autentificación pertenece una YubiKey?",opts:["Algo que SABES","Algo que TIENES (llave USB física)","Algo que ERES","Algo que CONOCES"],ans:1,fb:"✅ Una <strong>YubiKey</strong> es una llave USB física = <strong>Algo que TIENES</strong>. Junto con tu contraseña forma 2FA: incluso si te roban la contraseña, sin la llave física no pueden entrar."},
+{q:"¿Por qué la autentificación solo con usuario+contraseña tiene limitaciones?",opts:["Porque es muy lenta","Porque solo usa UN factor: si roban la contraseña, el atacante tiene acceso completo","Porque las contraseñas son muy largas","Porque el servidor no puede verificarla"],ans:1,fb:"✅ La contraseña es <strong>solo un factor</strong> (algo que SABES). Si la roban por phishing, filtraciones o fuerza bruta, el atacante entra directamente. 2FA añade un segundo factor que protege aunque la contraseña sea comprometida."},
+]},
+/* ── CAT 3 ── */
+{id:"hash",icon:"#️⃣",num:"3",title:"Algoritmos de HASH",
+desc:"La huella digital única de cualquier archivo: irreversible, tamaño fijo, única. SHA-256 es el estándar.",maxPts:16,
+theory:`<p>Un <strong>hash</strong> es la HUELLA DIGITAL única de cualquier archivo o dato. Cualquier entrada (texto, imagen, video) → función hash → cadena de tamaño FIJO.</p>
+<div class="ig">
+<div class="ii"><div class="lb">TAMAÑO SIEMPRE IGUAL</div><div class="vl">El hash siempre tiene la misma longitud, sin importar el tamaño del archivo</div></div>
+<div class="ii"><div class="lb">IMPOSIBLE REVERTIR</div><div class="vl">Del hash NO puedes recuperar el archivo original (unidireccional)</div></div>
+<div class="ii"><div class="lb">ÚNICA PARA CADA ENTRADA</div><div class="vl">Dos archivos diferentes → hashes diferentes (resistencia a colisiones)</div></div>
+<div class="ii"><div class="lb">EFECTO AVALANCHA</div><div class="vl">Cambiar 1 bit → hash completamente diferente</div></div>
+</div>
+<div class="hl"><strong>La Analogía de la Licuadora:</strong><br>
+🍌🍓🍏 INGREDIENTES (tu archivo) → 🫙 LICUADORA (función hash) → 🥤 BATIDO (el hash)<br>
+De ingredientes a batido = FÁCIL. De batido a ingredientes = <strong>IMPOSIBLE</strong></div>
+<p><strong>El Hash en tu vida diaria:</strong></p>
+<div class="ig">
+<div class="ii good"><div class="lb">CONTRASEÑAS 🔒</div><div class="vl">Tu password se guarda como HASH, no en texto</div></div>
+<div class="ii good"><div class="lb">BITCOIN ₿</div><div class="vl">Cada bloque tiene su hash SHA-256</div></div>
+<div class="ii good"><div class="lb">DESCARGAS ⬇️</div><div class="vl">Verificar que el archivo NO cambió</div></div>
+<div class="ii good"><div class="lb">FIRMA DIGITAL ✍️</div><div class="vl">Se firma el HASH del documento</div></div>
+</div>
+<div class="hl">💡 <strong>Sin hash no existiría la seguridad digital moderna</strong>: ni contraseñas seguras, ni Bitcoin, ni descargas verificadas, ni firmas digitales. El hash es la base de todo.</div>`,
+simType:"hash",
+questions:[
+{q:"Según la clase, ¿qué es un HASH?",opts:["Un tipo de cifrado reversible","La HUELLA DIGITAL única de cualquier archivo o dato","Una contraseña de alta seguridad","Un protocolo de red"],ans:1,fb:"✅ Un hash es la <strong>HUELLA DIGITAL única</strong> de cualquier archivo o dato. La clase usa esta analogía porque, como una huella dactilar, es única para cada persona/archivo."},
+{q:"¿Cuál es la Analogía de la Licuadora que usa la clase para explicar el hash?",opts:["De batido a ingredientes es fácil","De ingredientes a batido es fácil, pero de batido a ingredientes es IMPOSIBLE","Ambas direcciones son igual de difíciles","Solo funciona con frutas específicas"],ans:1,fb:"✅ La clase usa la <strong>Analogía de la Licuadora</strong>: calcular el hash (hacer el batido) es FÁCIL, pero recuperar el archivo original desde el hash (separar el batido) es IMPOSIBLE."},
+{q:"¿Cuántas propiedades fundamentales del hash menciona la presentación?",opts:["2 (tamaño fijo e irreversible)","3 (tamaño igual, imposible revertir, única)","4 (tamaño igual, irreversible, única, rápida)","1 (solo irreversible)"],ans:1,fb:"✅ La clase menciona <strong>3 propiedades</strong> en las tarjetas: Tamaño SIEMPRE igual, Imposible REVERTIR, y ÚNICA para cada entrada. Estas tres propiedades hacen al hash útil para criptografía."},
+{q:"¿Cómo usa tu contraseña el sistema cuando inicias sesión?",opts:["Compara la contraseña en texto plano","Calcula el hash de tu contraseña y lo compara con el hash guardado","Envía tu contraseña al servidor para verificarla","Usa un certificado digital"],ans:1,fb:"✅ El sistema calcula el <strong>hash de tu contraseña</strong> y lo compara con el hash guardado en la base de datos. Nunca guarda ni compara tu contraseña real — solo su huella digital."},
+{q:"¿Cómo usa el hash la tecnología Bitcoin según la clase?",opts:["Para cifrar las transacciones privadas","Cada bloque de la cadena tiene su propio hash que lo conecta con el bloque anterior","Para autenticar a los usuarios","Para comprimir los datos de la cadena"],ans:1,fb:"✅ La clase menciona que en <strong>Bitcoin</strong>, cada bloque tiene su propio hash que incluye el hash del bloque anterior. Esto crea la cadena: si alguien modifica un bloque, su hash cambia y rompe toda la cadena."},
+{q:"¿Qué propiedad del hash garantiza que cambiar UNA letra produce un resultado completamente diferente?",opts:["Tamaño fijo","Efecto avalancha — pequeño cambio en la entrada = hash totalmente diferente","Irreversibilidad","Velocidad de cálculo"],ans:1,fb:"✅ El <strong>efecto avalancha</strong>: la tercera propiedad del hash. Un cambio mínimo en la entrada produce un hash completamente diferente. Esto hace imposible adivinar o manipular el contenido original."},
+{q:"¿Qué aplicación del hash menciona la clase para DESCARGAS de archivos?",opts:["Comprimir el archivo descargado","Verificar que el archivo NO cambió durante la descarga","Cifrar el archivo antes de descargarlo","Acelerar la velocidad de descarga"],ans:1,fb:"✅ Para descargas, el hash sirve para <strong>verificar que el archivo NO cambió</strong>. El sitio oficial publica el hash SHA-256 del archivo. Calculas el hash del archivo descargado y comparas — si coincide, el archivo es auténtico."},
+{q:"Según la clase: 'De ingredientes a batido = fácil. De batido a ingredientes = ___'",opts:["Fácil con la herramienta correcta","IMPOSIBLE — esa es la clave de la función hash","Posible si tienes la receta","Lento pero posible"],ans:1,fb:"✅ La clase usa la <strong>Analogía de la Licuadora</strong>: calcular el hash de un archivo es fácil (ingredientes → batido), pero recuperar el archivo original desde el hash es <strong>IMPOSIBLE</strong> (el batido no se puede separar)."},
+]},
+/* ── CAT 4 ── */
+{id:"software",icon:"💻",num:"4",title:"Software de Hashing",
+desc:"HashCalc, CertUtil (Windows), shasum/sha256sum (Linux/Mac) y GtkHash — herramientas reales del día a día.",maxPts:16,
+theory:`<p>La clase presenta <strong>4 herramientas reales</strong> para calcular y verificar hashes que puedes usar HOY mismo:</p>
+<div class="ig">
+<div class="ii good"><div class="lb">HashCalc (Windows GUI)</div><div class="vl">Calcula hashes MD5/SHA simultáneamente · Gratis · Interfaz gráfica</div></div>
+<div class="ii good"><div class="lb">CertUtil (Windows)</div><div class="vl">Verificar hash en Windows · Ya instalado · certutil -hashfile archivo SHA256</div></div>
+<div class="ii good"><div class="lb">shasum/sha256sum (Linux/Mac)</div><div class="vl">Terminal · Preinstalado · sha256sum archivo.zip</div></div>
+<div class="ii good"><div class="lb">GtkHash (Linux GUI)</div><div class="vl">Interfaz gráfica Linux · Compara automáticamente · Gratis</div></div>
+</div>
+<div class="hl"><strong>¿Por qué verificar el hash de una descarga?</strong> Cuando descargas Ubuntu, Kali Linux o cualquier software importante, el sitio oficial publica el SHA-256 del archivo. Si el hash de tu descarga coincide = el archivo es auténtico. Si NO coincide = el archivo fue modificado.</div>
+<div class="al">⚠️ Si el hash NO coincide con el publicado: el archivo puede haber sido comprometido por malware. <strong>NO LO INSTALES</strong> — descárgalo de nuevo.</div>`,
+simType:"software",
+questions:[
+{q:"¿Cuál es el comando de Windows para calcular el hash SHA-256 de un archivo?",opts:["hashcheck archivo.zip","md5sum archivo.zip","certutil -hashfile archivo.zip SHA256","sha256 -f archivo.zip"],ans:2,fb:"✅ En Windows: <strong>certutil -hashfile archivo.zip SHA256</strong>. CertUtil ya viene instalado en Windows — no necesitas descargar nada adicional."},
+{q:"¿Qué comando en Linux/Mac calcula el SHA-256?",opts:["hashcalc archivo.zip","sha256sum archivo.zip","certutil -sha256 archivo.zip","openssl hash archivo.zip"],ans:1,fb:"✅ En Linux/Mac: <strong>sha256sum archivo.zip</strong>. En macOS se usa `shasum -a 256`. Ambos están preinstalados sin necesidad de instalar nada."},
+{q:"¿Para qué sirve HashCalc según la presentación?",opts:["Solo para cifrar archivos","Calcular hashes MD5/SHA — gratis, con interfaz gráfica, multiple algoritmos","Para gestionar contraseñas","Para cifrar correos electrónicos"],ans:1,fb:"✅ <strong>HashCalc</strong> sirve para calcular múltiples algoritmos de hash simultáneamente (MD5, SHA-1, SHA-256, SHA-512, CRC32) con una interfaz gráfica amigable para Windows."},
+{q:"¿Qué hace GtkHash a diferencia de sha256sum en terminal?",opts:["Calcula hashes más rápido","Proporciona interfaz gráfica en Linux para calcular y comparar hashes visualmente","Solo funciona con SHA-512","Solo está disponible en Windows"],ans:1,fb:"✅ <strong>GtkHash</strong> es la interfaz gráfica para Linux: permite calcular múltiples hashes y comparar automáticamente con un hash de referencia pegado, sin necesidad de usar la terminal."},
+{q:"¿Qué debes hacer si el hash calculado de un archivo descargado NO coincide con el publicado?",opts:["Instalar el archivo de todas formas","NO instalar el archivo — puede estar comprometido por malware. Descargarlo de nuevo.","El hash nunca coincide exactamente","Reducir el tamaño del archivo"],ans:1,fb:"✅ Si el hash NO coincide: <strong>NO instales el archivo</strong>. Puede haber sido modificado por malware, interceptado en la descarga o corrompido. Descárgalo de nuevo o de una fuente diferente."},
+{q:"¿Cuál de estos SOFTWARE se menciona en la clase para verificar integridad en WINDOWS sin instalar nada?",opts:["GtkHash","HashCalc","CertUtil (ya viene en Windows)","sha256sum"],ans:2,fb:"✅ <strong>CertUtil</strong> ya viene preinstalado en Windows. No requiere descargar ni instalar nada. Solo abres CMD y usas: certutil -hashfile nombre_archivo SHA256."},
+{q:"¿Qué combinación recomienda la clase para máxima seguridad?",opts:["Solo usar contraseñas largas","Combinar hash + 2FA + gestor de contraseñas","Solo cifrar los archivos más importantes","Usar solo VPN"],ans:1,fb:"✅ La clase dice: <strong>Combina hash + 2FA + gestor de contraseñas para máxima seguridad</strong>. Cada herramienta ataca una debilidad diferente: hash protege integridad, 2FA protege acceso, gestor protege las contraseñas."},
+{q:"¿Por qué es importante que el hash publicado esté en el sitio OFICIAL del software?",opts:["Para que la descarga sea más rápida","Si el atacante también modifica el hash publicado, la verificación pierde su propósito","Para cumplir con leyes de privacidad","Para que el archivo sea más pequeño"],ans:1,fb:"✅ Si el atacante compromete el servidor Y cambia el hash publicado, la verificación falla. Por eso algunos proyectos publican el hash <strong>firmado digitalmente con PGP</strong> para que no pueda ser alterado."},
+]},
+/* ── CAT 5 ── */
+{id:"twofactor",icon:"🔐",num:"5",title:"Autentificación 2FA y Gestores",
+desc:"Bitwarden, Google Authenticator (TOTP real), YubiKey y Authy — los 4 del software de criptografía de la clase.",maxPts:16,
+theory:`<p>La clase presenta <strong>4 herramientas de autentificación</strong> que puedes usar HOY mismo:</p>
+<div class="ig">
+<div class="ii good"><div class="lb">BITWARDEN 🛡️</div><div class="vl">Gestor de contraseñas · Gratis · Open source · Cifrado AES-256</div></div>
+<div class="ii good"><div class="lb">GOOGLE AUTHENTICATOR 📱</div><div class="vl">Códigos 2FA (TOTP) · Gratis · Cambian cada 30 segundos</div></div>
+<div class="ii good"><div class="lb">YUBIKEY 🔑</div><div class="vl">Llave física 2FA · $30-50 · La más segura · Inmune a phishing</div></div>
+<div class="ii good"><div class="lb">AUTHY 📲</div><div class="vl">App 2FA multi-dispositivo · Gratis · Con respaldo en nube cifrado</div></div>
+</div>
+<div class="hl"><strong>TOTP (Time-based One-Time Password):</strong> El algoritmo que usa Google Authenticator. Combina tu clave secreta con el tiempo actual usando HMAC-SHA1. Genera un código de 6 dígitos que cambia cada 30 segundos exactos. Es el mismo RFC 6238 que implementa este simulador.</div>
+<div class="ig">
+<div class="ii good"><div class="lb">ALGO QUE SABES</div><div class="vl">Tu contraseña (guardada por Bitwarden)</div></div>
+<div class="ii good"><div class="lb">ALGO QUE TIENES</div><div class="vl">Tu teléfono (Google Auth/Authy) o tu YubiKey</div></div>
+</div>
+<div class="hl">💡 <strong>Consejo de la clase:</strong> Combina hash + 2FA + gestor de contraseñas para máxima seguridad. Bitwarden gestiona contraseñas únicas y fuertes; Google Auth o YubiKey añaden el segundo factor.</div>`,
+simType:"twofactor",
+questions:[
+{q:"¿Qué hace Bitwarden según la presentación?",opts:["Genera códigos 2FA","Es un gestor de contraseñas open source y gratuito","Es una llave física de seguridad","Calcula hashes de archivos"],ans:1,fb:"✅ <strong>Bitwarden</strong> es un gestor de contraseñas open source, gratuito, que cifra tu bóveda con AES-256. Permite usar contraseñas únicas y complejas para cada servicio sin tener que memorizarlas."},
+{q:"¿Cuánto cuesta una YubiKey según la clase?",opts:["Es gratis","$10-20","$30-50","$100-200"],ans:2,fb:"✅ La <strong>YubiKey</strong> cuesta <strong>$30-50</strong> según la clase. Es una llave física USB 2FA. Aunque tiene costo, es la opción más segura — la llave privada nunca sale del hardware y es inmune a phishing."},
+{q:"¿Cada cuánto cambian los códigos de Google Authenticator?",opts:["Cada 10 segundos","Cada 30 segundos","Cada 60 segundos","Cada vez que abres la app"],ans:1,fb:"✅ Los códigos TOTP de Google Authenticator cambian <strong>cada 30 segundos</strong>. El contador es: tiempo Unix ÷ 30. Todos los dispositivos en el mundo sincronizados con la misma clave secretea generarán el mismo código."},
+{q:"¿Qué ventaja tiene Authy sobre Google Authenticator según la clase?",opts:["Authy es más seguro criptográficamente","Authy es multi-dispositivo con respaldo en nube cifrado","Authy genera códigos más seguros","Authy es más rápido"],ans:1,fb:"✅ <strong>Authy</strong> es <strong>multi-dispositivo</strong> con respaldo cifrado en la nube. Google Authenticator no hace respaldo — si pierdes el teléfono, pierdes el acceso a todas tus cuentas 2FA."},
+{q:"¿Qué algoritmo usa Google Authenticator para generar los códigos?",opts:["AES-256","SHA-256","TOTP basado en HMAC-SHA1 (RFC 6238)","RSA-2048"],ans:2,fb:"✅ Google Authenticator usa <strong>TOTP (RFC 6238)</strong>: HMAC-SHA1(clave_secreta, tiempo/30). Genera 6 dígitos únicos válidos 30 segundos. Es el mismo algoritmo implementado en el simulador de esta actividad."},
+{q:"¿A qué esquema de autentificación pertenece Bitwarden?",opts:["Algo que ERES (biometría)","Algo que SABES (gestiona tu contraseña)","Algo que TIENES (llave física)","Ninguno de los anteriores"],ans:1,fb:"✅ Bitwarden gestiona las contraseñas = <strong>Algo que SABES</strong>. Hace más seguro este factor porque puedes tener contraseñas únicas y complejas para cada servicio sin depender de tu memoria."},
+{q:"¿Por qué una YubiKey es inmune a ataques de phishing?",opts:["Porque tiene una pantalla de verificación","Porque verifica el dominio del sitio — no funcionará en sitios falsos","Porque requiere huella dactilar","Porque está conectada a Internet"],ans:1,fb:"✅ La YubiKey usa FIDO2/U2F que <strong>verifica el dominio del sitio</strong>. Aunque seas engañado para entrar a un sitio falso (phishing), la YubiKey detecta que el dominio no coincide y no genera el código."},
+{q:"¿Cuál es el consejo final de la clase para máxima seguridad?",opts:["Solo usar contraseñas largas de más de 20 caracteres","Combinar hash + 2FA + gestor de contraseñas","Solo usar YubiKey y nada más","Cambiar contraseñas cada semana"],ans:1,fb:"✅ El consejo final de la clase: <strong>Combina hash + 2FA + gestor de contraseñas</strong>. HashCalc/CertUtil verifican integridad, Google Auth/YubiKey añaden 2FA, y Bitwarden gestiona contraseñas únicas y fuertes."},
+]}
+];
+
+/* ═══ NAVIGATION ═══ */
+function show(id){document.querySelectorAll(".scr").forEach(s=>s.classList.remove("on"));document.getElementById(id).classList.add("on");window.scrollTo({top:0,behavior:"smooth"});}
+document.getElementById("ni").addEventListener("input",function(){document.getElementById("bst").disabled=this.value.trim().length<3;});
+function startApp(){ST.name=document.getElementById("ni").value.trim();["hn","hn2"].forEach(id=>document.getElementById(id).textContent="👤 "+ST.name);renderMenu();show("sm");}
+function goMenu(){if(totpInterval){clearInterval(totpInterval);totpInterval=null;}renderMenu();show("sm");}
+
+/* ═══ MENU ═══ */
+function renderMenu(){
+  const g=document.getElementById("cg");g.innerHTML="";
+  const t=ST.done.size;
+  document.getElementById("mpf").style.width=(t/5*100)+"%";
+  document.getElementById("mpt").textContent=t+" de 5 completadas";
+  ["hp","hp2"].forEach(id=>document.getElementById(id).textContent=ST.pts);
+  CATS.forEach(c=>{
+    const dn=ST.done.has(c.id),pts=ST.cp[c.id]||0;
+    const d=document.createElement("div");d.className="cc"+(dn?" dn":"");
+    d.innerHTML=`<div class="cnu">${c.num}</div><div class="cic">${c.icon}</div><div class="cti">${c.title}</div><div class="cde">${c.desc}</div><div class="cst"><div class="dot ${dn?"dd":"dp"}"></div><span>${dn?"✅ COMPLETADA":"Pendiente"}</span>${dn?`<span class="cpt">${pts}/${c.maxPts} pts</span>`:""}</div>`;
+    d.onclick=()=>openCat(c.id);g.appendChild(d);
+  });
+  document.getElementById("fw").style.display=t>0?"block":"none";
+}
+
+/* ═══ CATEGORY ═══ */
+let curSc=0;
+function openCat(id){
+  const c=CATS.find(x=>x.id===id);
+  if(totpInterval){clearInterval(totpInterval);totpInterval=null;}
+  streak=0;const sb=document.getElementById('streak-badge');const sc3=document.getElementById('streak-count');if(sb)sb.classList.remove('active');if(sc3)sc3.textContent='0';
+  ST.cur=c;ST.qi=0;ST.ans=false;curSc=0;
+  document.getElementById("abc").textContent=c.num+" · "+c.title.toUpperCase();
+  document.getElementById("ac").innerHTML=buildContent(c);
+  initSim(c);renderQ(c,0);
+  show("sa");
+}
+function buildContent(c){return`
+<div class="step-hdr th">
+  <div class="step-num th">1</div>
+  <div class="step-info">
+    <div class="step-title">📖 TEORÍA — ${c.title}</div>
+    <div class="step-sub">Lee el contenido antes de usar el simulador · Semana 5</div>
+  </div>
+</div>
+<div class="thc" style="margin-top:0;border-top:4px solid var(--p3);">
+  <div class="thb">${c.theory}</div>
+</div>
+
+<div class="step-hdr sim">
+  <div class="step-num sim">2</div>
+  <div class="step-info">
+    <div class="step-title">🧪 SIMULADOR INTERACTIVO</div>
+    <div class="step-sub">Practica con herramientas reales antes de responder el quiz</div>
+  </div>
+</div>
+${buildSim(c)}
+
+<div class="step-hdr qz">
+  <div class="step-num qz">3</div>
+  <div class="step-info">
+    <div class="step-title">❓ QUIZ — ${c.questions.length} PREGUNTAS</div>
+    <div class="step-sub">Responde basándote en la teoría y el simulador · ${c.maxPts} puntos disponibles</div>
+  </div>
+</div>
+<div class="qc" style="margin-top:0;border-top:4px solid var(--yel);">
+  <div class="qm"><span class="qb">QUIZ</span><span class="qp" id="qpg">Pregunta 1 de ${c.questions.length}</span></div>
+  <div class="qq" id="qqt"></div>
+  <div class="qow" id="qow"></div>
+  <div class="qfb" id="qfb"></div>
+  <button class="bnn" id="qnx" onclick="nextQ()">Siguiente ▶</button>
+</div>`;}
+
+/* ═══ SIMULATORS ═══ */
+function tabSwitch(panelIds,tabsId,n){
+  panelIds.forEach((id,i)=>document.getElementById(id).classList.toggle("on",i===n));
+  document.querySelectorAll("#"+tabsId+" .tb-btn").forEach((b,i)=>b.classList.toggle("on",i===n));
+}
+
+function buildSim(c){
+  if(c.simType==="pilares") return `
+<div class="sc"><div class="sh2"><span class="sbdg">🏛️ SIMULADOR</span><span class="stt">Los 3 Pilares — Identificador de Aplicaciones</span></div>
+<p style="color:var(--txm);font-size:1rem;margin-bottom:16px;">Para cada escenario real, identifica cuál pilar de la criptografía está en acción y qué herramienta se aplica. Haz clic para revelar la respuesta.</p>
+<div class="vd vif" style="margin-bottom:12px;">👆 <strong>Haz clic en cada escenario</strong> para ver qué pilar de la criptografía aplica y por qué.</div>
+<div style="display:flex;flex-direction:column;gap:10px;">
+${[
+["Al comprar en Amazon con tarjeta, nadie puede leer tu número de tarjeta en tránsito","CONFIDENCIALIDAD 🔒","TLS/HTTPS cifra los datos — solo el servidor de Amazon puede descifrarlos"],
+["Al descargar Ubuntu Linux, verificas que el archivo SHA-256 coincide con el publicado","INTEGRIDAD ✅","El hash SHA-256 garantiza que el archivo no fue modificado por malware"],
+["Al iniciar sesión en tu banco con usuario + código SMS, el banco sabe que ERES tú","AUTENTICIDAD 🪪 + 2FA","Usuario+contraseña (algo que sabes) + SMS (algo que tienes) = identidad verificada"],
+["Bitcoin: cada bloque tiene el hash SHA-256 del bloque anterior — nadie puede modificar transacciones pasadas","INTEGRIDAD ✅","SHA-256 encadena los bloques — modificar uno rompe toda la cadena"],
+["WhatsApp: solo tú y el receptor pueden leer los mensajes, ni WhatsApp puede leerlos","CONFIDENCIALIDAD 🔒","Signal Protocol: cifrado E2E con claves únicas por conversación"]
+].map((s,i)=>`<div id="ps${i}" style="background:var(--sur2);border:1.5px solid var(--bor);border-radius:12px;padding:14px 18px;cursor:pointer;transition:all .2s;" onclick="pilReveal(${i})">
+  <div style="font-size:.95rem;font-weight:600;color:var(--tx);margin-bottom:4px;">📋 ${s[0]}</div>
+  <div id="pa${i}" style="display:none;margin-top:8px;">
+    <div style="color:var(--p2);font-weight:700;">✅ Pilar: ${s[1]}</div>
+    <div style="color:var(--txs);font-size:.88rem;margin-top:3px;">🛠️ ${s[2]}</div>
+  </div>
+  <div id="ph${i}" style="font-size:.78rem;color:var(--txs);margin-top:4px;">👆 Haz clic para ver el análisis</div>
+</div>`).join("")}
+</div>
+<div class="vd vif" style="margin-top:14px;">💡 Los 3 pilares trabajan juntos: HTTPS usa confidencialidad + integridad + autenticidad simultáneamente.</div>
+</div>`;
+
+  if(c.simType==="integridad") return `
+<div class="sc"><div class="sh2"><span class="sbdg">🛡️ SIMULADOR</span><span class="stt">Verificador de Integridad — Detector de Manipulación</span></div>
+<p style="color:var(--txm);font-size:1rem;margin-bottom:16px;">Simula el "sello de cera" digital: escribe un mensaje original, calcula su hash, modifica el mensaje y observa cómo el hash cambia completamente.</p>
+<span class="sl">Paso 1 — Escribe el mensaje y genera su hash (sello digital):</span>
+<div class="sr">
+  <input class="si" id="im" placeholder="Mensaje original (ej: HOLA BRUNO)…" oninput="runInteg()">
+</div>
+<div style="margin-bottom:12px;">
+  <span class="sl">🔒 Huella digital del mensaje (sello digital)</span><div class="so has" id="ih" style="font-size:.75rem;word-break:break-all;">Escribe un mensaje para ver su huella digital…</div>
+</div>
+<div style="margin-top:18px;"><span class="sl">Paso 2 — Simula el ataque: modifica el mensaje y verifica si el hash detecta el cambio:</span> cambia el mensaje (como de "HOLA BRUNO" a "HOLA HACKER")</span>
+<div class="sr"><input class="si" id="it" placeholder="Escribe el mensaje modificado…" oninput="runTamper()"></div>
+<div class="so" id="ir" style="margin-top:8px;">El resultado de la verificación aparecerá aquí…</div>
+</div>
+<div class="vd vif" style="margin-top:12px;">💡 Como el sello de cera de la clase: si el hash del mensaje recibido NO coincide con el original — ¡INTEGRIDAD ROTA!</div>
+</div>`;
+
+  if(c.simType==="hash") return `
+<div class="sc"><div class="sh2"><span class="sbdg">#️⃣ CALCULADORA</span><span class="stt">Laboratorio HASH Real — MD5, SHA-1, SHA-256 + Licuadora</span></div>
+<p style="color:var(--txm);font-size:1rem;margin-bottom:16px;">Experimenta con la función hash en tiempo real. Observa las 3 propiedades: tamaño fijo, irreversible y efecto avalancha.</p>
+<div class="tb-row" id="htabs">
+  <button class="tb-btn on" onclick="tabSwitch(['ht0','ht1','ht2'],'htabs',0)">📝 Las 3 Propiedades</button>
+  <button class="tb-btn" onclick="tabSwitch(['ht0','ht1','ht2'],'htabs',1)">📁 Archivo</button>
+  <button class="tb-btn" onclick="tabSwitch(['ht0','ht1','ht2'],'htabs',2)">🫙 Licuadora</button>
+</div>
+<div class="tb-c on" id="ht0">
+  <div class="sr" style="margin-top:0;">
+    <input class="si" id="ht-txt" placeholder="Escribe cualquier texto (corto o largo)…" oninput="runMultiHash()">
+
+  </div>
+  <div style="margin-bottom:10px;"><span class="sl">🔑 Hash del texto (huella digital)</span><div class="so has" id="ht-sha256" style="font-size:.75rem;word-break:break-all;">—</div></div>
+  <div style="margin-bottom:10px;"><span class="sl" style="color:var(--txs);font-size:.78rem;">Observa: el hash siempre tiene el mismo tamaño aunque el texto sea largo o corto</span></div>
+</div>
+<div class="tb-c" id="ht1">
+  <p style="color:var(--txm);font-size:.9rem;margin-bottom:12px;">Sube cualquier archivo para obtener su SHA-256 real — igual a lo que hace sha256sum o HashCalc.</p>
+  <div id="ht-drop" style="border:2px dashed var(--bor);border-radius:12px;padding:32px;text-align:center;cursor:pointer;color:var(--txs);" onclick="document.getElementById('ht-file').click()">
+    <div style="font-size:2rem;margin-bottom:8px;">📂</div>
+    <div style="font-size:1rem;font-weight:600;">Haz clic o arrastra un archivo</div>
+  </div>
+  <input type="file" id="ht-file" style="display:none" onchange="hashFile(this.files[0])">
+  <div id="ht-file-res" style="margin-top:12px;"></div>
+</div>
+<div class="tb-c" id="ht2">
+  <p style="color:var(--txm);font-size:.9rem;margin-bottom:12px;">La Analogía de la Licuadora: escribe dos textos casi iguales y observa cómo el hash cambia completamente con 1 solo cambio.</p>
+  <div class="s2c">
+    <div><span class="sl">🍌 Texto A (ingredientes originales)</span><textarea class="si" id="av-a" rows="3" oninput="runAvalanche()" placeholder="Escribe el Texto A…"></textarea><div class="so has" id="av-ha" style="font-size:.72rem;margin-top:6px;min-height:48px;word-break:break-all;">—</div></div>
+    <div><span class="sl">🍓 Texto B (cambia algo mínimo)</span><textarea class="si" id="av-b" rows="3" oninput="runAvalanche()" placeholder="Escribe el Texto B (cambia algo mínimo)…"></textarea><div class="so has" id="av-hb" style="font-size:.72rem;margin-top:6px;min-height:48px;word-break:break-all;">—</div></div>
+  </div>
+  <div id="av-diff" style="margin-top:10px;"></div>
+</div>
+</div>`;
+
+  if(c.simType==="software") return `
+<div class="sc"><div class="sh2"><span class="sbdg">💻 LABORATORIO</span><span class="stt">HashCalc · CertUtil · shasum · GtkHash — Simuladores</span></div>
+<p style="color:var(--txm);font-size:1rem;margin-bottom:16px;">Simula las 4 herramientas reales de la clase. Todas calculan hashes auténticos.</p>
+<div class="tb-row" id="stabs">
+  <button class="tb-btn on" onclick="tabSwitch(['st0','st1','st2','st3'],'stabs',0)">🪟 HashCalc</button>
+  <button class="tb-btn" onclick="tabSwitch(['st0','st1','st2','st3'],'stabs',1)">💻 CertUtil</button>
+  <button class="tb-btn" onclick="tabSwitch(['st0','st1','st2','st3'],'stabs',2)">🐧 shasum</button>
+  <button class="tb-btn" onclick="tabSwitch(['st0','st1','st2','st3'],'stabs',3)">🖥️ GtkHash</button>
+</div>
+<div class="tb-c on" id="st0">
+  <div style="background:#f0f0f0;border-radius:8px;padding:4px 10px;display:flex;align-items:center;gap:6px;margin-bottom:12px;font-size:.82rem;color:#333;border:1px solid #ccc;">
+    <span>🪟</span><span style="font-weight:600;">HashCalc 2.02</span><span style="margin-left:auto;color:#666;">File · Help</span>
+  </div>
+  <div style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:14px;font-size:.88rem;">
+    <div style="margin-bottom:10px;"><label style="font-size:.8rem;color:#555;">Data:</label><input id="hc-data" placeholder="Escribe el texto a hashear…" oninput="runHashCalc()" style="width:100%;border:1px solid #ccc;border-radius:4px;padding:6px 10px;font-family:monospace;font-size:.88rem;margin-top:4px;"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+      ${["MD5","SHA-1","SHA-256","SHA-512"].map(a=>`<label style="font-size:.82rem;color:#333;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="hc-${a}" checked style="width:auto;"> ${a}</label>`).join("")}
+    </div>
+
+    <div id="hc-res" style="margin-top:12px;font-family:monospace;font-size:.78rem;word-break:break-all;overflow-wrap:anywhere;"></div>
+  </div>
+</div>
+<div class="tb-c" id="st1">
+  <div class="terminal">
+    <div style="color:#6b7f94;">C:\\Users\\Alumno&gt;</div>
+    <div style="margin:10px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="color:#6b7f94;">Archivo:</span><input id="ct-file" placeholder="archivo.zip" oninput="runCertUtil()" style="background:#1a2a1a;border:1px solid #2a4a2a;color:#22c55e;padding:4px 8px;border-radius:4px;font-family:Share Tech Mono;width:160px;">
+      <select id="ct-alg" style="background:#1a2a1a;border:1px solid #2a4a2a;color:#22c55e;padding:4px 8px;border-radius:4px;font-family:Share Tech Mono;">
+        <option value="SHA256">SHA256</option><option value="SHA1">SHA1</option><option value="MD5">MD5</option><option value="SHA512">SHA512</option>
+      </select>
+      <button onclick="runCertUtil()" style="background:#22c55e;color:#000;border:none;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:.82rem;font-family:Share Tech Mono;">▶ Ejecutar</button>
+    </div>
+    <div id="ct-out" style="word-break:break-all;overflow-wrap:anywhere;" style="color:#4ade80;white-space:pre-wrap;font-size:.82rem;margin-top:8px;"></div>
+  </div>
+</div>
+<div class="tb-c" id="st2">
+  <div class="terminal">
+    <div style="color:#6b7f94;">usuario@linux:~$</div>
+    <div style="margin:10px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <select id="ss-alg" style="background:#1a2a1a;border:1px solid #2a4a2a;color:#22c55e;padding:4px 8px;border-radius:4px;font-family:Share Tech Mono;">
+        <option value="sha256">sha256sum (Linux)</option><option value="sha1">sha1sum (Linux)</option><option value="md5">md5sum (Linux)</option><option value="smac256">shasum -a 256 (Mac)</option>
+      </select>
+      <input id="ss-file" placeholder="archivo.iso" oninput="runShasum()" style="background:#1a2a1a;border:1px solid #2a4a2a;color:#22c55e;padding:4px 8px;border-radius:4px;font-family:Share Tech Mono;width:120px;">
+      <button onclick="runShasum()" style="background:#22c55e;color:#000;border:none;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:.82rem;font-family:Share Tech Mono;">▶ Ejecutar</button>
+    </div>
+    <div style="margin-bottom:8px;"><span style="color:#6b7f94;">Contenido simulado del archivo: </span><input id="ss-content" placeholder="Escribe el contenido del archivo…" oninput="runShasum()" style="background:#1a2a1a;border:1px solid #2a4a2a;color:#22c55e;padding:3px 8px;border-radius:4px;font-family:Share Tech Mono;width:200px;"></div>
+    <div id="ss-cmd" style="word-break:break-all;overflow-wrap:anywhere;" style="color:#86efac;font-size:.85rem;margin:4px 0;"></div>
+    <div id="ss-out" style="word-break:break-all;overflow-wrap:anywhere;" style="color:#4ade80;white-space:pre-wrap;font-size:.82rem;"></div>
+  </div>
+</div>
+<div class="tb-c" id="st3">
+  <div style="background:#3c3c3c;border-radius:10px;padding:16px;color:#e0e0e0;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:.88rem;border-bottom:1px solid #555;padding-bottom:8px;">
+      <span style="color:#22c55e;font-weight:700;">GtkHash</span><span style="color:#aaa;font-size:.78rem;">— Interfaz gráfica Linux</span>
+    </div>
+    <div style="margin-bottom:10px;"><label style="font-size:.8rem;color:#aaa;">File / Text:</label><input id="gtk-in" placeholder="Escribe el texto a hashear…" oninput="runGtkHash()" style="width:100%;background:#2a2a2a;border:1px solid #555;border-radius:4px;padding:7px 10px;color:#e0e0e0;font-family:monospace;font-size:.88rem;margin-top:4px;"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+      ${["MD5","SHA-1","SHA-256","SHA-512"].map(a=>`<label style="font-size:.82rem;color:#ccc;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="gtk-${a}" checked style="width:auto;"> ${a}</label>`).join("")}
+    </div>
+    <div style="margin-bottom:10px;"><label style="font-size:.8rem;color:#aaa;">Check (pega el hash de referencia):</label><input id="gtk-check" placeholder="Pega el hash publicado para comparar…" oninput="runGtkHash()" style="width:100%;background:#2a2a2a;border:1px solid #555;border-radius:4px;padding:7px 10px;color:#e0e0e0;font-family:monospace;font-size:.82rem;margin-top:4px;"></div>
+
+    <div id="gtk-res" style="word-break:break-all;overflow-wrap:anywhere;" style="margin-top:12px;font-family:monospace;font-size:.78rem;color:#4ade80;white-space:pre-wrap;"></div>
+  </div>
+</div>
+</div>`;
+
+  if(c.simType==="twofactor") return `
+<div class="sc"><div class="sh2"><span class="sbdg">🔐 LABORATORIO 2FA</span><span class="stt">Google Auth · Bitwarden · YubiKey · Authy</span></div>
+<p style="color:var(--txm);font-size:1rem;margin-bottom:16px;">Las 4 herramientas de la clase en acción. El generador TOTP usa el algoritmo real RFC 6238.</p>
+<div class="tb-row" id="tftabs">
+  <button class="tb-btn on" onclick="tabSwitch(['tf0','tf1','tf2','tf3'],'tftabs',0)">📱 Google Auth</button>
+  <button class="tb-btn" onclick="tabSwitch(['tf0','tf1','tf2','tf3'],'tftabs',1)">🛡️ Bitwarden</button>
+  <button class="tb-btn" onclick="tabSwitch(['tf0','tf1','tf2','tf3'],'tftabs',2)">🔑 YubiKey</button>
+  <button class="tb-btn" onclick="tabSwitch(['tf0','tf1','tf2','tf3'],'tftabs',3)">📲 Authy vs GA</button>
+</div>
+<div class="tb-c on" id="tf0">
+  <p style="color:var(--txm);font-size:.9rem;margin-bottom:12px;">Generador TOTP real — mismo algoritmo que usa Google Authenticator (RFC 6238, HMAC-SHA1).</p>
+  <div style="margin-bottom:12px;"><span class="sl">Clave secreta Base32:</span>
+    <div class="sr"><input class="si" id="totp-sec" placeholder="Escribe una clave en Base32…" placeholder="Base32…"><button class="sb2" onclick="startTOTP()">▶ INICIAR</button><button class="sb2 rd" onclick="stopTOTP()">⏹ PARAR</button></div>
+  </div>
+  <div class="totp-display">
+    <div class="totp-lbl" style="margin-bottom:8px;">UTEL · Cuenta de prueba</div>
+    <div class="totp-code" id="tc" style="font-size:1.5rem;color:#6a8a6a;">Presiona INICIAR ▶</div>
+    <div class="totp-bar-bg"><div class="totp-bar-fill" id="tb" style="width:100%"></div></div>
+    <div class="totp-lbl">Código válido por <span id="ts">30</span> segundos</div>
+  </div>
+  <div class="vd vok" style="font-size:.88rem;">✅ Código real calculado con HMAC-SHA1. Es el mismo algoritmo que usan Google Authenticator, Authy y Microsoft Authenticator.</div>
+</div>
+<div class="tb-c" id="tf1">
+  <p style="color:var(--txm);font-size:.9rem;margin-bottom:12px;">Generador de contraseñas de Bitwarden — el gestor open source de la clase.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+    <div><span class="sl">Longitud: <span id="pw-v">16</span></span><input type="range" id="pw-l" min="8" max="64" value="16" oninput="document.getElementById('pw-v').textContent=this.value;genPW()" style="width:100%"></div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label style="font-size:.82rem;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="pw-u" checked onchange="genPW()"> Mayúsculas (A-Z)</label>
+      <label style="font-size:.82rem;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="pw-n" checked onchange="genPW()"> Números (0-9)</label>
+      <label style="font-size:.82rem;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="pw-s" checked onchange="genPW()"> Símbolos (!@#$)</label>
+    </div>
+  </div>
+  <div style="background:#0a1a0a;border-radius:10px;padding:16px;text-align:center;margin-bottom:12px;">
+    <div style="font-family:Share Tech Mono;font-size:1.1rem;color:#22c55e;letter-spacing:2px;word-break:break-all;" id="pw-r">Generando…</div>
+    <button onclick="genPW()" style="background:var(--p);color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-size:.82rem;margin-top:8px;">🔄 Nueva contraseña</button>
+  </div>
+  <div><span class="sl">Fortaleza:</span>
+    <div style="height:10px;background:var(--sur2);border-radius:5px;overflow:hidden;margin-bottom:4px;"><div id="pw-sb" style="height:100%;border-radius:5px;transition:width .4s;width:0%;"></div></div>
+    <div id="pw-sl" style="font-size:.85rem;color:var(--txs);"></div>
+  </div>
+</div>
+<div class="tb-c" id="tf2">
+  <p style="color:var(--txm);font-size:.9rem;margin-bottom:12px;">Simulación de YubiKey OTP — la llave física de $30-50 de la clase. Cada "toque" genera un OTP único de 44 caracteres.</p>
+  <div style="background:#1a1a1a;border-radius:14px;padding:20px;text-align:center;margin-bottom:12px;">
+    <div style="font-size:2.5rem;margin-bottom:8px;">🔑</div>
+    <div style="font-size:.9rem;color:#aaa;margin-bottom:14px;">YubiKey 5 Series — $30-50 — La más segura</div>
+    <button onclick="genYubiOTP()" style="background:linear-gradient(135deg,#2d7d32,#43a047);color:#fff;border:none;border-radius:50px;padding:14px 36px;cursor:pointer;font-size:1rem;font-weight:700;">👆 TOCAR YUBIKEY</button>
+    <div id="yubi-otp" style="font-family:Share Tech Mono;font-size:.88rem;color:#22c55e;margin-top:14px;word-break:break-all;min-height:28px;"></div>
+    <div id="yubi-info" style="font-size:.75rem;color:#6a8a6a;margin-top:8px;text-align:left;font-family:Share Tech Mono;"></div>
+  </div>
+  <div class="vd vif" style="font-size:.88rem;">💡 El OTP tiene 44 caracteres modhex: 12 identifican la llave (ID público), 32 son la sesión cifrada con AES-128 en el hardware. La clave privada NUNCA sale del dispositivo.</div>
+</div>
+<div class="tb-c" id="tf3">
+  <table style="width:100%;border-collapse:collapse;font-size:.9rem;margin-bottom:12px;">
+    <tr style="background:var(--p);color:#fff;"><th style="padding:10px 14px;text-align:left;font-family:Orbitron;font-size:.72rem;">Característica</th><th style="padding:10px 14px;font-family:Orbitron;font-size:.72rem;">Google Auth</th><th style="padding:10px 14px;font-family:Orbitron;font-size:.72rem;">Authy</th></tr>
+    ${[["Algoritmo","TOTP / HOTP","TOTP / HOTP"],["Precio","✅ Gratis","✅ Gratis"],["Respaldo en nube","❌ No","✅ Sí (cifrado)"],["Multi-dispositivo","❌ No","✅ Sí"],["Recuperación","❌ Difícil","✅ Con backup"],["Código abierto","✅ Parcialmente","❌ Propietario"]].map((r,i)=>`<tr style="border-bottom:1px solid var(--bor);background:${i%2?"var(--sur2)":"var(--sur)"}"><td style="padding:9px 14px;color:var(--txm);font-weight:600;">${r[0]}</td><td style="padding:9px 14px;text-align:center;">${r[1]}</td><td style="padding:9px 14px;text-align:center;">${r[2]}</td></tr>`).join("")}
+  </table>
+  <div class="vd vok" style="font-size:.88rem;">🏆 <strong>Regla de la clase:</strong> Combina hash + 2FA + gestor de contraseñas para máxima seguridad. Bitwarden + Google Auth o YubiKey = protección completa.</div>
+</div>
+</div>`;
+  return "";
+}
+
+/* ═══ SIM INIT ═══ */
+function initSim(c){
+  if(c.simType==="pilares"){}// clean state - click to reveal
+  if(c.simType==="integridad")setTimeout(runInteg,100);
+  if(c.simType==="hash")setTimeout(async()=>{runAvalanche();},100);
+  if(c.simType==="twofactor")setTimeout(()=>{genPW();startTOTP();},200);
+}
+
+/* ═══ PILAR SIM ═══ */
+function pilReveal(i){
+  const a=document.getElementById("pa"+i),h=document.getElementById("ph"+i),card=document.getElementById("ps"+i);
+  if(a.style.display==="none"){a.style.display="block";h.style.display="none";card.style.borderColor="var(--p)";card.style.background="#e8f5e9";}
+  else{a.style.display="none";h.style.display="block";card.style.borderColor="var(--bor)";card.style.background="var(--sur2)";}
+}
+
+/* ═══ INTEGRIDAD SIM ═══ */
+async function runInteg(){
+  const msg=(document.getElementById("im")||{}).value||"";
+  if(!msg){return;}
+  const h=await sha256(msg);
+  const ih=document.getElementById("ih");
+  if(ih){ih.textContent="Huella: "+h;ih.className="so has";}
+}
+async function runTamper(){
+  const orig=(document.getElementById("im")||{}).value||"";
+  const tam=(document.getElementById("it")||{}).value||"";
+  const el=document.getElementById("ir");
+  if(!el||!orig||!tam){if(el)el.textContent="";return;}
+  const ho=await sha256(orig);
+  const ht=await sha256(tam);
+  if(ho===ht){el.textContent="✅ Los hashes COINCIDEN — mensajes idénticos — Integridad OK";el.className="so has";}
+  else{el.textContent="❌ INTEGRIDAD ROTA — El mensaje fue MODIFICADO\n\nHuella original:\n"+ho+"\n\nHuella del mensaje alterado:\n"+ht+"\n\n🔴 Las huellas NO coinciden — el sello está roto";el.className="so err";}
+}
+
+/* ═══ HASH SIM ═══ */
+async function runMultiHash(){
+  const txt=(document.getElementById("ht-txt")||{}).value||"";
+  const el=document.getElementById("ht-sha256");
+  if(!txt){if(el)el.textContent="—";return;}
+  const h=await sha256(txt);
+  if(el){el.textContent=h;el.className="so has";}
+}
+async function hashFile(f){
+  if(!f)return;
+  const el=document.getElementById("ht-file-res");if(!el)return;
+  el.innerHTML="<div style='color:var(--txm);'>⚙️ Calculando SHA-256…</div>";
+  const buf=await f.arrayBuffer();
+  const b=await crypto.subtle.digest("SHA-256",buf);
+  const hex=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+  el.innerHTML=`<div style="background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:12px 16px;font-family:Share Tech Mono;font-size:.82rem;">
+    <div style="color:var(--txm);margin-bottom:6px;">📄 <strong>${f.name}</strong> (${(f.size/1024).toFixed(1)} KB)</div>
+    <div style="color:var(--txs);margin-bottom:4px;">SHA-256:</div>
+    <div style="color:var(--p);word-break:break-all;">${hex}</div>
+    <div style="color:var(--txs);font-size:.75rem;margin-top:6px;">✅ Guarda este hash para verificar el archivo en el futuro (igual que sha256sum o HashCalc).</div>
+  </div>`;
+}
+async function runAvalanche(){
+  const a=(document.getElementById("av-a")||{}).value||" ";
+  const b=(document.getElementById("av-b")||{}).value||" ";
+  const ha=await sha256(a);const hb=await sha256(b);
+  const ea=document.getElementById("av-ha");const eb=document.getElementById("av-hb");
+  if(ea){ea.textContent=ha;ea.className="so has";}
+  if(eb){eb.textContent=hb;eb.className="so has";}
+  let diff=0;
+  const diff_el=document.getElementById("av-diff");
+  if(!diff_el)return;
+  let html="<div style='display:flex;flex-wrap:wrap;gap:2px;margin-top:8px;'>";
+  for(let i=0;i<64;i++){const eq=ha[i]===hb[i];if(!eq)diff++;html+=`<span style='font-family:Share Tech Mono;font-size:.7rem;padding:2px 3px;border-radius:2px;background:${eq?"#d7f5de":"#ffebee"};color:${eq?"#1b5e20":"#c62828"};'>${ha[i]}</span>`;}
+  html+="</div>";
+  diff_el.innerHTML=`<div style='font-size:.85rem;color:var(--txm);margin-bottom:4px;'>${diff} de 64 caracteres hex cambiaron (${Math.round(diff/64*100)}%) — Efecto Avalancha</div>${html}`;
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  const d=document.getElementById("ht-drop");
+  if(d){d.addEventListener("dragover",e=>{e.preventDefault();d.style.borderColor="var(--p)";});d.addEventListener("dragleave",()=>{d.style.borderColor="var(--bor)";});d.addEventListener("drop",e=>{e.preventDefault();d.style.borderColor="var(--bor)";const f=e.dataTransfer.files[0];if(f)hashFile(f);});}
+});
+
+/* ═══ SOFTWARE SIM ═══ */
+async function runHashCalc(){
+  const data=document.getElementById("hc-data").value||"Texto de prueba";
+  let out="";
+  if(document.getElementById("hc-MD5")&&document.getElementById("hc-MD5").checked)out+=`MD5        ${md5(data)}\n`;
+  if(document.getElementById("hc-SHA-1")&&document.getElementById("hc-SHA-1").checked)out+=`SHA-1      ${await sha1(data)}\n`;
+  if(document.getElementById("hc-SHA-256")&&document.getElementById("hc-SHA-256").checked)out+=`SHA-256    ${await sha256(data)}\n`;
+  if(document.getElementById("hc-SHA-512")&&document.getElementById("hc-SHA-512").checked){const b=await crypto.subtle.digest("SHA-512",new TextEncoder().encode(data));out+=`SHA-512    ${[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}\n`;}
+  const el=document.getElementById("hc-res");
+  if(el)el.innerHTML=`<div style="background:#e8f5e9;border:1px solid var(--bor);border-radius:6px;padding:10px;font-family:monospace;font-size:.78rem;white-space:pre;color:#1b5e20;">${out||"Selecciona al menos un algoritmo."}</div>`;
+}
+async function runCertUtil(){
+  const file=document.getElementById("ct-file").value||"archivo.zip";
+  const alg=document.getElementById("ct-alg").value;
+  const content=file+" contenido simulado";
+  let hash="";
+  if(alg==="SHA256")hash=await sha256(content);
+  else if(alg==="SHA1")hash=await sha1(content);
+  else if(alg==="MD5")hash=md5(content);
+  else{const b=await crypto.subtle.digest("SHA-512",new TextEncoder().encode(content));hash=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+  const el=document.getElementById("ct-out");
+  if(el)el.textContent=`C:\\Users\\Alumno> certutil -hashfile ${file} ${alg}\n${alg} hash of ${file}:\n${hash.toUpperCase().match(/.{1,2}/g).join(" ")}\nCertUtil: -hashfile command completed successfully.`;
+}
+async function runShasum(){
+  const alg=document.getElementById("ss-alg").value;
+  const file=document.getElementById("ss-file").value||"archivo.iso";
+  const content=document.getElementById("ss-content").value||"Ubuntu";
+  let hash="",cmd="";
+  if(alg==="sha256"||alg==="smac256"){hash=await sha256(content);cmd=alg==="smac256"?`shasum -a 256 ${file}`:`sha256sum ${file}`;}
+  else if(alg==="sha1"){hash=await sha1(content);cmd=`sha1sum ${file}`;}
+  else{hash=md5(content);cmd=`md5sum ${file}`;}
+  const ce=document.getElementById("ss-cmd");const oe=document.getElementById("ss-out");
+  if(ce)ce.textContent="$ "+cmd;
+  if(oe)oe.textContent=`${hash}  ${file}`;
+}
+async function runGtkHash(){
+  const input=document.getElementById("gtk-in").value||"";
+  const check=document.getElementById("gtk-check").value.trim().toLowerCase();
+  let out="";
+  const fmt=(label,h)=>{
+    const match=check&&check===h;
+    const mismatch=check&&check!==h;
+    return `${label}: ${h}${match?" ✅ COINCIDE":mismatch?" ❌ NO COINCIDE":""}\n`;
+  };
+  if(document.getElementById("gtk-MD5")&&document.getElementById("gtk-MD5").checked)out+=fmt("MD5    ",md5(input));
+  if(document.getElementById("gtk-SHA-1")&&document.getElementById("gtk-SHA-1").checked)out+=fmt("SHA-1  ",await sha1(input));
+  if(document.getElementById("gtk-SHA-256")&&document.getElementById("gtk-SHA-256").checked)out+=fmt("SHA-256",await sha256(input));
+  if(document.getElementById("gtk-SHA-512")&&document.getElementById("gtk-SHA-512").checked){const b=await crypto.subtle.digest("SHA-512",new TextEncoder().encode(input));const h=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");out+=fmt("SHA-512",h);}
+  const el=document.getElementById("gtk-res");
+  if(el)el.textContent=out||"Ingresa texto y haz clic en Hash.";
+}
+
+/* ═══ 2FA SIM ═══ */
+function startTOTP(){
+  if(totpInterval)clearInterval(totpInterval);
+  async function update(){
+    const sec=document.getElementById("totp-sec");if(!sec)return;
+    const code=await computeTOTP(sec.value);
+    const secs=totpSecs();
+    const tc=document.getElementById("tc");const ts=document.getElementById("ts");const tb=document.getElementById("tb");
+    if(tc)tc.textContent=code.substring(0,3)+" "+code.substring(3);
+    if(ts)ts.textContent=secs;
+    if(tb)tb.style.width=(secs/30*100)+"%";
+  }
+  update();
+  totpInterval=setInterval(update,1000);
+}
+function stopTOTP(){if(totpInterval){clearInterval(totpInterval);totpInterval=null;const tc=document.getElementById("tc");if(tc)tc.textContent="------";}}
+function genPW(){
+  const len=parseInt((document.getElementById("pw-l")||{}).value||16);
+  const upper=(document.getElementById("pw-u")||{}).checked!==false;
+  const num=(document.getElementById("pw-n")||{}).checked!==false;
+  const sym=(document.getElementById("pw-s")||{}).checked!==false;
+  let chars="abcdefghijklmnopqrstuvwxyz";
+  if(upper)chars+="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  if(num)chars+="0123456789";
+  if(sym)chars+="!@#$%^&*()_+-=[]{}|;:,.<>?";
+  const arr=crypto.getRandomValues(new Uint8Array(len));
+  const pwd=[...arr].map(b=>chars[b%chars.length]).join("");
+  const el=document.getElementById("pw-r");if(el)el.textContent=pwd;
+  let score=0;
+  if(len>=12)score+=20;if(len>=20)score+=10;
+  if(upper)score+=20;if(num)score+=20;if(sym)score+=30;
+  const bar=document.getElementById("pw-sb");const lbl=document.getElementById("pw-sl");
+  if(bar){bar.style.width=score+"%";bar.style.background=score>=80?"#22c55e":score>=50?"#f59e0b":"#ef4444";}
+  if(lbl)lbl.textContent=["Muy débil","Débil","Regular","Fuerte","Muy fuerte"][Math.floor(score/25)]+" ("+score+"/100)";
+}
+const MODHEX="cbdefghijklnrtuv";
+function genYubiOTP(){
+  const pub="vvjjijiejhfi";
+  const rand=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>MODHEX[b%16]).join("");
+  const otp=pub+rand();
+  const el=document.getElementById("yubi-otp");const inf=document.getElementById("yubi-info");
+  if(el)el.textContent=otp;
+  if(inf)inf.textContent=`ID público: ${otp.substring(0,12)} → identifica esta YubiKey\nSesión cifrada: ${otp.substring(12)} → AES-128 en hardware`;
+}
+
+/* ═══ QUIZ ═══ */
+function renderQ(cat,qi){
+  const q=cat.questions[qi];
+  document.getElementById("qqt").textContent=q.q;
+  document.getElementById("qpg").textContent="Pregunta "+(qi+1)+" de "+cat.questions.length;
+  document.getElementById("qfb").className="qfb";
+  document.getElementById("qfb").innerHTML="";
+  const btn=document.getElementById("qnx");btn.className="bnn";
+  btn.textContent=qi===cat.questions.length-1?"✅ FINALIZAR CATEGORÍA":"Siguiente ▶";
+  const wrap=document.getElementById("qow");wrap.innerHTML="";
+  q.opts.forEach((opt,i)=>{
+    const d=document.createElement("div");d.className="qo";
+    d.innerHTML=`<div class="ol">${String.fromCharCode(65+i)}</div><span>${opt}</span>`;
+    d.onclick=()=>answer(i,q.ans,q.fb,cat,qi);
+    wrap.appendChild(d);
+  });
+}
+function answer(chosen,correct,fb,cat,qi){
+  if(ST.ans)return;ST.ans=true;
+  document.querySelectorAll(".qo").forEach((o,i)=>{
+    o.classList.add("dis");
+    if(i===correct)o.classList.add("sc");
+    if(i===chosen&&chosen!==correct)o.classList.add("sw");
+  });
+  const pq=Math.floor(cat.maxPts/cat.questions.length);
+  const fbEl=document.getElementById("qfb");
+  if(chosen===correct){curSc+=pq;fbEl.className="qfb c show";fbEl.innerHTML="🎯 "+fb+` <strong>(+${pq} pts)</strong>`;}
+  else{fbEl.className="qfb w show";fbEl.innerHTML="❌ "+fb.replace("✅","💡")+" Respuesta correcta: <strong>"+cat.questions[qi].opts[correct]+"</strong>";}
+  // streak system
+  const sb=document.getElementById("streak-badge");
+  const sc2=document.getElementById("streak-count");
+  if(chosen===correct){
+    streak++;
+    if(sb){sb.classList.add("active");sb.title="¡"+streak+" correctas seguidas!";}
+    if(sc2)sc2.textContent=streak;
+    if(streak>=3&&chosen===correct){
+      const bonus=2;curSc+=bonus;
+      const fbEl2=document.getElementById("qfb");
+      if(fbEl2)fbEl2.innerHTML+=' <span style="color:var(--yel);font-weight:900;">🔥 +'+bonus+' RACHA!</span>';
+    }
+  }else{
+    streak=0;
+    if(sb){sb.classList.remove("active");}
+    if(sc2)sc2.textContent="0";
+  }
+  document.getElementById("qnx").classList.add("show");
+}
+function nextQ(){
+  const c=ST.cur;
+  if(ST.qi>=c.questions.length-1){
+    ST.cp[c.id]=curSc;ST.pts=Object.values(ST.cp).reduce((a,b)=>a+b,0);
+    ST.done.add(c.id);curSc=0;
+    if(totpInterval){clearInterval(totpInterval);totpInterval=null;}
+    showDone(c);
+  }else{ST.qi++;ST.ans=false;renderQ(c,ST.qi);}
+}
+function showDone(c){
+  const pts=ST.cp[c.id];
+  document.getElementById("ac").innerHTML=`
+<div style="text-align:center;padding:70px 20px;animation:fu .5s ease;">
+  <div style="font-size:4rem;margin-bottom:16px;">${pts>=c.maxPts*.7?"🏆":"⭐"}</div>
+  <h2 style="font-family:Orbitron,sans-serif;color:var(--p);font-size:1.7rem;margin-bottom:8px;">¡Categoría Completada!</h2>
+  <p style="color:var(--txs);font-size:1.05rem;margin-bottom:20px;">${c.num} · ${c.title}</p>
+  <div style="font-family:Orbitron,sans-serif;font-size:2.8rem;color:var(--p2);margin:20px 0;">${pts} <span style="font-size:1.1rem;color:var(--txs);">/ ${c.maxPts} pts</span></div>
+  <div style="background:var(--sur2);border:1.5px solid var(--bor);border-radius:14px;padding:16px 24px;max-width:420px;margin:0 auto 30px;">
+    Total: <strong style="color:var(--p);font-family:Orbitron,sans-serif;">${ST.pts}</strong> / ${ST.max}
+  </div>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+    <button onclick="goMenu()" style="padding:15px 30px;background:linear-gradient(135deg,var(--p),#0a3d0a);border:none;border-radius:12px;color:#fff;font-family:Orbitron,sans-serif;font-size:.85rem;cursor:pointer;">◀ VOLVER AL MENÚ</button>
+    ${ST.done.size===5?`<button onclick="showRes()" style="padding:15px 30px;background:linear-gradient(135deg,var(--ac),#01579b);border:none;border-radius:12px;color:#fff;font-family:Orbitron,sans-serif;font-size:.85rem;cursor:pointer;">📊 VER CALIFICACIÓN FINAL</button>`:""}
+  </div>
+</div>`;}
+
+/* ═══ RESULTS ═══ */
+function showRes(){
+  if(totpInterval){clearInterval(totpInterval);totpInterval=null;}
+  const raw=Math.min(ST.pts,ST.max);
+  const s10=Math.round((raw/ST.max)*10*10)/10;
+  const pct=raw/ST.max*100;
+  document.getElementById("rn").textContent="👤 "+ST.name;
+  let e,t,m;
+  if(s10>=9){e="🏆";t="¡Excelente!";m="Dominas las aplicaciones de la criptografía. ¡Sobresaliente!";}
+  else if(s10>=8){e="🌟";t="¡Muy Bien!";m="Sólido conocimiento de los 3 pilares, hash y software.";}
+  else if(s10>=7){e="💪";t="¡Bien Hecho!";m="Buen trabajo. Repasa los algoritmos hash y herramientas 2FA.";}
+  else if(s10>=6){e="📚";t="Suficiente";m="Aprobaste. Refuerza integridad, TOTP y software de hashing.";}
+  else{e="🔄";t="Sigue Practicando";m="Revisa los simuladores y el material teórico.";}
+  document.getElementById("rti").innerHTML=e+" "+t;
+  document.getElementById("rm").textContent=m;
+  document.getElementById("rsc").textContent=s10;
+  const off=452.4-(pct/100)*452.4;
+  setTimeout(()=>{document.getElementById("rri").style.strokeDashoffset=off;},100);
+  setTimeout(()=>{document.getElementById("rb").style.width=pct+"%";},200);
+  document.getElementById("rbk").innerHTML=CATS.map(c=>`<div class="bi"><span style="font-size:.9rem;color:var(--txm);">${c.icon} ${c.num} ${c.title}</span><span class="bv">${ST.cp[c.id]||0}/${c.maxPts}</span></div>`).join("");
+  show("sr");
+}
+function restart(){
+  if(totpInterval){clearInterval(totpInterval);totpInterval=null;}
+  ST.pts=0;ST.cp={};ST.done=new Set();ST.cur=null;ST.qi=0;curSc=0;
+  document.getElementById("ni").value="";document.getElementById("bst").disabled=true;
+  show("sw");
+}
+
+</script>
+</body>
+</html>
