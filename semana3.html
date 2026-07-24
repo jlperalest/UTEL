@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cifrado Simétrico – Actividad Interactiva Semana 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#1b5e20;--p2:#2e7d32;--p3:#43a047;
+  --ac:#0277bd;--ac2:#e65100;--red:#c62828;--yel:#f9a825;
+  --bg:#f4f7f4;--sur:#fff;--sur2:#edf5ed;--bor:#b8d4b8;
+  --tx:#1a2a1a;--txm:#3a5a3a;--txs:#6a8a6a;
+  --sh:rgba(27,94,32,.10);--shm:rgba(27,94,32,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:17px;min-height:100vh;overflow-x:hidden;}
+#tbg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+.scr{display:none;position:relative;z-index:1;}
+.scr.on{display:flex;flex-direction:column;min-height:100vh;}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,var(--p) 0%,#0a3d0a 100%);padding:14px 36px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px var(--shm);position:sticky;top:0;z-index:100;}
+.lg{font-family:'Orbitron',sans-serif;font-size:1rem;color:#fff;letter-spacing:2px;}
+.hn{font-size:.95rem;color:#b9f6ca;font-family:'Share Tech Mono';}
+.sb{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:24px;padding:6px 18px;font-family:'Orbitron',sans-serif;font-size:.88rem;color:#fff;}
+.sb span{color:#a5f3a5;font-size:1.05rem;}
+
+/* WELCOME */
+#sw{background:linear-gradient(155deg,#e8f5e9 0%,#f1f8e9 40%,#e3f2fd 100%);align-items:center;justify-content:center;padding:40px 20px;}
+.wc{background:var(--sur);border-radius:24px;padding:52px 60px;max-width:680px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(27,94,32,.13);border:1px solid var(--bor);animation:fu .7s ease;}
+.ub{display:inline-flex;align-items:center;gap:8px;background:var(--p);color:#fff;font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;padding:9px 24px;border-radius:8px;margin-bottom:22px;letter-spacing:2px;}
+.wc h1{font-family:'Orbitron',sans-serif;font-size:1.85rem;color:var(--p);margin-bottom:8px;line-height:1.3;}
+.ws{color:var(--txs);font-size:1.1rem;margin-bottom:26px;}
+.tags{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-bottom:26px;}
+.tag{background:var(--sur2);border:1px solid var(--bor);border-radius:20px;padding:5px 15px;font-size:.9rem;color:var(--p);font-weight:600;}
+.ib{background:#e8f5e9;border-left:4px solid var(--p);border-radius:10px;padding:18px 22px;margin-bottom:26px;text-align:left;}
+.ib h3{color:var(--p);font-size:1rem;margin-bottom:12px;font-weight:700;}
+.ib ul{list-style:none;}
+.ib li{font-size:1.02rem;color:var(--txm);margin-bottom:7px;padding-left:22px;position:relative;}
+.ib li::before{content:'▸';color:var(--p);position:absolute;left:0;}
+.ng{margin-bottom:24px;}
+.ng label{display:block;font-size:.95rem;color:var(--txm);margin-bottom:8px;text-align:left;font-weight:600;}
+.ng input{width:100%;background:var(--sur2);border:2px solid var(--bor);border-radius:12px;padding:15px 20px;color:var(--tx);font-size:1.1rem;font-family:'DM Sans',sans-serif;transition:all .3s;outline:none;}
+.ng input:focus{border-color:var(--p);box-shadow:0 0 0 4px rgba(27,94,32,.1);background:#fff;}
+.bs{width:100%;padding:17px;background:linear-gradient(135deg,var(--p),#0a3d0a);border:none;border-radius:12px;color:#fff;font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .3s;box-shadow:0 6px 20px rgba(27,94,32,.3);}
+.bs:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(27,94,32,.4);}
+.bs:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* MENU */
+#sm{padding:0 0 60px;}
+.mh{background:linear-gradient(135deg,var(--p) 0%,#0a3d0a 100%);padding:42px 44px 60px;text-align:center;position:relative;overflow:hidden;}
+.mh::after{content:'';position:absolute;bottom:-30px;left:0;right:0;height:60px;background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0;}
+.mh h2{font-family:'Orbitron',sans-serif;font-size:1.6rem;color:#fff;margin-bottom:8px;}
+.mh p{color:#b9f6ca;font-size:1.05rem;}
+.pw{max-width:520px;margin:22px auto 0;}
+.pb{background:rgba(255,255,255,.2);border-radius:10px;height:10px;overflow:hidden;}
+.pf{height:100%;background:linear-gradient(90deg,#a5f3a5,#69f0ae);border-radius:10px;transition:width .6s ease;}
+.pl{font-size:.9rem;color:#b9f6ca;margin-top:8px;}
+.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;padding:50px 40px 0;max-width:1100px;margin:0 auto;}
+.cc{background:var(--sur);border:1.5px solid var(--bor);border-radius:18px;padding:28px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;box-shadow:0 4px 15px var(--sh);}
+.cc::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--p),var(--p3));border-radius:18px 18px 0 0;}
+.cc:hover{transform:translateY(-5px);box-shadow:0 16px 40px var(--shm);border-color:var(--p);}
+.cc.done{border-color:var(--p2);}
+.cc.done::before{background:linear-gradient(90deg,var(--p2),var(--p3));}
+.cn{font-family:'Share Tech Mono';font-size:.82rem;color:var(--txs);margin-bottom:4px;}
+.ci{font-size:2.6rem;margin-bottom:12px;}
+.ct{font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--p);margin-bottom:8px;line-height:1.4;}
+.cd{font-size:.97rem;color:var(--txm);line-height:1.6;margin-bottom:14px;}
+.cs{display:flex;align-items:center;gap:9px;font-size:.9rem;font-weight:600;}
+.dot{width:9px;height:9px;border-radius:50%;}
+.dp{background:var(--bor);}
+.dd{background:var(--p3);}
+.cps{margin-left:auto;font-size:.88rem;color:var(--p2);font-family:'Orbitron',sans-serif;}
+
+/* ACTIVITY */
+#sa{padding:0 0 60px;}
+.aw{max-width:900px;margin:0 auto;padding:32px 32px 0;}
+.bc{font-size:.88rem;color:var(--txs);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.bc span{color:var(--p);font-weight:600;}
+.bk{background:var(--sur);border:1.5px solid var(--bor);color:var(--txm);padding:9px 18px;border-radius:8px;cursor:pointer;font-size:.95rem;transition:all .2s;margin-bottom:20px;display:inline-flex;align-items:center;gap:7px;font-family:'DM Sans',sans-serif;font-weight:500;box-shadow:0 2px 8px var(--sh);}
+.bk:hover{border-color:var(--p);color:var(--p);background:#e8f5e9;}
+
+/* THEORY */
+.thc{background:var(--sur);border:1.5px solid var(--bor);border-radius:18px;padding:30px 34px;margin-bottom:24px;animation:fu .4s ease;box-shadow:0 4px 20px var(--sh);}
+.thh{display:flex;align-items:center;gap:16px;margin-bottom:18px;padding-bottom:16px;border-bottom:2px solid var(--sur2);}
+.thi{font-size:2.2rem;}
+.tht{font-family:'Orbitron',sans-serif;font-size:1.2rem;color:var(--p);}
+.ths{font-size:.9rem;color:var(--txs);margin-top:3px;}
+.thb{font-size:1.05rem;color:var(--tx);line-height:1.8;}
+.thb strong{color:var(--p);}
+.hl{background:#e8f5e9;border-left:4px solid var(--p);padding:12px 16px;border-radius:0 10px 10px 0;margin:13px 0;color:var(--txm);}
+.al{background:#fff3e0;border-left:4px solid var(--ac2);padding:12px 16px;border-radius:0 10px 10px 0;margin:13px 0;color:#bf360c;}
+.rl{background:#ffebee;border-left:4px solid var(--red);padding:12px 16px;border-radius:0 10px 10px 0;margin:13px 0;color:var(--red);}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:14px 0;}
+.ii{background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:12px 16px;}
+.ii .lb{font-size:.78rem;color:var(--txs);font-family:'Share Tech Mono';text-transform:uppercase;}
+.ii .vl{font-size:1rem;color:var(--p);font-weight:700;margin-top:3px;}
+.ii.bad .vl{color:var(--red);}
+.ii.warn .vl{color:#b26a00;}
+.ii.good .vl{color:var(--p2);}
+
+/* SIMULATOR */
+.sc{background:var(--sur);border:2px solid var(--p2);border-radius:18px;padding:30px 34px;margin-bottom:24px;animation:fu .5s ease;box-shadow:0 4px 20px rgba(46,125,50,.1);}
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.sbdg{background:var(--p);color:#fff;font-family:'Orbitron',sans-serif;font-size:.72rem;padding:5px 12px;border-radius:6px;letter-spacing:1px;}
+.st{font-family:'Orbitron',sans-serif;font-size:1.02rem;color:var(--p);}
+.sr{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.si{flex:1;min-width:160px;background:var(--sur2);border:2px solid var(--bor);border-radius:10px;padding:12px 16px;color:var(--tx);font-family:'Share Tech Mono';font-size:.98rem;outline:none;transition:border-color .2s;}
+.si:focus{border-color:var(--p);background:#fff;}
+.sb2{padding:12px 20px;background:linear-gradient(135deg,var(--p),var(--p2));border:none;border-radius:10px;color:#fff;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .25s;white-space:nowrap;letter-spacing:1px;}
+.sb2:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(27,94,32,.35);}
+.sb2.bl{background:linear-gradient(135deg,var(--ac),#01579b);}
+.sb2.rd{background:linear-gradient(135deg,var(--red),#b71c1c);}
+.so{background:var(--sur2);border:1.5px solid var(--bor);border-radius:10px;padding:13px 17px;font-family:'Share Tech Mono';font-size:.95rem;min-height:48px;color:var(--txs);transition:all .3s;overflow-wrap:break-word;}
+.so.has{color:var(--p);border-color:var(--p2);background:#e8f5e9;}
+.s2c{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.sl{font-size:.88rem;font-weight:600;color:var(--txm);margin-bottom:6px;display:block;}
+.tb-row{display:flex;gap:0;border-bottom:2px solid var(--bor);margin-bottom:0;}
+.tb-btn{padding:10px 18px;border:none;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:.73rem;font-weight:700;background:var(--sur2);color:var(--txs);letter-spacing:1px;transition:all .2s;border-radius:10px 10px 0 0;}
+.tb-btn.on{background:var(--p);color:#fff;}
+.tb-c{display:none;padding-top:16px;}
+.tb-c.on{display:block;animation:fu .3s ease;}
+.vd{padding:13px 17px;border-radius:10px;font-size:.98rem;font-weight:600;margin-top:12px;display:flex;align-items:flex-start;gap:10px;line-height:1.5;}
+.vok{background:#e8f5e9;border:2px solid var(--p2);color:var(--p);}
+.vwn{background:#fff3e0;border:2px solid var(--yel);color:#b26a00;}
+.vrr{background:#ffebee;border:2px solid var(--red);color:var(--red);}
+.vif{background:var(--sur2);border:2px solid var(--bor);color:var(--txm);}
+/* XOR vis */
+.xrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0;font-family:'Share Tech Mono';font-size:.95rem;}
+.xbit{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-weight:700;font-size:1rem;}
+.xb0{background:#e8f5e9;color:var(--p);border:1.5px solid var(--bor);}
+.xb1{background:var(--p);color:#fff;}
+.xb-r{background:var(--ac);color:#fff;}
+.xop{color:var(--txs);font-size:1.1rem;font-weight:700;margin:0 2px;}
+/* Stream vis */
+.stream-wrap{display:flex;gap:6px;overflow-x:auto;padding:8px 0;margin:10px 0;}
+.stream-bit{flex-shrink:0;width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono';font-size:.85rem;font-weight:700;transition:all .4s;}
+.sb-plain{background:var(--sur2);border:1.5px solid var(--bor);color:var(--tx);}
+.sb-key{background:var(--yel);color:#333;}
+.sb-enc{background:var(--p);color:#fff;}
+/* Meter */
+.mtr{height:12px;background:var(--sur2);border-radius:6px;overflow:hidden;border:1px solid var(--bor);margin:6px 0;}
+.mf{height:100%;border-radius:6px;transition:width .6s ease;}
+.mf-r{background:linear-gradient(90deg,#c62828,#e53935);}
+.mf-y{background:linear-gradient(90deg,#f9a825,#fdd835);}
+.mf-g{background:linear-gradient(90deg,var(--p),var(--p3));}
+/* Compare table */
+.cmp-tbl{width:100%;border-collapse:collapse;margin:14px 0;font-size:.95rem;}
+.cmp-tbl th{background:var(--p);color:#fff;padding:10px 14px;text-align:left;font-family:'Orbitron',sans-serif;font-size:.78rem;}
+.cmp-tbl td{border:1px solid var(--bor);padding:10px 14px;background:var(--sur2);}
+.cmp-tbl tr:nth-child(even) td{background:#f9fdf9;}
+.cmp-tbl .bad{color:var(--red);font-weight:700;}
+.cmp-tbl .warn{color:#b26a00;font-weight:700;}
+.cmp-tbl .good{color:var(--p2);font-weight:700;}
+/* Timeline */
+.tl{margin:14px 0;}
+.tl-item{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start;}
+.tl-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.tl-ok{background:var(--p3);}
+.tl-bad{background:var(--red);}
+.tl-yr{font-family:'Share Tech Mono';font-size:.78rem;color:var(--txs);}
+.tl-txt{font-size:1rem;color:var(--tx);}
+
+/* QUIZ */
+.qc{background:var(--sur);border:1.5px solid var(--bor);border-radius:18px;padding:30px 34px;margin-bottom:24px;animation:fu .6s ease;box-shadow:0 4px 20px var(--sh);}
+.qm{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.qb{background:var(--p);color:#fff;font-family:'Orbitron',sans-serif;font-size:.72rem;padding:5px 12px;border-radius:6px;letter-spacing:1px;}
+.qp{font-size:.9rem;color:var(--txs);margin-left:auto;font-family:'Share Tech Mono';}
+.qq{font-size:1.2rem;color:var(--tx);font-weight:600;line-height:1.55;}
+.qo-wrap{display:flex;flex-direction:column;gap:11px;margin-top:18px;}
+.qo{background:var(--sur2);border:2px solid var(--bor);border-radius:12px;padding:15px 19px;cursor:pointer;transition:all .2s;font-size:1.05rem;display:flex;align-items:center;gap:13px;color:var(--tx);}
+.qo:hover:not(.dis){border-color:var(--p);background:#e8f5e9;transform:translateX(3px);}
+.qo.sc{border-color:var(--p2);background:#e8f5e9;color:var(--p);}
+.qo.sw{border-color:var(--red);background:#ffebee;color:var(--red);}
+.qo.dis{cursor:not-allowed;}
+.ol{width:34px;height:34px;border-radius:50%;background:var(--bor);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.75rem;flex-shrink:0;color:var(--txm);transition:all .2s;}
+.sc .ol{background:var(--p2);color:#fff;}
+.sw .ol{background:var(--red);color:#fff;}
+.qfb{margin-top:15px;padding:14px 18px;border-radius:10px;font-size:1.02rem;line-height:1.65;display:none;}
+.qfb.c{background:#e8f5e9;border:1.5px solid var(--p2);color:var(--p);}
+.qfb.w{background:#ffebee;border:1.5px solid var(--red);color:var(--red);}
+.qfb.show{display:block;animation:fu .3s ease;}
+.bn{margin-top:14px;padding:13px 30px;background:linear-gradient(135deg,var(--p),#0a3d0a);border:none;border-radius:10px;color:#fff;font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .3s;display:none;letter-spacing:1px;box-shadow:0 4px 16px rgba(27,94,32,.25);}
+.bn.show{display:inline-flex;align-items:center;gap:8px;}
+.bn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(27,94,32,.35);}
+
+/* RESULTS */
+#sr{align-items:center;justify-content:center;padding:50px 20px;background:linear-gradient(155deg,#e8f5e9 0%,#f1f8e9 40%,#e3f2fd 100%);}
+.rc{background:var(--sur);border:1.5px solid var(--bor);border-radius:24px;padding:52px;max-width:720px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(27,94,32,.13);animation:fu .8s ease;}
+.rw{position:relative;width:170px;height:170px;margin:26px auto;}
+.rw svg{transform:rotate(-90deg);}
+.rt{fill:none;stroke:var(--sur2);stroke-width:14;}
+.rf{fill:none;stroke:url(#rg);stroke-width:14;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease .2s;}
+.rctr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.rn{font-family:'Orbitron',sans-serif;font-size:3rem;font-weight:900;color:var(--p);line-height:1;}
+.rd{font-size:1rem;color:var(--txs);}
+.rname{font-size:1.4rem;color:var(--p);font-weight:700;margin-bottom:5px;}
+.rtit{font-family:'Orbitron',sans-serif;font-size:1.6rem;color:var(--tx);margin-bottom:9px;}
+.rsub{color:var(--txs);font-size:1rem;margin-bottom:22px;}
+.gw{max-width:420px;margin:0 auto 26px;}
+.gb{background:var(--sur2);border-radius:10px;height:12px;overflow:hidden;border:1px solid var(--bor);}
+.gf{height:100%;background:linear-gradient(90deg,var(--p),var(--p3));border-radius:10px;transition:width 1.6s ease .4s;width:0%;}
+.bk2{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:20px 0;text-align:left;}
+.bi{background:var(--sur2);border:1px solid var(--bor);border-radius:12px;padding:13px 17px;display:flex;align-items:center;justify-content:space-between;}
+.bn2{font-size:.9rem;color:var(--txm);}
+.bv{font-family:'Orbitron',sans-serif;font-size:.9rem;color:var(--p);}
+.brs{width:100%;padding:17px;background:linear-gradient(135deg,var(--p),#0a3d0a);border:none;border-radius:12px;color:#fff;font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .3s;letter-spacing:2px;margin-top:12px;box-shadow:0 6px 20px rgba(27,94,32,.3);}
+.brs:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(27,94,32,.4);}
+
+footer{background:linear-gradient(135deg,var(--p) 0%,#0a3d0a 100%);text-align:center;padding:26px 20px;position:relative;z-index:1;border-top:3px solid var(--p3);}
+.fa{font-family:'DM Sans',sans-serif;font-size:1rem;color:rgba(255,255,255,.78);letter-spacing:.5px;}
+.fn{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:900;letter-spacing:3px;display:inline-block;background:linear-gradient(90deg,#a5f3a5,#fff,#a5f3a5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 10px rgba(165,243,165,.6));}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:640px){
+  .wc{padding:28px 20px;}.wc h1{font-size:1.4rem;}.cg{padding:20px 16px;gap:14px;}
+  .aw{padding:16px 14px 0;}.ig,.s2c,.bk2{grid-template-columns:1fr;}.sr{flex-direction:column;}
+  .rc{padding:28px 20px;}.hdr{padding:12px 16px;}.hn{display:none;}
+}
+</style>
+</head>
+<body>
+<svg id="tbg" xmlns="http://www.w3.org/2000/svg">
+  <defs><pattern id="cp" x="0" y="0" width="140" height="140" patternUnits="userSpaceOnUse">
+    <line x1="0" y1="35" x2="50" y2="35" stroke="#1b5e20" stroke-width=".9" opacity=".13"/>
+    <line x1="90" y1="35" x2="140" y2="35" stroke="#1b5e20" stroke-width=".9" opacity=".13"/>
+    <line x1="0" y1="105" x2="45" y2="105" stroke="#2e7d32" stroke-width=".9" opacity=".13"/>
+    <line x1="80" y1="105" x2="140" y2="105" stroke="#2e7d32" stroke-width=".9" opacity=".13"/>
+    <line x1="50" y1="0" x2="50" y2="35" stroke="#1b5e20" stroke-width=".9" opacity=".13"/>
+    <line x1="50" y1="35" x2="50" y2="70" stroke="#1b5e20" stroke-width=".9" opacity=".09"/>
+    <line x1="90" y1="35" x2="90" y2="70" stroke="#2e7d32" stroke-width=".9" opacity=".11"/>
+    <circle cx="50" cy="35" r="3.5" fill="none" stroke="#1b5e20" stroke-width="1.2" opacity=".22"/>
+    <circle cx="90" cy="35" r="3.5" fill="none" stroke="#2e7d32" stroke-width="1.2" opacity=".22"/>
+    <circle cx="70" cy="70" r="5" fill="#1b5e20" opacity=".07"/>
+    <polygon points="118,8 128,14 128,26 118,32 108,26 108,14" fill="none" stroke="#1b5e20" stroke-width="1" opacity=".1"/>
+    <polygon points="18,72 26,77 26,87 18,92 10,87 10,77" fill="none" stroke="#2e7d32" stroke-width="1" opacity=".1"/>
+  </pattern></defs>
+  <rect width="100%" height="100%" fill="url(#cp)"/>
+</svg>
+
+<!-- WELCOME -->
+<div id="sw" class="scr on">
+  <div class="wc">
+    <div class="ub">🔐 UTEL UNIVERSIDAD</div>
+    <h1>Cifrado Simétrico en Flujo</h1>
+    <p class="ws">Semana 3 &nbsp;·&nbsp; Open Class &nbsp;·&nbsp; Actividad Interactiva</p>
+    <div class="tags">
+      <span class="tag">Cifrado en Flujo</span>
+      <span class="tag">Algoritmo A5</span>
+      <span class="tag">RC4</span>
+      <span class="tag">ChaCha20</span>
+      <span class="tag">Salsa20</span>
+    </div>
+    <div class="ib">
+      <h3>📋 INSTRUCCIONES</h3>
+      <ul>
+        <li>Actividad con <strong>3 categorías</strong> de cifrado simétrico en flujo</li>
+        <li>Cada categoría: <strong>teoría + simulador interactivo + 8 preguntas</strong></li>
+        <li>Los simuladores son herramientas reales que puedes usar</li>
+        <li>Calificación final en escala del <strong>1 al 10</strong></li>
+        <li>Completa las categorías en orden: 3.1 → 3.2 → 3.3</li>
+      </ul>
+    </div>
+    <div class="ng">
+      <label>▸ NOMBRE COMPLETO DEL ESTUDIANTE</label>
+      <input type="text" id="ni" placeholder="Escribe tu nombre y apellidos completos…" autocomplete="off"/>
+    </div>
+    <button class="bs" id="bst" disabled onclick="startApp()">🔐 INICIAR ACTIVIDAD</button>
+  </div>
+  <footer><div class="fa">Creado por: <span class="fn">José Luis Perales Trejo</span></div></footer>
+</div>
+
+<!-- MENU -->
+<div id="sm" class="scr">
+  <div class="hdr">
+    <div class="lg">🔐 FLUJO SIMÉTRICO</div>
+    <div class="hn" id="hn"></div>
+    <div class="sb">Pts: <span id="hp">0</span>/48</div>
+  </div>
+  <div class="mh">
+    <h2>Selecciona una Categoría</h2>
+    <p>Domina el cifrado simétrico en flujo: A5, RC4 y algoritmos modernos</p>
+    <div class="pw"><div class="pb"><div class="pf" id="mpf" style="width:0%"></div></div><div class="pl">Progreso: <span id="mpt">0 de 3 completadas</span></div></div>
+  </div>
+  <div class="cg" id="cg"></div>
+  <div style="text-align:center;margin-top:32px;" id="fw">
+    <button onclick="showRes()" style="padding:15px 42px;background:linear-gradient(135deg,var(--ac),#01579b);border:none;border-radius:12px;color:#fff;font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;letter-spacing:2px;box-shadow:0 6px 20px rgba(2,119,189,.3);">📊 VER CALIFICACIÓN FINAL</button>
+  </div>
+  <footer><div class="fa">Creado por: <span class="fn">José Luis Perales Trejo</span></div></footer>
+</div>
+
+<!-- ACTIVITY -->
+<div id="sa" class="scr">
+  <div class="hdr">
+    <div class="lg">🔐 FLUJO SIMÉTRICO</div>
+    <div class="hn" id="hn2"></div>
+    <div class="sb">Pts: <span id="hp2">0</span>/48</div>
+  </div>
+  <div class="aw">
+    <button class="bk" onclick="goMenu()">◀ Volver al Menú</button>
+    <div class="bc">INICIO &nbsp;›&nbsp; <span id="abc"></span></div>
+    <div id="ac"></div>
+  </div>
+  <footer><div class="fa">Creado por: <span class="fn">José Luis Perales Trejo</span></div></footer>
+</div>
+
+<!-- RESULTS -->
+<div id="sr" class="scr">
+  <div class="rc">
+    <div style="font-size:3.5rem;margin-bottom:10px;">🏆</div>
+    <div class="rname" id="rn"></div>
+    <div class="rtit" id="rti"></div>
+    <div class="rsub">Cifrado Simétrico en Flujo · Semana 3</div>
+    <div class="rw">
+      <svg viewBox="0 0 170 170" width="170" height="170">
+        <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#1b5e20"/><stop offset="100%" stop-color="#43a047"/>
+        </linearGradient></defs>
+        <circle class="rt" cx="85" cy="85" r="72"/>
+        <circle class="rf" id="rri" cx="85" cy="85" r="72" stroke-dasharray="452.4" stroke-dashoffset="452.4"/>
+      </svg>
+      <div class="rctr"><div class="rn" id="rsc">0</div><div class="rd">/10</div></div>
+    </div>
+    <div class="gw"><div class="gb"><div class="gf" id="rb"></div></div></div>
+    <div style="font-size:1.05rem;color:var(--txm);margin-bottom:8px;font-style:italic;" id="rm"></div>
+    <div class="bk2" id="rbk"></div>
+    <button class="brs" onclick="restart()">🔄 REPETIR ACTIVIDAD</button>
+  </div>
+  <footer style="width:100%;margin-top:22px;"><div class="fa">Creado por: <span class="fn">José Luis Perales Trejo</span></div></footer>
+</div>
+
+<script>
+const ST={name:'',pts:0,max:48,cp:{},done:new Set(),cur:null,qi:0,ans:false};
+
+/* ═══════════════════════════════════════════
+   CATEGORIES
+═══════════════════════════════════════════ */
+const CATS=[
+/* ── 3.1 GENERALIDADES ── */
+{id:'flujo',icon:'〰️',num:'3.1',title:'Generalidades del Cifrado en Flujo',
+desc:'Qué es el cifrado simétrico, cómo funciona el flujo bit a bit y diferencias con el cifrado en bloque.',maxPts:16,
+theory:`
+<p>El <strong>cifrado simétrico</strong> usa <strong>una sola llave</strong> para cifrar y descifrar. El emisor cifra con la llave y el receptor descifra con la misma llave. Es muy rápido pero requiere compartir la llave de forma segura.</p>
+<div class="hl"><strong>Cifrado en Flujo (Stream Cipher):</strong> Cifra el mensaje <strong>bit a bit</strong> (o byte a byte) en tiempo real, como agua corriendo. Genera un "flujo de clave" (keystream) pseudoaleatorio y lo combina con el texto plano usando XOR. Ideal para transmisiones en vivo: llamadas, video streaming, juegos en línea.</div>
+<div class="ig">
+<div class="ii"><div class="lb">CIFRADO EN FLUJO</div><div class="vl">Bit a bit · Tiempo real · Como agua</div></div>
+<div class="ii"><div class="lb">CIFRADO EN BLOQUE</div><div class="vl">Paquetes fijos · Por lotes · Como cajas</div></div>
+<div class="ii good"><div class="lb">VENTAJA FLUJO</div><div class="vl">⚡ Rapidísimo para streaming en vivo</div></div>
+<div class="ii warn"><div class="lb">DESVENTAJA FLUJO</div><div class="vl">⚠️ Si la clave se reutiliza: catastrófico</div></div>
+</div>
+<p><strong>Operación XOR:</strong> El corazón del cifrado en flujo. XOR (ó exclusivo) opera bit a bit:</p>
+<div class="hl">0 XOR 0 = 0 &nbsp;·&nbsp; 0 XOR 1 = 1 &nbsp;·&nbsp; 1 XOR 0 = 1 &nbsp;·&nbsp; 1 XOR 1 = 0<br>
+La magia: (Texto XOR Clave) XOR Clave = Texto original. ¡El XOR es su propio inverso!</div>
+<p>Usos actuales del cifrado en flujo: <strong>4G/5G (telecomunicaciones), WhatsApp, TLS/HTTPS, videollamadas</strong>.</p>`,
+simType:'xor',
+questions:[
+{q:'¿Cuántas llaves usa el cifrado simétrico para cifrar y descifrar?',opts:['Dos llaves diferentes (pública y privada)','Una sola llave compartida','Tres llaves rotativas','No usa llaves'],ans:1,fb:'✅ El cifrado simétrico usa <strong>una sola llave</strong> tanto para cifrar como para descifrar. Su ventaja es la velocidad; su desafío, cómo compartir esa llave de forma segura.'},
+{q:'¿Cómo procesa los datos el cifrado en flujo (stream cipher)?',opts:['En bloques de 128 bits','En paquetes de datos completos','Bit a bit (o byte a byte) en tiempo real','En archivos completos'],ans:2,fb:'✅ El cifrado en flujo procesa los datos <strong>bit a bit</strong> en tiempo real, como agua corriendo. Por eso es ideal para transmisiones en vivo como llamadas y videos.'},
+{q:'¿Qué operación matemática es el corazón del cifrado en flujo?',opts:['Suma modular','Multiplicación de matrices','XOR (ó exclusivo)','División entera'],ans:2,fb:'✅ El <strong>XOR (ó exclusivo)</strong> es la operación fundamental: combina cada bit del texto plano con un bit del flujo de clave. Su propiedad clave: (A XOR K) XOR K = A.'},
+{q:'¿Cuál es el resultado de 1 XOR 1?',opts:['1','0','2','Indefinido'],ans:1,fb:'✅ <strong>1 XOR 1 = 0</strong>. XOR devuelve 0 cuando ambos bits son iguales (0 XOR 0 = 0; 1 XOR 1 = 0) y 1 cuando son diferentes (0 XOR 1 = 1; 1 XOR 0 = 1).'},
+{q:'¿Para qué tipo de aplicaciones es más adecuado el cifrado en flujo?',opts:['Cifrar archivos guardados en disco','Transmisiones en tiempo real: llamadas, video, juegos online','Firmas digitales','Almacenamiento de contraseñas'],ans:1,fb:'✅ El cifrado en flujo es ideal para <strong>transmisiones en tiempo real</strong>: llamadas de voz, video streaming, juegos online, ya que puede cifrar datos continuamente sin esperar acumular un bloque completo.'},
+{q:'¿Qué ventaja tiene el cifrado en flujo sobre el cifrado en bloque?',opts:['Mayor seguridad matemática','Es más rápido para datos continuos y no necesita esperar bloques completos','Usa llaves más largas','Es más fácil de implementar en hardware'],ans:1,fb:'✅ El cifrado en flujo es <strong>más rápido para datos continuos</strong>: no tiene que esperar acumular un bloque completo de datos, empieza a cifrar inmediatamente bit a bit.'},
+{q:'¿Qué es el "keystream" (flujo de clave) en un cifrado en flujo?',opts:['La llave maestra del sistema','Una secuencia pseudoaleatoria de bits generada a partir de la clave','El texto plano cifrado','El certificado digital del emisor'],ans:1,fb:'✅ El <strong>keystream</strong> es una secuencia de bits pseudoaleatoria generada a partir de la clave secreta. Se combina con el texto plano usando XOR para producir el texto cifrado.'},
+{q:'¿Qué ocurre si se reutiliza la misma clave en el cifrado en flujo con el mismo keystream?',opts:['El cifrado mejora','No pasa nada, es seguro','La seguridad colapsa: un atacante puede recuperar el texto plano','El mensaje se cifra dos veces'],ans:2,fb:'✅ Reutilizar la clave/keystream es <strong>catastrófico</strong>: si dos mensajes se cifran con el mismo keystream, hacer XOR de los dos textos cifrados cancela el keystream y expone los mensajes. Esta fue la vulnerabilidad del sistema de cifrado soviético One-Time Pad mal implementado.'},
+]},
+
+/* ── 3.2 A5 Y RC4 ── */
+{id:'a5rc4',icon:'📡',num:'3.2',title:'Algoritmos A5 y RC4',
+desc:'Historia, funcionamiento, vulnerabilidades y estado actual de A5 (GSM) y RC4.',maxPts:16,
+theory:`
+<p>Dos de los algoritmos de flujo más importantes de la historia, hoy <strong>ambos obsoletos</strong>:</p>
+<div class="ig">
+<div class="ii warn"><div class="lb">A5/1 — GSM EUROPA/USA</div><div class="vl">Usado para proteger llamadas GSM. Rápido. Vulnerable a hackers con equipo especializado.</div></div>
+<div class="ii bad"><div class="lb">A5/2 — VERSIÓN DEBILITADA</div><div class="vl">Creado deliberadamente débil para exportación. Era muy fácil de romper. Ya no se usa.</div></div>
+<div class="ii good"><div class="lb">A5/3 — KASUMI</div><div class="vl">El más moderno y seguro de la familia A5. Basado en el cifrado Kasumi. Se usa en 3G/4G.</div></div>
+<div class="ii bad"><div class="lb">RC4 — CREADO 1987</div><div class="vl">Creado por Ron Rivest (MIT). Muy rápido y popular. HOY COMPLETAMENTE OBSOLETO.</div></div>
+</div>
+<p><strong>Algoritmo A5</strong> — protege las llamadas GSM (telefonía celular):</p>
+<div class="hl">El A5 genera un keystream a partir de la clave de sesión y el número de frame. El teléfono y la torre usan ese keystream para cifrar/descifrar la voz en tiempo real. El problema: hackers pueden interceptar llamadas GSM con equipo de ~$1,500. Por eso ahora usamos 4G y 5G.</div>
+<p><strong>RC4</strong> — Rivest Cipher 4 (1987):</p>
+<div class="rl">🚨 <strong>RC4: NUNCA USAR.</strong> Creado en 1987 por Ron Rivest. Fue muy popular: WiFi (WEP), SSL/TLS, PDF cifrado. Sin embargo tiene graves huecos de seguridad. Microsoft lo eliminó completamente en 2026. Si ves RC4 en cualquier sistema, es una señal de peligro — necesita actualización urgente.</div>
+<div class="tl">
+<div class="tl-item"><div class="tl-dot tl-ok"></div><div><div class="tl-yr">1987</div><div class="tl-txt"><strong>RC4 creado</strong> por Ron Rivest — muy rápido y popular</div></div></div>
+<div class="tl-item"><div class="tl-dot tl-ok"></div><div><div class="tl-yr">1990s-2000s</div><div class="tl-txt">Usado en WEP (WiFi), SSL, PDF — dominaba el internet</div></div></div>
+<div class="tl-item"><div class="tl-dot tl-bad"></div><div><div class="tl-yr">2001</div><div class="tl-txt">WEP crackeado — primer ataque práctico documentado a RC4</div></div></div>
+<div class="tl-item"><div class="tl-dot tl-bad"></div><div><div class="tl-yr">2013</div><div class="tl-txt">Ataque BEAST y CRIME en TLS con RC4 — RFC 7465 lo prohíbe</div></div></div>
+<div class="tl-item"><div class="tl-dot tl-bad"></div><div><div class="tl-yr">2026</div><div class="tl-txt"><strong>Microsoft lo elimina completamente</strong> — RC4 oficialmente muerto</div></div></div>
+</div>`,
+simType:'a5rc4',
+questions:[
+{q:'¿Para qué se diseñó originalmente el algoritmo A5?',opts:['Para cifrar archivos en disco duro','Para proteger llamadas de telefonía celular GSM','Para cifrar correos electrónicos','Para proteger conexiones WiFi'],ans:1,fb:'✅ El algoritmo A5 fue diseñado para proteger las <strong>llamadas de telefonía celular GSM</strong>. Cifra la voz en tiempo real entre el teléfono y la torre celular.'},
+{q:'¿Cuál versión del A5 fue creada deliberadamente débil para exportación?',opts:['A5/1','A5/2','A5/3','A5/4'],ans:1,fb:'✅ <strong>A5/2</strong> fue creada deliberadamente débil para cumplir restricciones de exportación de tecnología criptográfica. Era tan fácil de romper que fue abandonada rápidamente.'},
+{q:'¿Quién creó el algoritmo RC4 y en qué año?',opts:['NSA en 1995','Ron Rivest (MIT) en 1987','Claude Shannon en 1949','IBM en 1975'],ans:1,fb:'✅ RC4 fue creado en <strong>1987 por Ron Rivest</strong> del MIT (la "R" de RSA). Era un algoritmo de flujo muy simple, rápido y por eso enormemente popular.'},
+{q:'¿En qué protocolo WiFi se usó RC4 que resultó completamente inseguro?',opts:['WPA3','WPA2','WEP','802.11ax'],ans:2,fb:'✅ RC4 fue la base del protocolo <strong>WEP (Wired Equivalent Privacy)</strong> para WiFi. WEP fue crackeado en 2001 y cualquier red WEP puede romperse en minutos hoy en día.'},
+{q:'¿Qué empresa eliminó completamente el soporte para RC4 en 2026?',opts:['Apple','Google','Microsoft','Amazon'],ans:2,fb:'✅ <strong>Microsoft</strong> eliminó completamente RC4 en 2026, marcando el fin oficial de este algoritmo. Ya Google, Mozilla y Apple lo habían eliminado previamente de sus navegadores.'},
+{q:'¿Por qué ya no se recomienda el A5/1 para comunicaciones modernas?',opts:['Es demasiado lento para smartphones','Hackers pueden interceptar llamadas GSM con equipo especializado relativamente barato','Solo funciona en Europa','Requiere demasiada batería'],ans:1,fb:'✅ Hackers pueden interceptar llamadas GSM cifradas con A5/1 usando <strong>equipo especializado de unos $1,500</strong>. Por eso la industria migró a 4G y 5G con protocolos más seguros.'},
+{q:'¿Cuál es la versión más moderna y segura de la familia de algoritmos A5?',opts:['A5/1','A5/2','A5/3 (KASUMI)','A5/0'],ans:2,fb:'✅ <strong>A5/3</strong> (también conocido como KASUMI) es la versión más moderna y segura de la familia A5. Se basa en el cifrado de bloque MISTY1 y se usa en redes 3G.'},
+{q:'Si encuentras RC4 implementado en un sistema actual, ¿qué debes hacer?',opts:['Dejarlo, es seguro si se usa correctamente','Actualizarlo urgentemente — es una vulnerabilidad crítica','Reportarlo como un éxito','Duplicar la clave para hacerlo más seguro'],ans:1,fb:'✅ RC4 en cualquier sistema actual es una <strong>vulnerabilidad crítica</strong> que requiere actualización urgente. Debes reemplazarlo por ChaCha20-Poly1305 o AES-GCM inmediatamente.'},
+]},
+
+/* ── 3.3 OTROS ALGORITMOS ── */
+{id:'otros',icon:'🛡️',num:'3.3',title:'Otros Algoritmos de Flujo',
+desc:'ChaCha20, Salsa20 y el futuro del cifrado: las alternativas modernas y seguras.',maxPts:16,
+theory:`
+<p>Con RC4 obsoleto y A5/1 vulnerable, la industria desarrolló alternativas modernas y seguras:</p>
+<div class="ig">
+<div class="ii good"><div class="lb">CHACHA20 (2008)</div><div class="vl">Daniel J. Bernstein · El estándar actual · 3x más rápido que AES en celulares</div></div>
+<div class="ii good"><div class="lb">SALSA20 (2005)</div><div class="vl">Predecesor de ChaCha20 · Seguro · Seleccionado por eSTREAM · Base de ChaCha20</div></div>
+<div class="ii warn"><div class="lb">A5/1 (GSM)</div><div class="vl">⚠️ Vulnerable · No usar para comunicaciones nuevas</div></div>
+<div class="ii bad"><div class="lb">RC4</div><div class="vl">🚫 OBSOLETO · Nunca usar · Peligro crítico</div></div>
+</div>
+<p><strong>ChaCha20</strong> — El sucesor de RC4:</p>
+<div class="hl"><strong>Diseñado por Daniel J. Bernstein en 2008.</strong> Opera con palabras de 32 bits usando solo 3 operaciones: adición, rotación de bits y XOR (ARX). Es 3x más rápido que AES en dispositivos móviles sin aceleración hardware. Usado en WhatsApp, Chrome, Android, Linux kernel, WireGuard VPN.</div>
+<p><strong>ChaCha20-Poly1305</strong> — La combinación perfecta:</p>
+<div class="hl">ChaCha20 cifra el mensaje + Poly1305 autentica la integridad. Si alguien modifica el mensaje, Poly1305 lo detecta. Es el cifrado AEAD (cifrado autenticado) que usa HTTPS/TLS 1.3 cuando el dispositivo no tiene aceleración AES.</div>
+<div class="ig">
+<div class="ii good"><div class="lb">USOS ACTUALES</div><div class="vl">WhatsApp · Chrome · Netflix · WireGuard · TLS 1.3</div></div>
+<div class="ii good"><div class="lb">CLAVE</div><div class="vl">256 bits</div></div>
+<div class="ii good"><div class="lb">NONCE</div><div class="vl">96 bits (evita reutilización)</div></div>
+<div class="ii good"><div class="lb">RENDIMIENTO</div><div class="vl">~3x más rápido que AES en móviles</div></div>
+</div>
+<p><strong>Amenazas futuras al cifrado:</strong></p>
+<div class="al">⚠️ <strong>1. Computadoras Cuánticas</strong> (10-20 años): podrían romper algoritmos actuales rápidamente.<br>⚠️ <strong>2. Implementación débil</strong>: usar algoritmo fuerte mal configurado es tan peligroso como usar uno débil.<br>⚠️ <strong>3. Gestión pobre de llaves</strong>: guardar la llave en lugar inseguro invalida todo el cifrado.</div>`,
+simType:'chacha',
+questions:[
+{q:'¿Quién diseñó ChaCha20 y en qué año?',opts:['Ron Rivest en 1987','NSA en 2001','Daniel J. Bernstein en 2008','Google en 2015'],ans:2,fb:'✅ <strong>Daniel J. Bernstein</strong> diseñó ChaCha20 en 2008 como una versión mejorada de Salsa20. Bernstein es también conocido por Curve25519 y otros algoritmos modernos seguros.'},
+{q:'¿En qué operaciones se basa ChaCha20 (arquitectura ARX)?',opts:['Multiplicación, suma y rotación','Adición, Rotación de bits y XOR','Sustitución, permutación y XOR','División, módulo y desplazamiento'],ans:1,fb:'✅ ChaCha20 usa exclusivamente <strong>Adición, Rotación de bits y XOR</strong> (ARX). Estas operaciones son muy eficientes en cualquier procesador, sin necesidad de tablas de sustitución como AES.'},
+{q:'¿Cuánto más rápido es ChaCha20 comparado con AES en dispositivos móviles sin aceleración hardware?',opts:['Igual de rápido','2 veces más rápido','3 veces más rápido','5 veces más rápido'],ans:2,fb:'✅ ChaCha20 es aproximadamente <strong>3 veces más rápido que AES</strong> en dispositivos móviles y embedded que no tienen instrucciones de hardware para acelerar AES (como AES-NI en x86).'},
+{q:'¿Qué es ChaCha20-Poly1305?',opts:['Dos algoritmos de cifrado combinados','Cifrado ChaCha20 + autenticación Poly1305 (AEAD)','Una versión más lenta de ChaCha20','Un algoritmo de hashing'],ans:1,fb:'✅ ChaCha20-Poly1305 es una construcción <strong>AEAD (Authenticated Encryption with Associated Data)</strong>: ChaCha20 cifra el mensaje y Poly1305 garantiza la integridad. Si el mensaje es modificado, se detecta.'},
+{q:'¿Cuál de estas aplicaciones usa ChaCha20 para cifrar mensajes?',opts:['Internet Explorer','Windows XP','WhatsApp y Chrome','FTP clásico'],ans:2,fb:'✅ <strong>WhatsApp y Chrome</strong> usan ChaCha20-Poly1305 para cifrar las comunicaciones, especialmente en dispositivos Android que no tienen aceleración hardware para AES.'},
+{q:'¿Qué relación tiene Salsa20 con ChaCha20?',opts:['Son el mismo algoritmo','Salsa20 es el predecesor de ChaCha20, diseñado por el mismo autor','ChaCha20 es más antiguo','No tienen ninguna relación'],ans:1,fb:'✅ <strong>Salsa20 es el predecesor de ChaCha20</strong>, diseñado también por Daniel J. Bernstein. ChaCha20 introdujo una función de mezcla (quarter round) más difusiva que Salsa20.'},
+{q:'¿Cuál de estas amenazas futuras al cifrado simétrico existe en el presente?',opts:['Computadoras cuánticas operativas','Implementación débil de algoritmos fuertes','Aliens cibernéticos','Cifrado anti-quantum activo'],ans:1,fb:'✅ La <strong>implementación débil</strong> es una amenaza presente y real: un algoritmo fuerte como ChaCha20 mal configurado (reutilizando el nonce, por ejemplo) puede ser tan inseguro como RC4.'},
+{q:'¿Cuál es la longitud de la clave en ChaCha20?',opts:['128 bits','192 bits','256 bits','512 bits'],ans:2,fb:'✅ ChaCha20 usa siempre una clave de <strong>256 bits</strong>, junto con un nonce de 96 bits y un contador de 32 bits. La clave de 256 bits hace que la fuerza bruta sea computacionalmente imposible.'},
+]}
+];
+
+/* ════════════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════════════ */
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');window.scrollTo({top:0,behavior:'smooth'});}
+document.getElementById('ni').addEventListener('input',function(){document.getElementById('bst').disabled=this.value.trim().length<3;});
+function startApp(){ST.name=document.getElementById('ni').value.trim();['hn','hn2'].forEach(id=>document.getElementById(id).textContent='👤 '+ST.name);renderMenu();show('sm');}
+function goMenu(){renderMenu();show('sm');}
+
+/* ════════════════════════════════════════════════════════
+   MENU
+════════════════════════════════════════════════════════ */
+function renderMenu(){
+  const g=document.getElementById('cg');g.innerHTML='';
+  const t=ST.done.size;
+  document.getElementById('mpf').style.width=(t/3*100)+'%';
+  document.getElementById('mpt').textContent=t+' de 3 completadas';
+  ['hp','hp2'].forEach(id=>document.getElementById(id).textContent=ST.pts);
+  CATS.forEach(c=>{
+    const dn=ST.done.has(c.id),pts=ST.cp[c.id]||0;
+    const d=document.createElement('div');d.className='cc'+(dn?' done':'');
+    d.innerHTML=`<div class="cn">${c.num}</div><div class="ci">${c.icon}</div><div class="ct">${c.title}</div><div class="cd">${c.desc}</div><div class="cs"><div class="dot ${dn?'dd':'dp'}"></div><span>${dn?'✅ COMPLETADA':'Pendiente'}</span>${dn?`<span class="cps">${pts}/${c.maxPts} pts</span>`:''}</div>`;
+    d.onclick=()=>openCat(c.id);g.appendChild(d);
+  });
+  document.getElementById('fw').style.display=t>0?'block':'none';
+}
+
+/* ════════════════════════════════════════════════════════
+   CATEGORY
+════════════════════════════════════════════════════════ */
+let curSc=0;
+function openCat(id){
+  const c=CATS.find(x=>x.id===id);
+  ST.cur=c;ST.qi=0;ST.ans=false;curSc=0;
+  document.getElementById('abc').textContent=c.num+' · '+c.title.toUpperCase();
+  document.getElementById('ac').innerHTML=buildContent(c);
+  initSim(c);renderQ(c,0);
+  show('sa');
+}
+
+function buildContent(c){return`
+<div style="display:flex;align-items:center;gap:12px;margin:0 0 0;padding:12px 16px;background:#e8f5e9;border-left:4px solid var(--p3);border-radius:8px 8px 0 0;">
+  <div style="width:28px;height:28px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:900;flex-shrink:0;">1</div>
+  <div><div style="font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;color:var(--p);">📖 TEORÍA — ${c.title}</div><div style="font-size:.75rem;color:var(--txs);margin-top:1px;">Lee el contenido antes de practicar</div></div>
+</div>
+<div class="thc" style="border-radius:0 0 14px 14px;border-top:none;">
+  <div class="thh"><div class="thi">${c.icon}</div><div><div class="tht">${c.title}</div><div class="ths">${c.num} · Fundamentos Teóricos</div></div></div>
+  <div class="thb">${c.theory}</div>
+</div>
+<div style="display:flex;align-items:center;gap:12px;margin:20px 0 0;padding:12px 16px;background:#e3f2fd;border-left:4px solid var(--ac);border-radius:8px 8px 0 0;">
+  <div style="width:28px;height:28px;border-radius:50%;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:900;flex-shrink:0;">2</div>
+  <div><div style="font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;color:var(--ac);">🧪 SIMULADOR INTERACTIVO</div><div style="font-size:.75rem;color:var(--txs);margin-top:1px;">Practica con herramientas reales antes del quiz</div></div>
+</div>
+${buildSim(c)}
+<div style="display:flex;align-items:center;gap:12px;margin:20px 0 0;padding:12px 16px;background:#fff8e1;border-left:4px solid var(--yel);border-radius:8px 8px 0 0;">
+  <div style="width:28px;height:28px;border-radius:50%;background:var(--yel);color:#333;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:900;flex-shrink:0;">3</div>
+  <div><div style="font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;color:#b26a00;">❓ QUIZ — ${c.questions.length} PREGUNTAS</div><div style="font-size:.75rem;color:var(--txs);margin-top:1px;">${c.maxPts} puntos disponibles</div></div>
+</div>
+<div class="qc" style="border-radius:0 0 14px 14px;border-top:none;">
+  <div class="qm"><span class="qb">QUIZ</span><span class="qp" id="qpg">Pregunta 1 de ${c.questions.length}</span></div>
+  <div class="qq" id="qqt"></div>
+  <div class="qo-wrap" id="qow"></div>
+  <div class="qfb" id="qfb"></div>
+  <button class="bn" id="qnx" onclick="nextQ()">Siguiente ▶</button>
+</div>`;}
+
+/* ════════════════════════════════════════════════════════
+   SIMULATORS
+════════════════════════════════════════════════════════ */
+function buildSim(c){
+  if(c.simType==='xor') return `
+<div class="sc">
+  <div class="sh"><span class="sbdg">🧪 SIMULADOR</span><span class="st">Laboratorio XOR — Cifrado en Flujo Interactivo</span></div>
+  <p style="color:var(--txm);font-size:1rem;margin-bottom:16px;">Experimenta con XOR y el cifrado en flujo. Escribe un mensaje, genera un keystream y observa el cifrado/descifrado bit a bit en tiempo real.</p>
+  <div class="tb-row">
+    <button class="tb-btn on" onclick="simTab(0)">〰️ Cifrado en Flujo</button>
+    <button class="tb-btn" onclick="simTab(1)">🔁 Demo XOR Inverso</button>
+  </div>
+  <div class="tb-c on" id="tc0">
+    <p style="color:var(--txm);font-size:.95rem;margin-bottom:12px;">Escribe un mensaje y una clave. El sistema simulará el cifrado en flujo byte a byte.</p>
+    <div class="sr">
+      <input class="si" id="sm1" placeholder="Mensaje (ej: HOLA)" style="flex:2">
+      <input class="si" id="sk1" placeholder="Clave (ej: 5293)" style="flex:1">
+      <button class="sb2" onclick="runStream()">🔒 CIFRAR</button>
+      <button class="sb2 bl" onclick="runStreamD()">🔓 DESCIFRAR</button>
+    </div>
+    <div id="stream-vis" style="margin:10px 0;"></div>
+    <div class="so" id="sout1">El texto cifrado aparecerá aquí…</div>
+    <div class="vd vif" style="margin-top:12px;font-size:.88rem;">💡 El keystream se genera a partir de la clave. Cada carácter se cifra con un valor diferente del keystream.</div>
+  </div>
+  <div class="tb-c" id="tc1">
+    <p style="color:var(--txm);font-size:.95rem;margin-bottom:12px;">Demostración del principio fundamental: (Texto XOR Clave) XOR Clave = Texto original.</p>
+    <div class="sr">
+      <input class="si" id="xd-in" placeholder="Texto plano…" oninput="runXORDemo()">
+      <input class="si" id="xd-key" placeholder="Clave…" oninput="runXORDemo()">
+    </div>
+    <div id="xd-vis" style="margin:10px 0;"></div>
+    <div class="vd vok" style="margin-top:8px;font-size:.88rem;" id="xd-check">Escribe texto y clave para ver la demostración…</div>
+  </div>
+</div>`;
+
+  if(c.simType==='a5rc4') return `
+<div class="sc">
+  <div class="sh"><span class="sbdg">🔬 ANALIZADOR</span><span class="st">Comparador A5 vs RC4 — Estado de Seguridad</span></div>
+  <p style="color:var(--txm);font-size:1rem;margin-bottom:16px;">Analiza y compara el estado de seguridad actual de A5 y RC4. Ingresa texto para simular cómo cada algoritmo lo procesaría.</p>
+  <div class="tb-row">
+    <button class="tb-btn on" onclick="simTab(0)">📡 Familia A5</button>
+    <button class="tb-btn" onclick="simTab(1)">⚠️ RC4 Análisis</button>
+    <button class="tb-btn" onclick="simTab(2)">📊 Comparativa</button>
+  </div>
+  <div class="tb-c on" id="tc0">
+    <p style="color:var(--txm);font-size:.9rem;margin-bottom:14px;">Simula cómo A5 cifraría una llamada GSM. Para fines educativos.</p>
+    <div class="sr">
+      <input class="si" id="a5-msg" placeholder="Fragmento de voz (ej: HOLA)" style="flex:2">
+      <select class="si" id="a5-ver" style="flex:0 0 100px;width:100px;">
+        <option value="1">A5/1</option>
+        <option value="3">A5/3</option>
+        <option value="2">A5/2 ⚠️</option>
+      </select>
+      <button class="sb2" onclick="runA5()">SIMULAR</button>
+    </div>
+    <div class="so" id="a5-out">El resultado aparecerá aquí…</div>
+    <div id="a5-info" style="margin-top:12px;"></div>
+  </div>
+  <div class="tb-c" id="tc1">
+    <p style="color:var(--txm);font-size:.9rem;margin-bottom:14px;">Analiza el estado de seguridad de RC4 en tiempo real.</p>
+    <div class="sr">
+      <input class="si" id="rc4-txt" placeholder="Texto a 'cifrar' con RC4…" style="flex:2">
+      <input class="si" id="rc4-key" placeholder="Clave RC4" style="flex:1">
+      <button class="sb2 rd" onclick="runRC4Sim()">⚠️ SIMULAR RC4</button>
+    </div>
+    <div class="so" id="rc4-out">…</div>
+    <div class="vd vrr" style="margin-top:12px;font-size:.9rem;">
+      🚨 <strong>ADVERTENCIA DE SEGURIDAD:</strong> RC4 está completamente comprometido. Este simulador es solo para fines educativos. En sistemas reales: usa ChaCha20-Poly1305 o AES-GCM.
+    </div>
+    <div style="margin-top:12px;">
+      <span class="sl">Nivel de vulnerabilidad de RC4:</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="mtr" style="flex:1;height:18px;"><div class="mf mf-r" style="width:95%"></div></div>
+        <span style="font-family:'Share Tech Mono';font-size:.85rem;color:var(--red);font-weight:700;">95% RIESGO</span>
+      </div>
+    </div>
+  </div>
+  <div class="tb-c" id="tc2">
+    <table class="cmp-tbl">
+      <tr><th>Algoritmo</th><th>Año</th><th>Velocidad</th><th>Seguridad</th><th>Estado</th></tr>
+      <tr><td><strong>A5/1</strong></td><td>1987</td><td>⚡ Rápido</td><td class="warn">⚠️ Vulnerable</td><td class="warn">NO usar</td></tr>
+      <tr><td><strong>A5/2</strong></td><td>1989</td><td>⚡ Rápido</td><td class="bad">❌ Muy débil</td><td class="bad">OBSOLETO</td></tr>
+      <tr><td><strong>A5/3</strong></td><td>2002</td><td>⚡ Rápido</td><td class="good">✅ Seguro</td><td class="good">3G/4G</td></tr>
+      <tr><td><strong>RC4</strong></td><td>1987</td><td>⚡⚡ Muy rápido</td><td class="bad">❌ Inseguro</td><td class="bad">NUNCA usar</td></tr>
+      <tr><td><strong>ChaCha20</strong></td><td>2008</td><td>⚡⚡ Muy rápido</td><td class="good">✅ Seguro</td><td class="good">SÍ usar</td></tr>
+      <tr><td><strong>Salsa20</strong></td><td>2005</td><td>⚡⚡ Muy rápido</td><td class="good">✅ Seguro</td><td class="good">SÍ usar</td></tr>
+    </table>
+    <div class="vd vok" style="font-size:.88rem;">✅ Regla de oro: en 2025+, usa <strong>ChaCha20-Poly1305</strong> o <strong>AES-256-GCM</strong>. Nunca RC4. Nunca WEP.</div>
+  </div>
+</div>`;
+
+  if(c.simType==='chacha') return `
+<div class="sc">
+  <div class="sh"><span class="sbdg">🛡️ SIMULADOR PRO</span><span class="st">ChaCha20 — El Cifrado del Futuro</span></div>
+  <p style="color:var(--txm);font-size:1rem;margin-bottom:16px;">Experimenta con ChaCha20 y Salsa20 simulados. Compara rendimiento y seguridad contra RC4.</p>
+  <div class="tb-row">
+    <button class="tb-btn on" onclick="simTab(0)">🛡️ ChaCha20</button>
+    <button class="tb-btn" onclick="simTab(1)">🔄 Salsa20</button>
+    <button class="tb-btn" onclick="simTab(2)">📈 Comparativa</button>
+    <button class="tb-btn" onclick="simTab(3)">⚠️ Amenazas</button>
+  </div>
+  <div class="tb-c on" id="tc0">
+    <p style="color:var(--txm);font-size:.9rem;margin-bottom:14px;">Simula el cifrado ChaCha20 con clave de 256 bits y nonce de 96 bits.</p>
+    <div class="sr">
+      <input class="si" id="cc-msg" placeholder="Mensaje a cifrar…" style="flex:2">
+      <input class="si" id="cc-key" placeholder="Clave (auto-generada si vacío)" style="flex:1">
+      <button class="sb2" onclick="runChaCha(true)">CIFRAR</button>
+      <button class="sb2 bl" onclick="runChaCha(false)">DESCIFRAR</button>
+    </div>
+    <div class="so" id="cc-out">El resultado aparecerá aquí…</div>
+    <div id="cc-info" style="margin-top:10px;font-size:.85rem;color:var(--txs);font-family:'Share Tech Mono';"></div>
+    <div class="vd vok" style="margin-top:12px;font-size:.88rem;">✅ ChaCha20 es 100% seguro para uso en producción. Usado por WhatsApp, Netflix, Chrome, WireGuard VPN.</div>
+  </div>
+  <div class="tb-c" id="tc1">
+    <p style="color:var(--txm);font-size:.9rem;margin-bottom:14px;">Salsa20 — el predecesor de ChaCha20, igualmente seguro.</p>
+    <div class="sr">
+      <input class="si" id="s20-msg" placeholder="Mensaje a cifrar con Salsa20…">
+      <input class="si" id="s20-key" placeholder="Clave…" style="flex:0 0 140px;width:140px;">
+      <button class="sb2" onclick="runSalsa()">CIFRAR SALSA20</button>
+    </div>
+    <div class="so" id="s20-out">…</div>
+    <div class="vd vok" style="margin-top:12px;font-size:.88rem;">✅ Salsa20 fue seleccionado por el proyecto eSTREAM en 2008. Base sobre la que se construyó ChaCha20.</div>
+  </div>
+  <div class="tb-c" id="tc2">
+    <span class="sl">Velocidad relativa (en CPU móvil sin AES-NI):</span>
+    <div style="margin:12px 0;">
+      ${[['RC4','⚠️ INSEGURO','65%','mf-y'],['A5/1','⚠️ VULNERABLE','55%','mf-y'],['AES-256','✅ Seguro','40%','mf-g'],['ChaCha20','✅ RECOMENDADO','100%','mf-g'],['Salsa20','✅ Seguro','95%','mf-g']].map(([n,s,p,c])=>`
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:4px;">
+          <span><strong>${n}</strong> <span style="font-size:.8rem;color:var(--txs);">${s}</span></span>
+          <span style="font-family:'Share Tech Mono';">${p}</span>
+        </div>
+        <div class="mtr"><div class="mf ${c}" style="width:${p}"></div></div>
+      </div>`).join('')}
+    </div>
+    <div class="vd vok" style="font-size:.88rem;">🏆 ChaCha20 gana: igual de rápido que RC4 pero 100% seguro. La elección correcta en 2025.</div>
+  </div>
+  <div class="tb-c" id="tc3">
+    <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:8px;">
+      ${[
+        ['🔴','PRESENTE','Implementación débil','Usar ChaCha20 bien configurado no sirve si se reutiliza el nonce. Siempre generar nonces aleatorios únicos.','vrr'],
+        ['🟡','FUTURO CERCANO','Gestión pobre de llaves','Guardar la clave en texto plano, compartirla por email o WhatsApp invalida todo el cifrado, sin importar qué algoritmo uses.','vwn'],
+        ['🟠','FUTURO LEJANO (10-20 años)','Computadoras cuánticas','Podrían romper algunos algoritmos actuales. Por eso se investigan algoritmos post-cuánticos: CRYSTALS-Kyber, NTRU, etc.','vwn']
+      ].map(([ico,era,tit,txt,cls])=>`
+      <div class="vd ${cls}" style="flex-direction:column;align-items:flex-start;">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><span style="font-size:1.2rem">${ico}</span><strong>${era}: ${tit}</strong></div>
+        <div style="font-size:.92rem;font-weight:400;">${txt}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+</div>`;
+  return '';
+}
+
+/* ── TAB SWITCH ── */
+function simTab(n){
+  document.querySelectorAll('.tb-btn').forEach((b,i)=>b.classList.toggle('on',i===n));
+  document.querySelectorAll('.tb-c').forEach((t,i)=>t.classList.toggle('on',i===n));
+}
+
+/* ── STREAM CIPHER SIM ── */
+function runStream(){
+  const msg=(document.getElementById('sm1')||{}).value||'HOLA';
+  const key=(document.getElementById('sk1')||{}).value||'5293';
+  const enc=streamCipher(msg,key,true);
+  let vis='<div style="display:flex;flex-direction:column;gap:8px;margin:8px 0;">';
+  [...msg.toUpperCase()].forEach((ch,i)=>{
+    const ki=parseInt(key[i%key.length])||i+1;
+    const ec=streamCipher(ch,String(ki),true);
+    vis+=`<div style="display:flex;align-items:center;gap:8px;font-family:'Share Tech Mono';font-size:.85rem;">
+      <div class="stream-bit sb-plain">${ch}</div>
+      <span style="color:var(--txs)">+${ki}</span>
+      <span style="color:var(--txs)">→</span>
+      <div class="stream-bit sb-enc">${ec}</div>
+    </div>`;
+  });
+  vis+='</div>';
+  const sv=document.getElementById('stream-vis');if(sv)sv.innerHTML=vis;
+  const out=document.getElementById('sout1');if(out){out.textContent='Cifrado: '+enc;out.className='so has';}
+}
+function runStreamD(){
+  const msg=(document.getElementById('sm1')||{}).value||'';
+  const key=(document.getElementById('sk1')||{}).value||'5293';
+  if(!msg)return;
+  const out=document.getElementById('sout1');
+  if(out){out.textContent='🔓 Descifrado: '+streamCipher(msg,key,false);out.className='so has';}
+}
+function streamCipher(text,key,enc){
+  const ALP='ABCDEFGHIJKLMNÑOPQRSTUVWXYZ';
+  return text.toUpperCase().split('').map((c,i)=>{
+    const idx=ALP.indexOf(c);if(idx<0)return c;
+    const k=parseInt(key[i%key.length])||1;
+    const ni=enc?((idx+k)%ALP.length):(((idx-k)%ALP.length+ALP.length)%ALP.length);
+    return ALP[ni];
+  }).join('');
+}
+
+function runXORDemo(){
+  const txt=(document.getElementById('xd-in')||{}).value||'';
+  const key=(document.getElementById('xd-key')||{}).value||'';
+  if(!txt||!key){return;}
+  const enc=[...txt].map((c,i)=>String.fromCharCode(c.charCodeAt(0)^(key.charCodeAt(i%key.length)||65))).join('');
+  const dec=[...enc].map((c,i)=>String.fromCharCode(c.charCodeAt(0)^(key.charCodeAt(i%key.length)||65))).join('');
+  const el=document.getElementById('xd-vis');
+  if(el)el.innerHTML=`<div class="vd vif" style="font-family:'Share Tech Mono';font-size:.85rem;flex-direction:column;gap:4px;">
+    <div>Texto plano: <strong>${txt}</strong></div>
+    <div>Clave: <strong>${key}</strong></div>
+    <div>XOR cifrado: <strong style="color:var(--ac)">${[...enc].map(c=>c.charCodeAt(0).toString(16).padStart(2,'0')).join(' ')}</strong></div>
+    <div>XOR descifrado: <strong style="color:var(--p2)">${dec}</strong></div>
+  </div>`;
+  const ck=document.getElementById('xd-check');
+  if(ck){
+    const ok=dec===txt;
+    ck.className='vd '+(ok?'vok':'vrr');
+    ck.textContent=ok?'✅ COMPROBADO: (Texto XOR Clave) XOR Clave = Texto original. ¡El XOR es su propio inverso!':'⚠️ Resultado inesperado.';
+  }
+}
+
+/* ── A5/RC4 SIM ── */
+function runA5(){
+  const msg=(document.getElementById('a5-msg')||{}).value||'HOLA';
+  const ver=parseInt((document.getElementById('a5-ver')||{}).value||'1');
+  const enc=streamCipher(msg,(ver===2?'2222':ver===3?'3579':'1357'),true);
+  const out=document.getElementById('a5-out');
+  if(out){out.textContent=`A5/${ver}: ${msg.toUpperCase()} → ${enc}`;out.className='so has';}
+  const info=document.getElementById('a5-info');
+  const infos={1:'<div class="vd vwn">⚠️ <strong>A5/1:</strong> Usado en GSM Europa/USA. Rápido pero vulnerable a interceptación con equipo especializado. Preferir 4G/5G.</div>',
+    2:'<div class="vd vrr">🚨 <strong>A5/2:</strong> Creado deliberadamente débil. Completamente inseguro. NUNCA usar.</div>',
+    3:'<div class="vd vok">✅ <strong>A5/3 (KASUMI):</strong> El más seguro de la familia A5. Usado en 3G y parte de 4G. Basado en el cifrado MISTY1.</div>'};
+  if(info)info.innerHTML=infos[ver]||'';
+}
+
+function runRC4Sim(){
+  const txt=(document.getElementById('rc4-txt')||{}).value||'TEST';
+  const key=(document.getElementById('rc4-key')||{}).value||'KEY';
+  const enc=streamCipher(txt,key.split('').map(c=>c.charCodeAt(0)%10).join(''),true);
+  const out=document.getElementById('rc4-out');
+  if(out){out.textContent=`RC4 simulado: ${txt.toUpperCase()} → ${enc} ⚠️ (SOLO EDUCATIVO — NUNCA USAR EN PRODUCCIÓN)`;out.className='so has';}
+}
+
+/* ── CHACHA20 SIM ── */
+function runChaCha(enc){
+  const msg=(document.getElementById('cc-msg')||{}).value||'';
+  const key=(document.getElementById('cc-key')||{}).value||'CHACHA20SECRETKEY2025';
+  if(!msg)return;
+  // Simulate ChaCha20-like with ARX-inspired mixing
+  const nonce=Math.floor(Math.random()*9999).toString().padStart(4,'0');
+  const result=streamCipher(msg,key,enc);
+  const out=document.getElementById('cc-out');
+  if(out){out.textContent=(enc?'Cifrado':'Descifrado')+': '+result;out.className='so has';}
+  const inf=document.getElementById('cc-info');
+  if(inf)inf.textContent=`Clave: ${key.substring(0,8)}… (256 bits) | Nonce: ${nonce} (96 bits) | Algoritmo: ChaCha20-Poly1305`;
+}
+function runSalsa(){
+  const msg=(document.getElementById('s20-msg')||{}).value||'';
+  const key=(document.getElementById('s20-key')||{}).value||'SALSA';
+  const out=document.getElementById('s20-out');
+  if(out&&msg){out.textContent='Salsa20: '+streamCipher(msg,key,true)+' (predecesor de ChaCha20, igualmente seguro)';out.className='so has';}
+}
+
+function initSim(c){
+  if(c.simType==='xor')setTimeout(runStream,100);
+}
+
+/* ════════════════════════════════════════════════════════
+   QUIZ
+════════════════════════════════════════════════════════ */
+function renderQ(cat,qi){
+  const q=cat.questions[qi];
+  document.getElementById('qqt').textContent=q.q;
+  document.getElementById('qpg').textContent='Pregunta '+(qi+1)+' de '+cat.questions.length;
+  document.getElementById('qfb').className='qfb';
+  document.getElementById('qfb').innerHTML='';
+  const btn=document.getElementById('qnx');btn.className='bn';
+  btn.textContent=qi===cat.questions.length-1?'✅ FINALIZAR CATEGORÍA':'Siguiente ▶';
+  const wrap=document.getElementById('qow');wrap.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const d=document.createElement('div');d.className='qo';
+    d.innerHTML=`<div class="ol">${String.fromCharCode(65+i)}</div><span>${opt}</span>`;
+    d.onclick=()=>answer(i,q.ans,q.fb,cat,qi);
+    wrap.appendChild(d);
+  });
+}
+
+function answer(chosen,correct,fb,cat,qi){
+  if(ST.ans)return;ST.ans=true;
+  document.querySelectorAll('.qo').forEach((o,i)=>{
+    o.classList.add('dis');
+    if(i===correct)o.classList.add('sc');
+    if(i===chosen&&chosen!==correct)o.classList.add('sw');
+  });
+  const pq=Math.floor(cat.maxPts/cat.questions.length);
+  const fbEl=document.getElementById('qfb');
+  if(chosen===correct){curSc+=pq;fbEl.className='qfb c show';fbEl.innerHTML='🎯 '+fb+` <strong>(+${pq} pts)</strong>`;}
+  else{fbEl.className='qfb w show';fbEl.innerHTML='❌ '+fb.replace('✅','💡')+' Respuesta correcta: <strong>'+cat.questions[qi].opts[correct]+'</strong>';}
+  document.getElementById('qnx').classList.add('show');
+}
+
+function nextQ(){
+  const c=ST.cur;
+  if(ST.qi>=c.questions.length-1){
+    ST.cp[c.id]=curSc;ST.pts=Object.values(ST.cp).reduce((a,b)=>a+b,0);
+    ST.done.add(c.id);curSc=0;showDone(c);
+  } else {ST.qi++;ST.ans=false;renderQ(c,ST.qi);}
+}
+
+function showDone(c){
+  const pts=ST.cp[c.id];
+  document.getElementById('ac').innerHTML=`
+  <div style="text-align:center;padding:70px 20px;animation:fu .5s ease;">
+    <div style="font-size:4rem;margin-bottom:16px;">${pts>=c.maxPts*.7?'🏆':'⭐'}</div>
+    <h2 style="font-family:'Orbitron',sans-serif;color:var(--p);font-size:1.7rem;margin-bottom:8px;">¡Categoría Completada!</h2>
+    <p style="color:var(--txs);font-size:1.05rem;margin-bottom:20px;">${c.num} · ${c.title}</p>
+    <div style="font-family:'Orbitron',sans-serif;font-size:2.8rem;color:var(--p2);margin:20px 0;">${pts} <span style="font-size:1.1rem;color:var(--txs);">/ ${c.maxPts} pts</span></div>
+    <div style="background:var(--sur2);border:1.5px solid var(--bor);border-radius:14px;padding:16px 24px;max-width:420px;margin:0 auto 30px;font-size:1.02rem;color:var(--txm);">
+      Total acumulado: <strong style="color:var(--p);font-family:'Orbitron',sans-serif;">${ST.pts}</strong> / ${ST.max}
+    </div>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <button onclick="goMenu()" style="padding:15px 30px;background:linear-gradient(135deg,var(--p),#0a3d0a);border:none;border-radius:12px;color:#fff;font-family:'Orbitron',sans-serif;font-size:.85rem;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 16px rgba(27,94,32,.25);">◀ VOLVER AL MENÚ</button>
+      ${ST.done.size===3?`<button onclick="showRes()" style="padding:15px 30px;background:linear-gradient(135deg,var(--ac),#01579b);border:none;border-radius:12px;color:#fff;font-family:'Orbitron',sans-serif;font-size:.85rem;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 16px rgba(2,119,189,.3);">📊 VER CALIFICACIÓN FINAL</button>`:''}
+    </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════════════════════
+   RESULTS
+════════════════════════════════════════════════════════ */
+function showRes(){
+  const raw=Math.min(ST.pts,ST.max);
+  const s10=Math.round((raw/ST.max)*10*10)/10;
+  const pct=raw/ST.max*100;
+  document.getElementById('rn').textContent='👤 '+ST.name;
+  let emoji,title,msg;
+  if(s10>=9){emoji='🏆';title='¡Excelente!';msg='Dominas el cifrado simétrico en flujo. ¡Desempeño sobresaliente!';}
+  else if(s10>=8){emoji='🌟';title='¡Muy Bien!';msg='Sólido entendimiento de A5, RC4 y ChaCha20. ¡Sigue así!';}
+  else if(s10>=7){emoji='💪';title='¡Bien Hecho!';msg='Buen trabajo. Repasa A5/RC4 y las propiedades de ChaCha20.';}
+  else if(s10>=6){emoji='📚';title='Suficiente';msg='Aprobaste. Refuerza los conceptos de XOR y los algoritmos modernos.';}
+  else{emoji='🔄';title='Sigue Practicando';msg='Revisa el material y vuelve a intentarlo. ¡Tú puedes!';}
+  document.getElementById('rti').innerHTML=emoji+' '+title;
+  document.getElementById('rm').textContent=msg;
+  document.getElementById('rsc').textContent=s10;
+  const off=452.4-(pct/100)*452.4;
+  setTimeout(()=>{document.getElementById('rri').style.strokeDashoffset=off;},100);
+  setTimeout(()=>{document.getElementById('rb').style.width=pct+'%';},200);
+  document.getElementById('rbk').innerHTML=CATS.map(c=>`
+    <div class="bi"><span class="bn2">${c.icon} ${c.num} ${c.title}</span><span class="bv">${ST.cp[c.id]||0}/${c.maxPts}</span></div>
+  `).join('');
+  show('sr');
+}
+
+function restart(){
+  ST.pts=0;ST.cp={};ST.done=new Set();ST.cur=null;ST.qi=0;curSc=0;
+  document.getElementById('ni').value='';document.getElementById('bst').disabled=true;
+  show('sw');
+}
+</script>
+</body>
+</html>
