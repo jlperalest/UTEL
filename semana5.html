@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integridad y Hash · Simulador interactivo</title>
+<style>
+  :root {
+    --bg: #041508;
+    --bg2: #06230f;
+    --card: #0a2b15;
+    --border: #1d5c33;
+    --text: #eafff0;
+    --muted: #8fc7a3;
+    --utel: #27c93f;
+    --lime: #a3e635;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --cyan: #22d3ee;
+    --red: #f87171;
+    --white: #f7fff9;
+    --gold: #fbbf24;
+    --silver: #cbd5e1;
+    --mono: "SFMono-Regular", "Cascadia Mono", Consolas, Menlo, monospace;
+    --radius: 16px;
+    --shadow: 0 12px 34px -14px rgba(0,0,0,.65), 0 2px 8px -4px rgba(0,0,0,.5);
+    --shadow-hover: 0 20px 48px -16px rgba(0,0,0,.7), 0 0 0 1px rgba(39,201,63,.28);
+    --ring: 0 0 0 3px rgba(39,201,63,.38);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(900px 460px at 12% -8%, rgba(39,201,63,.20) 0%, transparent 60%),
+      radial-gradient(820px 480px at 100% 2%, rgba(34,211,238,.10) 0%, transparent 55%),
+      radial-gradient(1000px 720px at 50% 120%, rgba(163,230,53,.08) 0%, transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, "Inter", Roboto, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    min-height: 100vh; font-size: 17.5px; line-height: 1.6;
+  }
+  ::selection { background: rgba(39,201,63,.35); color: #fff; }
+  :focus-visible { outline: none; box-shadow: var(--ring); border-radius: 10px; }
+  header { padding: 40px 20px 18px; text-align: center; }
+  .utel-badge {
+    display: inline-block; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase;
+    background: linear-gradient(135deg, rgba(39,201,63,.20), rgba(163,230,53,.12));
+    color: var(--lime); border: 1px solid rgba(39,201,63,.5); border-radius: 999px;
+    padding: 6px 16px; font-size: .8rem; margin-bottom: 16px;
+    box-shadow: 0 0 26px -8px rgba(39,201,63,.55);
+  }
+  header h1 {
+    font-size: clamp(1.9rem, 4.8vw, 3.15rem); font-weight: 900; letter-spacing: -.5px; line-height: 1.04;
+    background: linear-gradient(100deg, #eafff0 0%, #a3e635 42%, #27c93f 72%, #22d3ee 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 6px 26px rgba(39,201,63,.28));
+  }
+  header p.sub { color: var(--muted); margin-top: 10px; font-size: 1.08rem; }
+
+  nav.tabs {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+    padding: 12px 14px;
+    background: rgba(4,17,8,.78); backdrop-filter: blur(16px) saturate(1.25);
+    border-bottom: 1px solid rgba(39,201,63,.18);
+  }
+  nav.tabs button {
+    background: rgba(255,255,255,.03); color: var(--muted);
+    border: 1px solid transparent; border-radius: 999px;
+    padding: 10px 18px; font-size: .98rem; font-weight: 700;
+    cursor: pointer; transition: color .18s ease, background .18s ease, box-shadow .2s ease, transform .12s ease;
+  }
+  nav.tabs button:hover { color: var(--text); background: rgba(255,255,255,.07); }
+  nav.tabs button:active { transform: scale(.95); }
+  nav.tabs button.active {
+    background: linear-gradient(135deg, #27c93f, #17993a); color: #04220c;
+    border-color: transparent; box-shadow: 0 8px 20px -7px rgba(39,201,63,.7);
+  }
+
+  main { max-width: 1040px; margin: 0 auto; padding: 28px 20px 90px; }
+  section.panel { display: none; }
+  section.panel.active { display: block; }
+  section.panel.active > * { animation: rise .5s cubic-bezier(.2,.7,.2,1) both; }
+  section.panel.active > *:nth-child(2){ animation-delay:.05s; }
+  section.panel.active > *:nth-child(3){ animation-delay:.1s; }
+  section.panel.active > *:nth-child(4){ animation-delay:.15s; }
+  section.panel.active > *:nth-child(5){ animation-delay:.2s; }
+  section.panel.active > *:nth-child(n+6){ animation-delay:.24s; }
+  @keyframes rise { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  h2.sec-title { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; letter-spacing: -.3px; margin: 6px 0 16px; }
+  .bigidea {
+    position: relative; border: 1px solid rgba(39,201,63,.35);
+    background: linear-gradient(135deg, rgba(39,201,63,.15), rgba(34,211,238,.05));
+    border-radius: var(--radius); padding: 20px 24px; margin-bottom: 20px;
+    font-size: 1.14rem; color: #eafff0;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .bigidea b { color: #fff; }
+
+  .grid { display: grid; gap: 16px; }
+  .grid.cols2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .grid.cols3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0)), var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px;
+    box-shadow: var(--shadow); transition: transform .22s ease, box-shadow .25s ease, border-color .25s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: rgba(39,201,63,.4); }
+  .card h3 { font-size: 1.2rem; margin-bottom: 10px; color: var(--green); letter-spacing: -.2px; }
+  .card p, .card li { color: #d6f2e0; font-size: 1.02rem; }
+  .card ul { padding-left: 22px; margin: 6px 0; }
+  .card li { margin: 6px 0; }
+  .card b { color: var(--white); }
+
+  .keycard { border-radius: 14px; padding: 20px 22px; }
+  .keycard.silver { background: rgba(203,213,225,.08); border: 2px solid var(--silver); }
+  .keycard.gold { background: rgba(251,191,36,.08); border: 2px solid var(--gold); }
+  .keycard h3 { font-size: 1.3rem; margin-bottom: 10px; }
+  .keycard.silver h3 { color: var(--silver); }
+  .keycard.gold h3 { color: var(--gold); }
+  .keycard li { color: #d6f2e0; font-size: 1.05rem; margin: 7px 0; }
+  .keycard ul { padding-left: 22px; }
+  .keycard b { color: var(--white); }
+
+  .note {
+    border-left: 4px solid var(--amber); background: rgba(251,191,36,.08);
+    padding: 12px 16px; border-radius: 8px; margin-top: 14px;
+    color: #f0e0b0; font-size: 1rem;
+  }
+  .note.green { border-color: var(--utel); background: rgba(39,201,63,.08); color: #d6f2e0; }
+  .note.red { border-color: var(--red); background: rgba(248,113,113,.08); color: #f3cdcd; }
+
+  /* Guía "coach": siempre te dice qué hacer ahora */
+  .guide {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: rgba(34,211,238,.09); border: 1.5px solid var(--cyan);
+    border-radius: 12px; padding: 14px 16px; margin: 14px 0 4px;
+    font-size: 1.08rem; color: #d8f5fb;
+  }
+  .guide::before { content: "👉"; font-size: 1.3rem; line-height: 1.2; }
+  .guide b { color: var(--white); }
+  .guide.done { border-color: var(--green); background: rgba(74,222,128,.1); color: #d6f2e0; }
+  .guide.done::before { content: "🎉"; }
+
+  .howto {
+    background: var(--bg2); border: 1px dashed var(--border); border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 6px; font-size: .98rem; color: var(--muted);
+  }
+  .howto b { color: var(--lime); }
+  .howto .htitle { display: block; color: var(--lime); font-weight: 800; margin-bottom: 6px; font-size: 1rem; }
+  .howto ol { margin: 4px 0 0; padding-left: 22px; }
+  .howto ol li { margin: 5px 0; color: #cdeed9; }
+  .howto ol li b { color: var(--white); }
+
+  /* Predicción reutilizable "predice y descubre" */
+  .predict {
+    margin: 12px 0 4px; background: rgba(34,211,238,.07); border: 1.5px solid var(--cyan);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .predict .p-q { font-size: 1.05rem; font-weight: 700; color: #d8f5fb; margin-bottom: 10px; }
+  .predict .p-opts { display: grid; gap: 8px; }
+  .predict .p-opt {
+    text-align: left; background: var(--bg2); border: 1px solid var(--border); color: #d6f2e0;
+    border-radius: 10px; padding: 11px 15px; font-size: 1rem; cursor: pointer; transition: all .15s ease;
+  }
+  .predict .p-opt:hover:not(:disabled) { border-color: var(--cyan); }
+  .predict .p-opt:disabled { cursor: default; }
+  .predict .p-opt.ok { border-color: var(--green); background: rgba(74,222,128,.14); color: var(--green); }
+  .predict .p-opt.bad { border-color: var(--red); background: rgba(248,113,113,.12); color: var(--red); }
+  .predict .p-fb { display: none; margin-top: 10px; font-size: 1rem; color: #eafff0; background: rgba(39,201,63,.08); border-left: 3px solid var(--utel); padding: 10px 14px; border-radius: 6px; }
+  .predict .p-fb.show { display: block; }
+
+  /* Registro animado (Generalidades) */
+  .g1-line {
+    padding: 11px 14px; border-radius: 9px; margin: 7px 0; font-size: 1.02rem;
+    background: var(--bg2); border: 1px solid var(--border); color: #d6f2e0; animation: fadein .35s ease;
+  }
+  .g1-line.warn { border-color: var(--amber); color: #f0e0b0; }
+  .g1-line.bad { border-color: var(--red); color: #f3cdcd; }
+  .g1-line.good { border-color: var(--green); color: #cdeed9; }
+
+  /* Escena del ataque: Ana | Impostor | Bruno */
+  .scene { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 10px; margin: 14px 0; }
+  @media (max-width: 720px){ .scene { grid-template-columns: 1fr; } }
+  .actor { border-radius: 12px; padding: 14px; text-align: center; border: 2px solid var(--border); background: var(--bg2); }
+  .actor .who { font-weight: 800; font-size: 1.05rem; margin-bottom: 6px; }
+  .actor .big { font-size: 2.1rem; line-height: 1.2; }
+  .actor .info { font-size: .9rem; color: #d6f2e0; margin-top: 6px; word-break: break-word; min-height: 40px; }
+  .actor.ana { border-color: var(--cyan); } .actor.ana .who { color: var(--cyan); }
+  .actor.bruno { border-color: var(--green); } .actor.bruno .who { color: var(--green); }
+  .actor.mal { border-color: var(--red); } .actor.mal .who { color: var(--red); }
+  .actor.dim { opacity: .45; }
+  .actor.flash { animation: aflash .6s ease; }
+  @keyframes aflash { 0% { box-shadow: 0 0 0 4px rgba(251,191,36,.55); } 100% {} }
+  .verdict-big {
+    text-align: center; font-size: 1.25rem; font-weight: 800; border-radius: 12px;
+    padding: 16px; margin-top: 10px;
+  }
+  .verdict-big.bad { background: rgba(248,113,113,.12); border: 2px solid var(--red); color: var(--red); }
+  .verdict-big.good { background: rgba(74,222,128,.12); border: 2px solid var(--green); color: var(--green); }
+  .modepick { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .modepick button {
+    flex: 1; min-width: 220px; text-align: left; cursor: pointer;
+    border-radius: 12px; padding: 14px 16px; font-size: 1rem; font-weight: 700;
+    background: var(--bg2); color: #d6f2e0; border: 2px solid var(--border); transition: all .15s ease;
+  }
+  .modepick button small { display: block; font-weight: 400; color: var(--muted); margin-top: 3px; font-size: .88rem; }
+  .modepick button.on-bad { border-color: var(--red); background: rgba(248,113,113,.1); color: var(--red); }
+  .modepick button.on-good { border-color: var(--green); background: rgba(74,222,128,.1); color: var(--green); }
+
+  /* ===== Escenario animado del ataque ===== */
+  .mm-stage {
+    position: relative; height: 300px; margin: 14px 0 4px;
+    border-radius: 16px; overflow: hidden;
+    background: radial-gradient(700px 300px at 50% 40%, #082b16 0%, #051a0c 70%, #041207 100%);
+    border: 1px solid var(--border);
+  }
+  @media (max-width: 640px){ .mm-stage { height: 340px; } }
+  .mm-cable {
+    position: absolute; left: 6%; right: 6%; top: 50%; height: 4px; transform: translateY(-50%);
+    background: repeating-linear-gradient(90deg, #2a6b3d 0 14px, transparent 14px 26px);
+    border-radius: 3px;
+  }
+  .mm-node {
+    position: absolute; top: 50%; transform: translate(-50%,-50%);
+    width: 132px; text-align: center; z-index: 3;
+  }
+  .mm-node.ana { left: 13%; }
+  .mm-node.mal { left: 50%; }
+  .mm-node.bruno { left: 87%; }
+  .mm-node .mm-emoji {
+    font-size: 2.7rem; line-height: 1;
+    filter: drop-shadow(0 0 10px rgba(0,0,0,.75));
+    transition: transform .2s ease;
+  }
+  .mm-node .mm-name { font-weight: 800; font-size: .95rem; margin-top: 2px; }
+  .mm-node.ana .mm-name { color: var(--cyan); }
+  .mm-node.mal .mm-name { color: var(--red); }
+  .mm-node.bruno .mm-name { color: var(--green); }
+  .mm-node .mm-hold { display: block; min-height: 44px; margin-bottom: 2px; font-size: 1.5rem; }
+  .mm-node.pop .mm-emoji { transform: scale(1.35); }
+  .mm-node.dim { opacity: .35; filter: grayscale(1); }
+
+  .mm-token {
+    position: absolute; top: 50%; left: 12%; transform: translate(-50%,-50%);
+    font-size: 2.3rem; z-index: 4; opacity: 0; pointer-events: none;
+    filter: drop-shadow(0 0 8px rgba(163,230,53,.6));
+  }
+  .mm-token .cap {
+    position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: .78rem; font-weight: 700; font-family: var(--mono);
+    padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.55);
+  }
+  .mm-token.k-green { color: #bff5c9; } .mm-token.k-green .cap { color: var(--green); border: 1px solid var(--green); }
+  .mm-token.k-red { color: #ffc9c9; } .mm-token.k-red .cap { color: var(--red); border: 1px solid var(--red); }
+  .mm-token.k-msg .cap { color: var(--amber); border: 1px solid var(--amber); }
+
+  .mm-flash {
+    position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0;
+    transition: opacity .18s ease;
+  }
+  .mm-flash.red { background: radial-gradient(circle at 50% 50%, rgba(248,113,113,.55), rgba(248,113,113,0) 70%); }
+  .mm-flash.green { background: radial-gradient(circle at 50% 50%, rgba(74,222,128,.5), rgba(74,222,128,0) 70%); }
+  .mm-flash.show { opacity: 1; }
+
+  .mm-alarm {
+    position: absolute; inset: 0; z-index: 6; display: none;
+    align-items: center; justify-content: center; flex-direction: column; text-align: center;
+    background: rgba(120,10,10,.82); color: #fff; padding: 16px;
+  }
+  .mm-alarm.show { display: flex; animation: alarmpulse 1s infinite; }
+  @keyframes alarmpulse { 50% { background: rgba(150,20,20,.92); } }
+  .mm-alarm .big { font-size: 3rem; }
+  .mm-alarm .t { font-size: 1.3rem; font-weight: 900; margin-top: 6px; }
+  .mm-alarm .s { font-size: .95rem; margin-top: 4px; opacity: .9; }
+
+  .mm-reveal {
+    position: absolute; z-index: 6; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0);
+    background: #2a0808; border: 2px solid var(--red); color: #fff;
+    padding: 12px 20px; border-radius: 12px; text-align: center; opacity: 0;
+    transition: all .35s cubic-bezier(.2,1.4,.4,1);
+  }
+  .mm-reveal.show { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  .mm-reveal .t { font-size: .85rem; color: #ff9a9a; }
+  .mm-reveal .v { font-size: 1.7rem; font-weight: 900; color: #fff; font-family: var(--mono); }
+
+  .mm-caption {
+    font-size: 1.12rem; line-height: 1.55; color: #eafff0; text-align: center;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; margin-top: 8px; min-height: 72px;
+  }
+  .mm-caption .step { vertical-align: middle; }
+  .mm-caption .step {
+    display: inline-block; color: #04220c; background: var(--lime); font-weight: 800;
+    border-radius: 999px; padding: 1px 12px; margin-right: 10px; font-size: .92rem; white-space: nowrap;
+  }
+  .mm-progress { height: 9px; background: var(--bg2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; margin-top: 10px; }
+  .mm-progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--utel), var(--lime)); transition: width .45s ease; }
+
+  .mm-controls-top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 4px 0 10px; }
+  .mm-speed { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .mm-speed .lbl { color: var(--muted); font-size: .92rem; font-weight: 700; }
+  .mm-speed button {
+    border-radius: 999px; border: 1px solid var(--border); background: var(--bg2);
+    color: #d6f2e0; padding: 7px 13px; font-size: .9rem; font-weight: 700; cursor: pointer;
+  }
+  .mm-speed button.on { border-color: var(--utel); background: rgba(39,201,63,.15); color: var(--lime); }
+
+  .mm-quiz { display: none; margin-top: 8px; background: rgba(34,211,238,.07); border: 1.5px solid var(--cyan); border-radius: 12px; padding: 14px 16px; }
+  .mm-quiz .mm-q { font-size: 1.1rem; font-weight: 700; color: #d8f5fb; margin-bottom: 10px; }
+  .mm-q-opts { display: grid; gap: 8px; }
+  .mm-q-opt {
+    text-align: left; background: var(--bg2); border: 1px solid var(--border); color: #d6f2e0;
+    border-radius: 10px; padding: 12px 15px; font-size: 1.02rem; cursor: pointer; transition: all .15s ease;
+  }
+  .mm-q-opt:hover:not(:disabled) { border-color: var(--cyan); }
+  .mm-q-opt:disabled { cursor: default; }
+  .mm-q-opt.ok { border-color: var(--green); background: rgba(74,222,128,.14); color: var(--green); }
+  .mm-q-opt.bad { border-color: var(--red); background: rgba(248,113,113,.12); color: var(--red); }
+  .mm-q-fb { display: none; margin-top: 10px; font-size: 1rem; color: #eafff0; background: rgba(39,201,63,.08); border-left: 3px solid var(--utel); padding: 10px 14px; border-radius: 6px; }
+  .mm-q-fb.show { display: block; }
+
+  label.fld { display: block; font-size: .95rem; color: var(--muted); margin: 12px 0 5px; font-weight: 700; }
+  input[type=text] {
+    width: 100%; background: var(--bg2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 11px 14px; font-size: 1.05rem; font-family: var(--mono);
+  }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--utel); box-shadow: var(--ring); }
+  input[type=color] { width: 60px; height: 44px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg2); padding: 3px; cursor: pointer; }
+
+  .btnrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; align-items: center; }
+  button.btn {
+    background: linear-gradient(180deg, #173c23, #0f2c19);
+    color: var(--text); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 20px; font-size: 1.02rem; font-weight: 700;
+    cursor: pointer; position: relative; overflow: hidden;
+    box-shadow: 0 4px 14px -8px rgba(0,0,0,.6);
+    transition: transform .12s ease, box-shadow .22s ease, border-color .2s ease, filter .2s ease;
+  }
+  button.btn:hover { border-color: var(--utel); transform: translateY(-2px); box-shadow: 0 12px 24px -10px rgba(39,201,63,.5); }
+  button.btn:active { transform: translateY(0) scale(.97); }
+  button.btn.primary { background: linear-gradient(135deg, #2ad046, #159a33); border-color: transparent; color: #04220c; }
+  button.btn.primary:hover { filter: brightness(1.08); }
+  button.btn .ripple { position: absolute; border-radius: 50%; transform: scale(0); background: rgba(255,255,255,.4); pointer-events: none; animation: ripple .6s ease-out; }
+  @keyframes ripple { to { transform: scale(3); opacity: 0; } }
+  button.btn.warn { background: linear-gradient(90deg, #92610e, #78500f); border-color: var(--amber); }
+  button.btn.silverb { background: linear-gradient(90deg, #3a4656, #2c3542); border-color: var(--silver); }
+  button.btn.danger { background: linear-gradient(90deg, #7f1d1d, #681b1b); border-color: var(--red); }
+
+  .bigresult {
+    font-family: var(--mono); font-size: 1.05rem; margin-top: 12px;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+    word-break: break-all;
+  }
+  .bigresult .lab { color: var(--muted); font-size: .85rem; display: block; font-family: inherit; }
+  .bigresult.ok { border-color: var(--green); }
+  .bigresult.bad { border-color: var(--red); }
+  .bigresult .green { color: var(--green); } .bigresult .red { color: var(--red); }
+  .bigresult .amber { color: var(--amber); } .bigresult .cyan { color: var(--cyan); }
+  .bigresult .silver { color: var(--silver); }
+
+  .swatch { height: 48px; border-radius: 10px; border: 2px solid rgba(255,255,255,.25); flex: 1; transition: background .6s ease; }
+  .swatch.shake { animation: keyshake .5s ease; }
+  .paintrow { display: flex; align-items: center; gap: 12px; margin: 10px 0; flex-wrap: wrap; }
+  .paintlbl { font-size: 1rem; color: #d6f2e0; min-width: 210px; }
+
+  .vsrow { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
+  @media (max-width: 640px){ .vsrow { grid-template-columns: 1fr; } }
+
+  /* Repaso */
+  .q-card { margin-bottom: 14px; }
+  .q-opts { display: grid; gap: 9px; margin-top: 10px; }
+  .q-opt {
+    text-align: left; background: var(--bg2); border: 1px solid var(--border);
+    color: #d6f2e0; border-radius: 9px; padding: 12px 16px; cursor: pointer;
+    font-size: 1.02rem; transition: all .15s ease;
+  }
+  .q-opt:hover { border-color: var(--utel); }
+  .q-opt.correct { border-color: var(--green); background: rgba(74,222,128,.12); color: var(--green); }
+  .q-opt.wrong { border-color: var(--red); background: rgba(248,113,113,.1); color: var(--red); }
+  .q-opt:disabled { cursor: default; }
+  .q-expl { display: none; margin-top: 10px; font-size: 1rem; color: #d6f2e0; background: rgba(39,201,63,.07); border-left: 3px solid var(--utel); padding: 10px 14px; border-radius: 6px; }
+  .q-expl.show { display: block; }
+  .score-pill { font-size: 1.1rem; font-weight: 800; color: var(--lime); font-family: var(--mono); }
+
+  /* Cifrado en vivo (RSA) */
+  .rsa-live {
+    font-family: var(--mono); font-size: 1.05rem; margin-top: 8px; word-break: break-all;
+    background: var(--bg2); border: 1px dashed var(--cyan); border-radius: 10px; padding: 10px 14px; color: var(--red); min-height: 44px;
+  }
+  .rsa-live .lab { display: block; color: var(--muted); font-family: inherit; font-size: .8rem; margin-bottom: 4px; }
+  .rsa-live .ch { display: inline-block; animation: chpop .25s ease; }
+  @keyframes chpop { 0% { transform: translateY(-6px) scale(1.3); color: var(--lime); } 100% {} }
+
+  /* Llavero del buzón */
+  .keyring { display: flex; flex-wrap: wrap; gap: 12px; margin: 6px 0 4px; }
+  .keyring .key {
+    flex: 1; min-width: 130px; cursor: pointer; text-align: center;
+    background: var(--bg2); border: 2px solid var(--border); border-radius: 12px; padding: 14px 10px;
+    font-size: 2rem; transition: all .15s ease;
+  }
+  .keyring .key small { display: block; font-size: .8rem; font-weight: 700; color: var(--muted); margin-top: 4px; }
+  .keyring .key:hover:not(.used) { border-color: var(--cyan); transform: translateY(-2px); }
+  .keyring .key.wrong { border-color: var(--red); background: rgba(248,113,113,.1); animation: keyshake .4s ease; }
+  .keyring .key.right { border-color: var(--green); background: rgba(74,222,128,.14); }
+  .keyring .key.used { cursor: default; }
+  @keyframes keyshake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+  /* Reto: romper la llave tú */
+  .fc-target { text-align: center; margin: 12px 0; font-size: 1rem; color: #d6f2e0; }
+  .fc-target .fc-n { display: inline-block; font-family: var(--mono); font-size: 1.9rem; font-weight: 900; color: var(--cyan); margin-top: 6px; }
+  .fc-guessrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin: 12px 0; font-size: 1.05rem; }
+  .fc-guessrow input { width: 130px; text-align: center; }
+  .fc-attempts { text-align: center; color: var(--muted); margin-top: 4px; display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+  /* Generalidades: comparación en dos carriles */
+  .lanes { display: grid; gap: 12px; margin-top: 14px; }
+  .lane { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+  .lane.sim { border-color: rgba(251,191,36,.45); }
+  .lane.asim { border-color: rgba(74,222,128,.45); }
+  .lane-head { font-weight: 800; margin-bottom: 2px; }
+  .lane.sim .lane-head { color: var(--amber); }
+  .lane.asim .lane-head { color: var(--green); }
+  .lane-track { position: relative; height: 52px; }
+  .lane-line { position: absolute; left: 8%; right: 8%; top: 50%; height: 3px; transform: translateY(-50%); background: repeating-linear-gradient(90deg, #2a6b3d 0 10px, transparent 10px 20px); }
+  .l-actor { position: absolute; top: 50%; transform: translateY(-50%); font-size: 1.7rem; }
+  .l-actor.a-left { left: 2%; } .l-actor.a-right { right: 2%; }
+  .l-actor.a-spy { left: 50%; transform: translate(-50%,-50%); font-size: 1.4rem; opacity: .35; transition: all .2s ease; }
+  .l-actor.a-spy.grab { opacity: 1; filter: drop-shadow(0 0 8px var(--red)); transform: translate(-50%,-50%) scale(1.35); }
+  .lane-token { position: absolute; top: 50%; left: 8%; transform: translate(-50%,-50%); font-size: 1.5rem; opacity: 0; }
+  .lane-badge { margin-top: 4px; font-weight: 800; font-size: .95rem; min-height: 20px; }
+  .lane-badge.bad { color: var(--red); } .lane-badge.ok { color: var(--green); }
+  .g1-caption { margin-top: 10px; text-align: center; font-size: 1.05rem; color: #eafff0; background: var(--bg2); border: 1px dashed var(--border); border-radius: 10px; padding: 12px 14px; min-height: 44px; }
+
+  /* Llaves: buzón visual */
+  .bz-mailbox { font-size: 3.4rem; text-align: center; margin: 6px 0; transition: transform .2s ease; }
+  .bz-mailbox.wiggle { animation: bzwiggle .55s ease; }
+  @keyframes bzwiggle { 20% { transform: rotate(-9deg) scale(1.1); } 60% { transform: rotate(9deg) scale(1.1); } 100% {} }
+
+  /* RSA: termómetro frío/caliente del reto */
+  .fc-bar { height: 16px; border-radius: 999px; background: var(--bg2); border: 1px solid var(--border); overflow: hidden; margin-top: 10px; }
+  .fc-bar > div { height: 100%; width: 0; transition: width .4s ease, background .4s ease; }
+  .fc-barlbl { text-align: center; font-size: .92rem; font-weight: 700; margin-top: 4px; }
+
+  /* ElGamal: barras de tamaño + envíos apilados */
+  .eg-bars { margin-top: 12px; }
+  .eg-bar { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+  .eg-bar .tag { width: 90px; font-weight: 800; font-size: .9rem; }
+  .eg-bar.rsa .tag { color: var(--amber); } .eg-bar.eg .tag { color: var(--cyan); }
+  .eg-bar .fill { height: 22px; border-radius: 6px; transition: width .5s ease; min-width: 4px; }
+  .eg-bar.rsa .fill { background: var(--amber); } .eg-bar.eg .fill { background: var(--cyan); }
+  .eg-bar .n { font-family: var(--mono); font-size: .85rem; color: var(--muted); }
+  .eg-send { font-family: var(--mono); font-size: .95rem; padding: 6px 10px; border-radius: 8px; background: var(--bg2); border: 1px solid var(--border); margin: 5px 0; color: var(--cyan); animation: fadein .35s ease; }
+
+  footer { text-align: center; color: #ffffff; font-size: 1.15rem; font-weight: 700; padding: 26px 16px; border-top: 1px solid var(--border); }
+  .muted { color: var(--muted); }
+  .goldtx { color: var(--gold); } .silvertx { color: var(--silver); }
+  .center { text-align: center; }
+
+  /* ===== Barra de logros + toasts ===== */
+  #ach-strip { max-width: 1100px; margin: 14px auto 0; padding: 0 18px; display: flex; align-items: center; gap: 14px; }
+  #ach-count { white-space: nowrap; font-weight: 800; color: #bfe8cc; font-size: .95rem; }
+  #ach-bar { flex: 1; height: 10px; background: #0d2415; border: 1px solid var(--border); border-radius: 99px; overflow: hidden; }
+  #ach-fill { height: 100%; width: 0; background: linear-gradient(90deg, #27c93f, #7be495); border-radius: 99px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+  #toasts { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+  .toast { background: linear-gradient(135deg, #123f1f, #0d2b16); border: 1px solid var(--utel); border-radius: 14px; padding: 12px 18px; font-weight: 700; color: #eafff0; box-shadow: var(--shadow); animation: toastIn .35s cubic-bezier(.2,.9,.3,1.2), toastOut .4s ease 2.9s forwards; }
+  @keyframes toastIn { from { transform: translateX(120%); opacity: 0; } }
+  @keyframes toastOut { to { transform: translateY(14px); opacity: 0; } }
+  @keyframes shakeX { 20%,60% { transform: translateX(-7px); } 40%,80% { transform: translateX(7px); } }
+
+  /* ===== T1: clasificador arrastrar/soltar ===== */
+  .sort-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  @media (max-width: 640px){ .sort-wrap { grid-template-columns: 1fr; } }
+  .dz { border: 2px dashed var(--border); border-radius: 14px; padding: 12px; transition: border-color .2s, background .2s; }
+  .dz h4 { margin: 0 0 8px; }
+  .dz .dz-body { min-height: 52px; }
+  .dz.over { border-color: var(--utel); background: rgba(39,201,63,.07); }
+  .dragcard { background: #122b1b; border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin: 8px 0; cursor: grab; user-select: none; font-size: .95rem; transition: transform .15s, border-color .2s, box-shadow .2s; }
+  .dragcard:hover { border-color: var(--utel); transform: translateY(-2px); }
+  .dragcard.sel { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(34,211,238,.35); }
+  .dragcard.ok { border-color: var(--utel); background: #123f1f; cursor: default; }
+  .dragcard.bad { animation: shakeX .45s; border-color: var(--red); }
+
+  /* ===== T2: reparte las llaves ===== */
+  .as-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin: 8px 0; background: #10281a; transition: border-color .2s, background .2s; }
+  .as-who { flex: 1; min-width: 220px; font-size: .95rem; }
+  .as-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--border); background: #0d2415; color: var(--text); border-radius: 99px; padding: 7px 13px; cursor: pointer; font-weight: 700; font-size: .86rem; transition: all .15s; }
+  .chip:hover { border-color: var(--utel); }
+  .chip.sel { background: var(--utel); color: #04220c; border-color: transparent; }
+  .as-row.ok { border-color: var(--utel); background: #123a20; }
+  .as-row.bad { border-color: var(--red); animation: shakeX .45s; }
+  .as-why { flex-basis: 100%; font-size: .87rem; color: #bfe8cc; display: none; }
+  .as-row.show .as-why { display: block; }
+
+  /* ===== T3: invierte la mezcla ===== */
+  .gm-meter { height: 12px; border-radius: 99px; background: #0d2415; border: 1px solid var(--border); overflow: hidden; margin: 4px 0 10px; }
+  .gm-meter > div { height: 100%; width: 0; border-radius: 99px; transition: width .5s ease; }
+
+  /* ===== T4: viaje de un número ===== */
+  .vj-steps { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .vj-step { border: 1px solid var(--border); border-left: 4px solid var(--utel); background: #10281a; border-radius: 12px; padding: 12px 16px; animation: rise .4s ease both; font-size: 1rem; }
+  .vj-step .big { font-size: 1.22rem; color: #eafff0; font-family: var(--mono); }
+  .vj-step sup { color: var(--amber); }
+  .vj-map { display: flex; gap: 6px; margin: 14px 0 4px; flex-wrap: wrap; }
+  .vj-st { flex: 1; min-width: 92px; text-align: center; border: 1px solid var(--border); border-radius: 12px; padding: 10px 6px; font-size: 1.3rem; background: var(--bg2); opacity: .45; transition: all .3s; }
+  .vj-st small { display: block; font-size: .72rem; font-weight: 700; color: var(--muted); margin-top: 4px; }
+  .vj-st.on { opacity: 1; border-color: var(--utel); background: #123f1f; box-shadow: 0 0 10px rgba(39,201,63,.35); transform: translateY(-2px); }
+  .vj-math { background: var(--bg2); border: 1px dashed var(--border); border-radius: 10px; padding: 12px 14px; margin: 10px 0 8px; display: flex; flex-direction: column; gap: 10px; }
+  .vj-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .vj-tag { font-size: .78rem; font-weight: 800; color: #04220c; background: var(--utel); border-radius: 99px; padding: 4px 10px; white-space: nowrap; }
+  .vj-eq { font-family: var(--mono); font-size: 1.02rem; color: #eafff0; word-break: break-all; }
+  .vj-res { color: #7be495; font-size: 1.35rem; font-weight: 900; }
+  .vj-forja { border: 1px dashed var(--amber); border-radius: 12px; padding: 12px 16px; margin: 12px 0; background: rgba(245,158,11,.05); }
+  .vj-sel { width: auto; background: var(--bg2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 1rem; }
+  .vj-lbl { flex-basis: 100%; font-size: .84rem; color: var(--muted); margin-top: -2px; }
+  .vj-det { margin-top: 10px; border: 1px dashed var(--border); border-radius: 10px; padding: 8px 12px; background: var(--bg2); }
+  .vj-det summary { cursor: pointer; font-weight: 700; color: var(--amber); }
+  .vj-det summary:hover { filter: brightness(1.2); }
+  .vj-det p { margin: 8px 0 0; font-size: .9rem; color: #d6f2e0; }
+  #vj-fsteps .vj-step { border-left-color: var(--amber); }
+
+  /* ===== T5: detective de reenvíos ===== */
+  .det { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 10px 0; }
+  @media (max-width: 640px){ .det { grid-template-columns: 1fr; } }
+  .det-card { border: 1px solid var(--border); background: #0e2517; border-radius: 12px; padding: 12px; font-family: var(--mono); cursor: pointer; word-break: break-all; font-size: .88rem; color: var(--cyan); transition: all .15s; }
+  .det-card:hover { border-color: var(--utel); transform: translateY(-2px); }
+  .det-card.sel { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(34,211,238,.35); }
+  .det-card.hit { border-color: var(--utel); background: #123f1f; box-shadow: 0 0 14px rgba(39,201,63,.45); }
+  .det-card.bad { animation: shakeX .45s; border-color: var(--red); }
+  .det-card .lbl { display: block; color: var(--muted); font-size: .75rem; margin-bottom: 6px; }
+
+  /* ===== T6: memorama ===== */
+  .mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0; }
+  @media (max-width: 700px){ .mem-grid { grid-template-columns: repeat(3, 1fr); } }
+  .mem-card { perspective: 600px; cursor: pointer; height: 116px; }
+  .mem-inner { position: relative; width: 100%; height: 100%; transition: transform .45s; transform-style: preserve-3d; }
+  .mem-card.flip .mem-inner { transform: rotateY(180deg); }
+  .mem-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px; font-weight: 700; font-size: .8rem; line-height: 1.25; }
+  .mem-front { background: linear-gradient(135deg, #173c23, #0f2c19); border: 1px solid var(--border); font-size: 1.7rem; }
+  .mem-front:hover { border-color: var(--utel); }
+  .mem-back { background: #10331d; border: 1px solid var(--utel); transform: rotateY(180deg); color: #eafff0; }
+  .mem-card.matched { pointer-events: none; }
+  .mem-card.matched .mem-back { background: linear-gradient(135deg, #1d5a2f, #123f1f); box-shadow: 0 0 14px rgba(39,201,63,.4); }
+
+  /* ===== Semana 5: hash ===== */
+  .hashbox { font-family: var(--mono); background: var(--bg2); border: 1px dashed var(--cyan); border-radius: 10px; padding: 12px 14px; word-break: break-all; font-size: .95rem; color: var(--cyan); line-height: 1.75; }
+  .hashbox .lab { display: block; color: var(--muted); font-family: inherit; font-size: .75rem; margin-bottom: 4px; }
+  .hx b.chg { color: #ff8a8a; background: rgba(248,113,113,.16); border-radius: 3px; font-weight: 700; }
+  .hx b.same { color: var(--cyan); font-weight: 400; }
+  .aval-meter { height: 14px; border-radius: 99px; background: #0d2415; border: 1px solid var(--border); overflow: hidden; margin-top: 8px; }
+  .aval-meter > div { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, #f5a524, #f87171); transition: width .6s ease; }
+  .exp { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 10px 0; background: #10281a; transition: border-color .25s, background .25s; }
+  .exp.done { border-color: var(--utel); background: #123a20; }
+  .exp h4 { margin: 0 0 6px; }
+  .exp .chk { float: right; font-size: 1.4rem; opacity: .22; }
+  .exp.done .chk { opacity: 1; }
+  .algo-row { display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 8px 0; background: #0e2517; flex-wrap: wrap; }
+  .algo-row .nm { min-width: 104px; font-weight: 800; font-size: 1.02rem; }
+  .algo-row .hx2 { flex: 1; font-family: var(--mono); word-break: break-all; font-size: .8rem; color: var(--cyan); min-width: 220px; }
+  .badge-st { border-radius: 99px; padding: 3px 10px; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+  .badge-st.dead { background: rgba(248,113,113,.15); color: var(--red); border: 1px solid var(--red); }
+  .badge-st.warn { background: rgba(245,165,36,.15); color: var(--amber); border: 1px solid var(--amber); }
+  .badge-st.live { background: rgba(39,201,63,.15); color: #7be495; border: 1px solid var(--utel); }
+  .col-count { font-family: var(--mono); font-size: 1.7rem; font-weight: 900; color: var(--amber); }
+  .col-boxes { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin: 14px 0 10px; }
+  @media (max-width: 680px){ .col-boxes { grid-template-columns: repeat(4, 1fr); } }
+  .col-box { border: 2px solid var(--border); border-radius: 10px; min-height: 76px; padding: 6px 4px; text-align: center; background: var(--bg2); transition: border-color .2s, background .2s, box-shadow .2s; }
+  .col-box .cn { font-size: .68rem; color: var(--muted); font-weight: 700; }
+  .col-box .chips { font-size: 1.35rem; line-height: 1.15; margin-top: 4px; min-height: 26px; }
+  .col-box.pop { animation: colpop .3s; }
+  @keyframes colpop { 50% { transform: scale(1.13); } }
+  .col-box.hit { border-color: var(--red); background: rgba(248,113,113,.16); box-shadow: 0 0 14px rgba(248,113,113,.45); }
+  .file-card { display: inline-block; border: 1px solid var(--border); border-radius: 12px; padding: 12px 20px; background: var(--bg2); text-align: center; font-size: 2.1rem; margin: 6px 10px 6px 0; }
+  .file-card small { display: block; font-size: .74rem; color: var(--muted); font-weight: 700; margin-top: 2px; }
+  .file-card.evil { border-color: var(--red); box-shadow: 0 0 14px rgba(248,113,113,.35); }
+  .dl-stage { position: relative; height: 154px; margin: 14px 0 10px; background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .dl-cable { position: absolute; top: 50%; left: 8%; right: 8%; height: 4px; transform: translateY(-50%); background: repeating-linear-gradient(90deg, #2a4636 0 12px, transparent 12px 22px); }
+  .dl-node { position: absolute; top: 50%; transform: translate(-50%,-50%); text-align: center; width: 130px; transition: opacity .3s; }
+  .dl-node .em { font-size: 2.5rem; line-height: 1; }
+  .dl-node .nm { font-size: .78rem; font-weight: 700; color: var(--muted); margin-top: 4px; }
+  .dl-node.pop { animation: dlpop .34s; }
+  @keyframes dlpop { 50% { transform: translate(-50%,-50%) scale(1.2); } }
+  .dl-tok { position: absolute; top: 50%; transform: translate(-50%,-50%); font-size: 2.1rem; opacity: 0; z-index: 4; text-align: center; white-space: nowrap; }
+  .dl-tok small { display: block; font-size: .62rem; font-weight: 700; }
+  .dl-flash { position: absolute; inset: 0; background: var(--red); opacity: 0; pointer-events: none; }
+  .dl-flash.show { animation: dlflash .5s; }
+  @keyframes dlflash { 35% { opacity: .28; } }
+  .dl-caption { text-align: center; font-size: 1.04rem; color: #eafff0; background: var(--bg2); border: 1px dashed var(--border); border-radius: 10px; padding: 11px 14px; min-height: 44px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">UTEL · APLICACIONES DE LA CRIPTOGRAFÍA · PARTE 1</div>
+  <h1>🧬🔍 Integridad y Hash</h1>
+  <p class="sub">Entiende la huella digital de un archivo… con una licuadora 🥤</p>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="t1" class="active">La huella digital</button>
+  <button data-tab="t3">Algoritmos de hash</button>
+  <button data-tab="t4">La descarga segura</button>
+  <button data-tab="t5">Autentificación</button>
+  <button data-tab="t7">🕵️ Ataque real</button>
+  <button data-tab="t6">✅ Repaso</button>
+</nav>
+
+<div id="ach-strip" title="Tus logros de exploración van apareciendo aquí">
+  <span id="ach-count"></span>
+  <div id="ach-bar"><div id="ach-fill"></div></div>
+</div>
+<div id="toasts"></div>
+
+<main>
+
+  <!-- ============ LA HUELLA DIGITAL ============ -->
+  <section class="panel active" id="panel-t1">
+    <h2 class="sec-title">La huella digital de los mensajes</h2>
+
+    <div class="bigidea">
+      💡 Piensa en una <b>licuadora</b> 🥤: le echas cualquier texto y te devuelve un “jugo” de 64 letritas, al que llamamos <b>huella</b>.
+      Solo hay que recordar <b>2 cosas</b>: el mismo texto da <b>siempre</b> el mismo jugo, y si cambias <b>una sola letra</b>, el jugo sale <b>totalmente distinto</b>.
+      Por eso la huella delata al instante si alguien tocó un mensaje.
+    </div>
+
+    <div class="grid cols3">
+      <div class="card"><h3>🥤 ¿Qué es?</h3><p>Una <b>licuadora</b>: metes cualquier texto y sale una huella corta. Mismo texto → misma huella, <b>siempre</b>. Otro texto → otra huella.</p></div>
+      <div class="card"><h3>🎯 ¿Para qué sirve?</h3><p>Para saber si algo <b>sigue igualito</b> o alguien lo cambió. Comparas dos huellas: ¿iguales? intacto. ¿distintas? lo tocaron. En segundos.</p></div>
+      <div class="card"><h3>📱 ¿Dónde lo uso?</h3><p><b>Todos los días sin verlo:</b> al guardar contraseñas, al bajar programas, y por dentro de WhatsApp y Bitcoin.</p></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>🔬 Pruébalo: cambia una letra y mira qué pasa</h3>
+      <p style="color:#d6f2e0">Escribe cualquier mensaje. Debajo aparece su <b>huella</b>. Luego pulsa el botón: le cambio <b>una sola letrita</b> y comparamos las dos huellas.</p>
+      <label class="fld">✍️ Tu mensaje:</label>
+      <input type="text" id="hu-msg" value="Nos vemos a las 7 en el café" maxlength="80">
+      <div class="hashbox"><span class="lab">🥤 Su huella (64 símbolos):</span><span class="hx" id="hu-live"></span></div>
+      <div class="btnrow"><button class="btn primary" id="hu-magic" style="font-size:1.1rem">🪄 Cámbiale UNA sola letra</button></div>
+
+      <div id="hu-result" style="display:none">
+        <div style="margin-top:14px;border:1px solid var(--border);border-radius:12px;padding:12px 14px">
+          <div style="margin-bottom:8px">📄 <b>Mensaje de antes:</b> «<span id="hu-txt-before" style="font-family:var(--mono);color:#eafff0"></span>»</div>
+          <div class="hashbox"><span class="lab">su huella:</span><span class="hx" id="hu-before"></span></div>
+        </div>
+        <div style="margin-top:10px;border:1px solid var(--red);border-radius:12px;padding:12px 14px;background:rgba(248,113,113,.06)">
+          <div style="margin-bottom:8px">📝 <b>Mensaje de ahora</b> (lo <span style="color:#ff8a8a">rojo</span> es la única letra que cambié): «<span id="hu-txt-after" style="font-family:var(--mono);color:#eafff0"></span>»</div>
+          <div class="hashbox"><span class="lab">su huella (en rojo lo que ya no coincide):</span><span class="hx" id="hu-diff"></span></div>
+        </div>
+        <div class="aval-meter"><div id="hu-meter"></div></div>
+        <div class="fc-barlbl" id="hu-stat"></div>
+      </div>
+    </div>
+
+    <div class="note green">🗣️ <b>Para explicarlo en 10 segundos:</b> “La huella de un documento es como la huella de un dedo: chiquita, única, y no puedes fabricar un dedo a partir de ella. Si el documento cambia un pelito, sale otra huella y te cachan.”</div>
+  </section>
+
+  <!-- ============ ALGORITMOS ============ -->
+  <section class="panel" id="panel-t3">
+    <h2 class="sec-title">Los algoritmos: MD5, SHA-1 y SHA-256</h2>
+
+    <div class="bigidea">
+      💡 Ha habido varias licuadoras famosas. A las viejitas les encontraron <b>dos frutas distintas que dan el mismo jugo</b>
+      (a eso se le llama un <b>choque</b>) y por eso se retiraron. La buena de hoy se llama <b>SHA-256</b>.
+    </div>
+
+    <div class="grid cols3">
+      <div class="card"><h3>💀 MD5 <span class="badge-st dead">NO USAR</span></h3><p>La vieja, de 1992. Huella de <b>32 símbolos</b>. Ya le encontraron choques. <b>No se debe usar.</b></p></div>
+      <div class="card"><h3>⚠️ SHA-1 <span class="badge-st warn">RETIRADA</span></h3><p>De 1995. Huella de <b>40 símbolos</b>. En 2017 Google le encontró un choque real. <b>Los navegadores la retiraron.</b></p></div>
+      <div class="card"><h3>✅ SHA-256 <span class="badge-st live">LA DE HOY</span></h3><p>De 2001. Huella de <b>64 símbolos</b>. Nadie ha logrado un choque. <b>Es la que se usa hoy</b>: el candadito 🔒 y Bitcoin.</p></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>⚖️ Compara los tres con TU mensaje</h3>
+      <p style="color:#d6f2e0">Escribe y mira las tres huellas recalcularse en vivo. Fíjate en el <b>tamaño</b> de cada una.</p>
+      <label class="fld">Tu mensaje:</label>
+      <input type="text" id="al-msg" value="UTEL" maxlength="60">
+      <div class="algo-row"><span class="nm">💀 MD5</span><span class="hx2" id="al-md5"></span><span class="badge-st dead" id="al-md5-n">32 símbolos</span></div>
+      <div class="algo-row"><span class="nm">⚠️ SHA-1</span><span class="hx2" id="al-sha1"></span><span class="badge-st warn" id="al-sha1-n">40 símbolos</span></div>
+      <div class="algo-row"><span class="nm">✅ SHA-256</span><span class="hx2" id="al-sha256"></span><span class="badge-st live" id="al-sha256-n">64 símbolos</span></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>👯 El juego de los gemelos (choques)</h3>
+      <p style="color:#d6f2e0">La huella sirve para saber <i>«¿este archivo es el bueno o me lo cambiaron?»</i>. Pero, ¿y si dos archivos <b>distintos</b> tuvieran <b>la misma huella</b>? Un tramposo podría cambiarte uno por otro <b>sin que nadie lo note</b>. A eso se le llama un <b>“choque”</b>.</p>
+      <p style="color:#d6f2e0">Que pase o no depende del <b>tamaño</b> de la huella. Piensa en la huella como el <b>número de un casillero</b> 🗄️: si hay <b>pocos</b> casilleros, dos mensajes distintos caen en el <b>mismo</b> (eso es un choque); si hay <b>muchísimos</b>, cada mensaje tiene el suyo y nunca se topan. Pruébalo con los dos botones:</p>
+      <div class="btnrow">
+        <button class="btn primary" id="col-short" style="font-size:1.05rem">🟢 Soltar mensajes en los casilleros</button>
+        <button class="btn silverb" id="col-long" style="font-size:1.05rem">🔒 ¿Y con la huella larga de hoy?</button>
+      </div>
+      <div class="col-boxes" id="col-boxes"></div>
+      <div class="dl-caption" id="col-cap">👆 Pulsa el primer botón: iremos soltando mensajes y cada uno cae en su casillero (según su huella).</div>
+      <div class="bigresult" id="col-out" style="display:none"></div>
+    </div>
+  </section>
+
+  <!-- ============ DESCARGA SEGURA ============ -->
+  <section class="panel" id="panel-t4">
+    <h2 class="sec-title">Integridad en acción: la descarga segura</h2>
+
+    <div class="bigidea">
+      💡 Bajas un programa de internet. ¿Cómo sabes que <b>nadie le metió mano</b> en el camino?
+      Comparas su huella con la <b>huella oficial</b> que publicó el autor. ¿Iguales? sano. ¿Distintas? alguien lo cambió.
+    </div>
+
+    <div class="card">
+      <h3>📦 Baja la app y mira si llega sana</h3>
+      <p style="color:#d6f2e0">Ana subió su app a internet y publicó su <b>huella oficial</b>. Tú vas a bajarla: <b>elige por dónde</b> y observa el viaje del paquete.</p>
+      <div class="btnrow">
+        <button class="btn primary" id="dl-clean" style="font-size:1.05rem">🟢 Bajar del sitio oficial</button>
+        <button class="btn danger" id="dl-evil" style="font-size:1.05rem">🔴 Bajar por el WiFi del hacker</button>
+        <button class="btn silverb" id="dl-reset">↺ Otra vez</button>
+      </div>
+      <div class="dl-stage" id="dl-stage">
+        <div class="dl-cable"></div>
+        <div class="dl-node" id="dl-n-ana" style="left:13%"><div class="em">🏢</div><div class="nm">Ana (sitio oficial)</div></div>
+        <div class="dl-node" id="dl-n-mid" style="left:50%;opacity:0"><div class="em" id="dl-mid-em">😈</div><div class="nm">Hacker</div></div>
+        <div class="dl-node" id="dl-n-you" style="left:87%"><div class="em">💻</div><div class="nm">Tú</div></div>
+        <div class="dl-tok" id="dl-tok"></div>
+        <div class="dl-flash" id="dl-flash"></div>
+      </div>
+      <div class="dl-caption" id="dl-cap">👆 Pulsa un botón para bajar la app.</div>
+      <div id="dl-check" style="display:none">
+        <div class="hashbox" style="margin-top:10px"><span class="lab">📣 Huella OFICIAL (la que Ana publicó en su página):</span><span class="hx" id="dl-h-off"></span></div>
+        <div class="hashbox" style="margin-top:6px"><span class="lab">📥 Huella del archivo QUE TE LLEGÓ (en rojo lo que no coincide):</span><span class="hx" id="dl-h-mine"></span></div>
+        <div class="bigresult" id="dl-out" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div class="note green">🌍 <b>Así se ve en la vida real:</b> debajo de los botones de descarga de muchos programas aparece un renglón tipo <code class="inline">SHA-256: 3f8a91c4…</code>. Ahora ya sabes exactamente para qué está ahí.</div>
+  </section>
+
+  <!-- ============ AUTENTIFICACIÓN ============ -->
+  <section class="panel" id="panel-t5">
+    <h2 class="sec-title">Autentificación: ¿y quién lo mandó?</h2>
+
+    <div class="bigidea">
+      💡 La huella dice si el mensaje <b>cambió</b>, pero no <b>quién lo mandó</b> (cualquiera puede licuar).
+      El truco: echar a la licuadora el mensaje <b>junto con una palabra secreta</b> que solo tú y tu banco conocen. Así el impostor no puede copiar el resultado.
+      Su nombre técnico es <b>HMAC</b>.
+    </div>
+
+    <div class="predict" data-correct="0" data-explain="¡Sí puede! Calcular una huella no requiere ningún secreto: Maloria altera el mensaje, calcula la huella nueva y la adjunta. Por eso la huella sola NO autentifica: falta un ingrediente que solo conozcan Ana y Bruno.">
+      <div class="p-q">🤔 Predice: si Maloria altera un mensaje que viaja con su huella, ¿podrá también recalcular la huella para que todo cuadre?</div>
+      <div class="p-opts">
+        <button class="p-opt">Sí: calcular huellas no requiere ningún secreto</button>
+        <button class="p-opt">No: solo Ana puede calcular huellas de sus mensajes</button>
+        <button class="p-opt">Solo si tiene una supercomputadora</button>
+      </div>
+      <div class="p-fb"></div>
+    </div>
+
+    <div class="card">
+      <h3>😈 Fase 1 · Ponte en los zapatos de Maloria (huella simple)</h3>
+      <div class="howto">
+        <span class="htitle">📋 Cómo usar este simulador</span>
+        <ol>
+          <li>Contesta la <b>predicción</b> 🤔 de arriba.</li>
+          <li><b>Fase 1 — TÚ eres Maloria:</b> altera el mensaje y deja que Bruno verifique… el fraude <b>FUNCIONA</b> 💸.</li>
+          <li><b>Fase 2 — ahora hay palabra secreta:</b> intenta el mismo truco… y mira cómo se estrella 🛡️.</li>
+          <li>Cambia la <b>palabra secreta</b> y repite: el código cambia por completo.</li>
+        </ol>
+      </div>
+      <p style="color:#d6f2e0">Ana le manda a su banco este mensaje, acompañado de su huella. <b>Tú eres Maloria</b> y lo interceptas:</p>
+      <div class="bigresult"><span class="lab">Mensaje en tránsito:</span><span id="am-msg1">Bruno: deposita $100 a la cuenta 111</span></div>
+      <div class="hashbox"><span class="lab">Huella adjunta:</span><span class="hx" id="am-h1"></span></div>
+      <div class="btnrow">
+        <button class="btn danger" id="am-alter">😈 Alterar a $9,999 y recalcular la huella</button>
+        <button class="btn warn" id="am-check1" disabled>🏦 Que Bruno verifique</button>
+        <button class="btn silverb" id="am-r1">↺</button>
+      </div>
+      <div class="bigresult" id="am-out1" style="display:none"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>🛡️ Fase 2 · Ahora con clave secreta compartida (HMAC)</h3>
+      <p style="color:#d6f2e0">Ana y Bruno acordaron una <b>palabra secreta</b> que Maloria no conoce. Ahora el código se calcula metiendo a la licuadora <b>el mensaje JUNTO con la palabra secreta</b>. Sin la palabra exacta, la licuadora entrega otro código — y ahí cae el impostor:</p>
+      <label class="fld">🤫 Palabra secreta de Ana y Bruno (cámbiala si quieres):</label>
+      <input type="text" id="am-key" value="tortas de tamal" maxlength="30" style="max-width:280px">
+      <div class="bigresult"><span class="lab">Mensaje en tránsito:</span><span id="am-msg2">Bruno: deposita $100 a la cuenta 111</span></div>
+      <div class="hashbox"><span class="lab">Código de autentificación (huella + clave secreta):</span><span class="hx" id="am-h2"></span></div>
+      <div class="btnrow">
+        <button class="btn danger" id="am-alter2">😈 Alterar y recalcular… SIN la clave</button>
+        <button class="btn warn" id="am-check2" disabled>🏦 Que Bruno verifique CON la clave</button>
+        <button class="btn silverb" id="am-r2">↺</button>
+      </div>
+      <div class="bigresult" id="am-out2" style="display:none"></div>
+    </div>
+
+    <div class="note">🧠 <b>Regla de oro para el examen:</b> huella (hash) = <b>integridad</b> (¿cambió?). Huella + clave secreta (HMAC) = integridad <b>+ autentificación</b> (¿cambió? ¿y de verdad viene de quien dice?).</div>
+
+    <div class="note green">🗣️ <b>Para explicarlo en 10 segundos:</b> “La huella sola dice SI el mensaje cambió, pero cualquiera puede calcularla. Si la licuadora además lleva una palabra secreta que solo Ana y Bruno conocen, el código se convierte en una firma: <b>nadie más puede fabricarla</b>.”</div>
+  </section>
+
+  <!-- ============ ATAQUE REAL ============ -->
+  <section class="panel" id="panel-t7">
+    <h2 class="sec-title">Ataque real: la actualización envenenada</h2>
+
+    <div class="bigidea">
+      💡 El truco favorito en el WiFi del café: te dejan bajar el programa que pediste… <b>pero con un virus adentro</b>.
+      Se ve idéntico. La única defensa barata: <b>comparar su huella</b> con la oficial antes de instalarlo.
+    </div>
+
+    <div class="card">
+      <h3>🎬 Ve el ataque en acción</h3>
+      <div class="howto">
+        <span class="htitle">📋 Cómo usar este simulador</span>
+        <ol>
+          <li>Escribe el nombre de tu <b>archivo más valioso</b> y elige la <b>velocidad</b> (🐢 recomendado para clase).</li>
+          <li>Elige un <b>escenario</b>: 🚫 sin verificar o 🛡️ verificando la huella oficial.</li>
+          <li>Pulsa <b>“Reproducir”</b> (avanza solo y lento) o <b>“Ir paso a paso”</b> para avanzar tú.</li>
+          <li>En los momentos clave <b>tendrás que adivinar qué pasará</b> 🤔 antes de verlo.</li>
+          <li>Compara los dos finales: 💀 sin verificar el virus entra; 🛡️ con la huella, se bloquea.</li>
+        </ol>
+      </div>
+
+      <div class="modepick">
+        <button id="mm-mode-bad" class="on-bad">🚫 Sin verificar<small>Instalas lo que llegue, como casi todo el mundo</small></button>
+        <button id="mm-mode-good">🛡️ Verificando la huella oficial<small>Tu compu compara la huella antes de instalar</small></button>
+      </div>
+
+      <div class="mm-controls-top">
+        <label class="fld" style="margin:0">📁 Tu archivo más valioso:</label>
+        <input type="text" id="mm-secret" value="mis-fotos-familia.zip" maxlength="26" style="max-width:260px">
+        <span class="mm-speed">
+          <span class="lbl">Velocidad:</span>
+          <button data-spd="slow" id="mm-spd-slow" class="on">🐢 Muy lento</button>
+          <button data-spd="med" id="mm-spd-med">🚶 Lento</button>
+          <button data-spd="fast" id="mm-spd-fast">🙂 Normal</button>
+        </span>
+      </div>
+
+      <div class="mm-stage" id="mm-stage">
+        <div class="mm-cable"></div>
+        <div class="mm-node ana" id="mm-node-ana">
+          <div class="mm-hold" id="mm-hold-ana"></div>
+          <div class="mm-emoji">💻</div><div class="mm-name">Tu computadora</div>
+        </div>
+        <div class="mm-node mal" id="mm-node-mal">
+          <div class="mm-hold" id="mm-hold-mal"></div>
+          <div class="mm-emoji" id="mm-emoji-mal">😈</div><div class="mm-name">Maloria (WiFi del café)</div>
+        </div>
+        <div class="mm-node bruno" id="mm-node-bruno">
+          <div class="mm-hold" id="mm-hold-bruno"></div>
+          <div class="mm-emoji">🏢</div><div class="mm-name">Servidor oficial</div>
+        </div>
+        <div class="mm-token" id="mm-token"></div>
+        <div class="mm-flash" id="mm-flash"></div>
+        <div class="mm-reveal" id="mm-reveal"><div class="t">El virus acaba de mandarle a Maloria:</div><div class="v" id="mm-reveal-v">mis-fotos-familia.zip</div></div>
+        <div class="mm-alarm" id="mm-alarm"><div class="big">🚨</div><div class="t">LA HUELLA NO COINCIDE</div><div class="s">Instalación cancelada antes del desastre</div></div>
+      </div>
+
+      <div class="mm-progress"><div class="mm-progress-bar" id="mm-progress-bar"></div></div>
+      <div class="mm-caption" id="mm-caption">Elige un escenario y pulsa <b>▶ Reproducir</b>. Va despacio para que dé tiempo de leer cada paso; o avanza tú mismo con <b>👉 Ir paso a paso</b>. En algunos pasos <b>te tocará adivinar qué pasará</b>. 🤔</div>
+      <div class="mm-quiz" id="mm-quiz"></div>
+      <div class="verdict-big" id="mm-verdict" style="display:none"></div>
+
+      <div class="btnrow">
+        <button class="btn primary" id="mm-auto" style="font-size:1.15rem">▶ Reproducir (automático y lento)</button>
+        <button class="btn" id="mm-next">👉 Ir paso a paso</button>
+        <button class="btn danger" id="mm-reset">↺ Reiniciar</button>
+      </div>
+    </div>
+
+    <div class="grid cols2" style="margin-top:16px">
+      <div class="card">
+        <h3 class="bad">😈 ¿Por qué funciona el ataque?</h3>
+        <p>Un archivo alterado <b>no avisa</b>: conserva el nombre, el ícono y el tamaño aparente. Si nadie compara su huella con la oficial, el virus entra caminando por la puerta grande. En un WiFi abierto, ponerse “en medio” de una descarga es un truco viejo y barato.</p>
+      </div>
+      <div class="card">
+        <h3>🛡️ La defensa: la huella oficial</h3>
+        <p>El autor publica la huella (SHA-256) en su página. Tu compu (o tú) calcula la huella de lo que llegó y <b>las compara</b>. ¿Distintas? El archivo NO es el original, sin importar lo normal que se vea. Las tiendas de apps y los sistemas de actualización hacen exactamente esto por ti, millones de veces al día.</p>
+      </div>
+    </div>
+
+    <div class="note">🌍 <b>Esto pasa en la vida real:</b> se llama ataque de <b>cadena de suministro</b> cuando envenenan la descarga en el origen, o <b>“evil twin”</b> cuando el WiFi del café es falso. La huella publicada es tu detector de mentiras en ambos casos.</div>
+  </section>
+
+  <!-- ============ REPASO ============ -->
+  <section class="panel" id="panel-t6">
+    <h2 class="sec-title">✅ Repaso: 6 preguntas</h2>
+    <div class="howto">
+      <span class="htitle">📋 Cómo usar este repaso</span>
+      <ol>
+        <li>Lee cada pregunta y <b>toca la respuesta</b> que creas correcta.</li>
+        <li>La opción correcta se pinta de <b>verde</b> y aparece una <b>explicación</b>.</li>
+        <li>Tu <b>puntaje</b> va subiendo arriba. Al final verás tu resultado.</li>
+        <li>Puedes <b>Reiniciar</b> para intentarlo de nuevo.</li>
+      </ol>
+    </div>
+    <div class="card" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <span class="score-pill">Puntaje: <span id="quiz-score">0</span> / <span id="quiz-total">6</span></span>
+      <button class="btn danger" id="quiz-reset">↺ Reiniciar</button>
+    </div>
+    <div id="quiz-list"></div>
+  </section>
+
+
+</main>
+
+<footer>
+  Cifrado y Criptografía ::: Semana 5 ::: Dr. José Luis Perales Trejo ::: UTEL
+</footer>
+
+<script>
+"use strict";
+/* ===== Núcleo de hash real (MD5, SHA-1, SHA-256, HMAC-SHA256) — verificado con vectores oficiales ===== */
+const $ = id => document.getElementById(id);
+function utf8Bytes(str){ return new TextEncoder().encode(str); }
+
+const SHA256_K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function sha256Bytes(bytes){
+  let H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const l = bytes.length, bitLen = l * 8;
+  const total = (((l + 8) >> 6) + 1) * 64;
+  const msg = new Uint8Array(total);
+  msg.set(bytes); msg[l] = 0x80;
+  msg[total-4]=(bitLen>>>24)&255; msg[total-3]=(bitLen>>>16)&255; msg[total-2]=(bitLen>>>8)&255; msg[total-1]=bitLen&255;
+  const w = new Array(64);
+  const rr = (x,n)=>(x>>>n)|(x<<(32-n));
+  for (let i = 0; i < total; i += 64){
+    for (let t = 0; t < 16; t++) w[t]=(msg[i+t*4]<<24)|(msg[i+t*4+1]<<16)|(msg[i+t*4+2]<<8)|msg[i+t*4+3];
+    for (let t = 16; t < 64; t++){
+      const s0 = rr(w[t-15],7)^rr(w[t-15],18)^(w[t-15]>>>3);
+      const s1 = rr(w[t-2],17)^rr(w[t-2],19)^(w[t-2]>>>10);
+      w[t] = (w[t-16] + s0 + w[t-7] + s1) | 0;
+    }
+    let [a,b,c,d,e,f,g,h] = H;
+    for (let t = 0; t < 64; t++){
+      const S1 = rr(e,6)^rr(e,11)^rr(e,25);
+      const ch = (e&f)^(~e&g);
+      const t1 = (h + S1 + ch + SHA256_K[t] + w[t]) | 0;
+      const S0 = rr(a,2)^rr(a,13)^rr(a,22);
+      const mj = (a&b)^(a&c)^(b&c);
+      const t2 = (S0 + mj) | 0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
+    }
+    H = [(H[0]+a)|0,(H[1]+b)|0,(H[2]+c)|0,(H[3]+d)|0,(H[4]+e)|0,(H[5]+f)|0,(H[6]+g)|0,(H[7]+h)|0];
+  }
+  return H.map(x => (x>>>0).toString(16).padStart(8,"0")).join("");
+}
+function sha256(str){ return sha256Bytes(utf8Bytes(str)); }
+
+function sha1(str){
+  const bytes = utf8Bytes(str);
+  const l = bytes.length, bitLen = l * 8;
+  const total = (((l + 8) >> 6) + 1) * 64;
+  const msg = new Uint8Array(total);
+  msg.set(bytes); msg[l] = 0x80;
+  msg[total-4]=(bitLen>>>24)&255; msg[total-3]=(bitLen>>>16)&255; msg[total-2]=(bitLen>>>8)&255; msg[total-1]=bitLen&255;
+  let h0=0x67452301,h1=0xEFCDAB89,h2=0x98BADCFE,h3=0x10325476,h4=0xC3D2E1F0;
+  const rl=(x,n)=>((x<<n)|(x>>>(32-n)));
+  const w = new Array(80);
+  for (let i = 0; i < total; i += 64){
+    for (let t = 0; t < 16; t++) w[t]=(msg[i+t*4]<<24)|(msg[i+t*4+1]<<16)|(msg[i+t*4+2]<<8)|msg[i+t*4+3];
+    for (let t = 16; t < 80; t++) w[t] = rl(w[t-3]^w[t-8]^w[t-14]^w[t-16], 1);
+    let a=h0,b=h1,c=h2,d=h3,e=h4;
+    for (let t = 0; t < 80; t++){
+      let f, k;
+      if (t < 20){ f=(b&c)|(~b&d); k=0x5A827999; }
+      else if (t < 40){ f=b^c^d; k=0x6ED9EBA1; }
+      else if (t < 60){ f=(b&c)|(b&d)|(c&d); k=0x8F1BBCDC; }
+      else { f=b^c^d; k=0xCA62C1D6; }
+      const tmp=(rl(a,5)+f+e+k+w[t])|0;
+      e=d; d=c; c=rl(b,30); b=a; a=tmp;
+    }
+    h0=(h0+a)|0; h1=(h1+b)|0; h2=(h2+c)|0; h3=(h3+d)|0; h4=(h4+e)|0;
+  }
+  return [h0,h1,h2,h3,h4].map(x=>(x>>>0).toString(16).padStart(8,"0")).join("");
+}
+
+const MD5_S=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,
+  5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,
+  4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,
+  6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+const MD5_K = (()=>{ const K=new Array(64); for(let i=0;i<64;i++) K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296); return K; })();
+function md5(str){
+  const bytes = utf8Bytes(str);
+  const l = bytes.length, bitLen = l * 8;
+  const total = (((l + 8) >> 6) + 1) * 64;
+  const msg = new Uint8Array(total);
+  msg.set(bytes); msg[l] = 0x80;
+  msg[total-8]=bitLen&255; msg[total-7]=(bitLen>>>8)&255; msg[total-6]=(bitLen>>>16)&255; msg[total-5]=(bitLen>>>24)&255;
+  let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;
+  const rl=(x,n)=>((x<<n)|(x>>>(32-n)));
+  for (let i = 0; i < total; i += 64){
+    const M = new Array(16);
+    for (let t = 0; t < 16; t++) M[t]=msg[i+t*4]|(msg[i+t*4+1]<<8)|(msg[i+t*4+2]<<16)|(msg[i+t*4+3]<<24);
+    let A=a0,B=b0,C=c0,D=d0;
+    for (let t = 0; t < 64; t++){
+      let F, g;
+      if (t < 16){ F=(B&C)|(~B&D); g=t; }
+      else if (t < 32){ F=(D&B)|(~D&C); g=(5*t+1)%16; }
+      else if (t < 48){ F=B^C^D; g=(3*t+5)%16; }
+      else { F=C^(B|~D); g=(7*t)%16; }
+      F=(F+A+MD5_K[t]+M[g])|0;
+      A=D; D=C; C=B; B=(B+rl(F,MD5_S[t]))|0;
+    }
+    a0=(a0+A)|0; b0=(b0+B)|0; c0=(c0+C)|0; d0=(d0+D)|0;
+  }
+  return [a0,b0,c0,d0].map(x=>{ x>>>=0; let s=""; for(let j=0;j<4;j++) s+=((x>>>(j*8))&255).toString(16).padStart(2,"0"); return s; }).join("");
+}
+
+function hexToBytes(hex){ const out=new Uint8Array(hex.length/2); for(let i=0;i<out.length;i++) out[i]=parseInt(hex.substr(i*2,2),16); return out; }
+function hmac256(keyStr, msgStr){
+  let key = utf8Bytes(keyStr);
+  if (key.length > 64) key = hexToBytes(sha256Bytes(key));
+  const ipad = new Uint8Array(64), opad = new Uint8Array(64);
+  for (let i = 0; i < 64; i++){ const k = key[i] || 0; ipad[i]=k^0x36; opad[i]=k^0x5c; }
+  const msg = utf8Bytes(msgStr);
+  const inner = new Uint8Array(64 + msg.length); inner.set(ipad); inner.set(msg, 64);
+  const innerHash = hexToBytes(sha256Bytes(inner));
+  const outer = new Uint8Array(96); outer.set(opad); outer.set(innerHash, 64);
+  return sha256Bytes(outer);
+}
+
+/* espaciado visual de un hex (bloques de 8) */
+function hxPlain(hex){ return hex.replace(/(.{8})/g, "$1 ").trim(); }
+
+/* ===== Pestañas ===== */
+document.querySelectorAll("#tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#tabs button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("section.panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    $("panel-" + btn.dataset.tab).classList.add("active");
+    window.scrollTo({top:0, behavior:"instant"});
+  });
+});
+
+/* ===== Onda (ripple) en los botones ===== */
+document.addEventListener("click", e => {
+  const b = e.target.closest("button.btn");
+  if (!b || b.disabled) return;
+  const r = document.createElement("span");
+  r.className = "ripple";
+  const rect = b.getBoundingClientRect();
+  const d = Math.max(rect.width, rect.height);
+  r.style.width = r.style.height = d + "px";
+  r.style.left = (e.clientX - rect.left - d / 2) + "px";
+  r.style.top = (e.clientY - rect.top - d / 2) + "px";
+  b.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+});
+
+/* ===== Predicciones ===== */
+function wirePredicts(){
+  document.querySelectorAll(".predict").forEach(box => {
+    const correct = parseInt(box.dataset.correct);
+    const explain = box.dataset.explain || "";
+    const fb = box.querySelector(".p-fb");
+    const opts = [...box.querySelectorAll(".p-opt")];
+    opts.forEach((b, i) => b.addEventListener("click", () => {
+      if (box.dataset.done) return;
+      box.dataset.done = "1";
+      opts.forEach((o, j) => { o.disabled = true; if (j === correct) o.classList.add("ok"); });
+      if (i !== correct) opts[i].classList.add("bad");
+      fb.className = "p-fb show";
+      fb.innerHTML = (i === correct ? "✅ ¡Exacto! " : "❌ Casi. ") + explain;
+    }));
+  });
+}
+wirePredicts();
+
+/* ===== Sistema de logros ===== */
+const ACH_LIST = {
+  "hu-live":  "Calculaste tu primera huella",
+  "hu-aval":  "Provocaste el efecto avalancha",
+  "h-tres":   "Comparaste MD5, SHA-1 y SHA-256",
+  "h-choque": "Encontraste un choque de huellas",
+  "h-cosmos": "Descubriste por qué SHA-256 aguanta",
+  "h-desc":   "Verificaste una descarga limpia",
+  "h-hacker": "Cachaste al hacker con la huella",
+  "h-fraude": "Hiciste el fraude de la huella simple",
+  "h-hmac":   "Bloqueaste el fraude con la clave secreta",
+  "h-atq":    "Viste la actualización envenenada",
+  "h-def":    "Activaste la defensa con huella",
+  "quiz-100": "Repaso perfecto"
+};
+const ACH = new Set();
+function achRender(){
+  const total = Object.keys(ACH_LIST).length;
+  $("ach-count").innerHTML = `🏅 <b>${ACH.size}</b>/${total} logros`;
+  $("ach-fill").style.width = (100 * ACH.size / total) + "%";
+}
+function toast(html){
+  const t = document.createElement("div");
+  t.className = "toast"; t.innerHTML = html;
+  $("toasts").appendChild(t);
+  setTimeout(()=> t.remove(), 3400);
+}
+function unlock(id){
+  if (ACH.has(id) || !ACH_LIST[id]) return;
+  ACH.add(id); achRender();
+  toast("🏅 <b>¡Logro!</b> " + ACH_LIST[id]);
+  if (ACH.size === Object.keys(ACH_LIST).length)
+    setTimeout(()=> toast("🏆 <b>¡TODOS LOS LOGROS!</b> Dominaste todo el simulador"), 700);
+}
+achRender();
+
+/* ================================================================
+   T1 · La huella en vivo + efecto avalancha
+   ================================================================ */
+function huLive(){ $("hu-live").textContent = hxPlain(sha256($("hu-msg").value)); }
+$("hu-msg").addEventListener("input", function(){ huLive(); unlock("hu-live"); });
+$("hu-magic").addEventListener("click", function(){
+  var orig = $("hu-msg").value || "Nos vemos a las 7 en el café";
+  if (!orig.length) return;
+  var i = Math.floor(Math.random() * orig.length);
+  var c = orig[i];
+  var alt = c === "7" ? "8" : (c === c.toUpperCase() && c !== c.toLowerCase() ? c.toLowerCase() : (c === c.toLowerCase() && c !== c.toUpperCase() ? c.toUpperCase() : (c === " " ? "_" : (c === "z" ? "s" : "z"))));
+  var changedMsg = orig.slice(0, i) + alt + orig.slice(i + 1);
+  var a = sha256(orig), b = sha256(changedMsg);
+  var esc = function(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
+  $("hu-txt-before").textContent = orig;
+  $("hu-txt-after").innerHTML = esc(orig.slice(0, i)) + '<b class="chg" style="padding:0 3px">' + esc(alt) + '</b>' + esc(orig.slice(i + 1));
+  $("hu-before").textContent = hxPlain(a);
+  var html = "", changed = 0;
+  for (var k = 0; k < 64; k++){
+    var same = a[k] === b[k];
+    if (!same) changed++;
+    html += '<b class="' + (same ? "same" : "chg") + '">' + b[k] + '</b>';
+    if ((k + 1) % 8 === 0 && k < 63) html += " ";
+  }
+  $("hu-diff").innerHTML = html;
+  var pct = Math.round(100 * changed / 64);
+  $("hu-meter").style.width = pct + "%";
+  $("hu-stat").innerHTML = "🌋 Cambié <b>1 sola letra</b> del mensaje… y cambiaron <b>" + changed + " de 64 símbolos</b> de la huella (" + pct + "%). ¡Por eso ninguna alteración pasa desapercibida!";
+  $("hu-result").style.display = "block";
+  if (changed >= 20) unlock("hu-aval");
+});
+huLive();
+
+/* ================================================================
+   T3 · Compara algoritmos + máquina de choques
+   ================================================================ */
+function alRender(){
+  const m = $("al-msg").value;
+  $("al-md5").textContent = md5(m);
+  $("al-sha1").textContent = sha1(m);
+  $("al-sha256").textContent = sha256(m);
+}
+$("al-msg").addEventListener("input", ()=>{ alRender(); unlock("h-tres"); });
+alRender();
+
+const COL = { timer: null };
+function colStop(){ if (COL.timer){ clearInterval(COL.timer); COL.timer = null; } }
+function colMsgAzar(){
+  return "Vale por " + (1 + Math.floor(Math.random() * 999)) + " " +
+    ["tacos","abrazos","cafés","libros","boletos","tamales","stickers","puntos"][Math.floor(Math.random()*8)] +
+    " · folio " + Math.floor(Math.random() * 1e9);
+}
+function colBoxesInit(){
+  const box = $("col-boxes"); box.innerHTML = "";
+  COL.occ = {};
+  for (let i = 0; i < 8; i++){
+    const d = document.createElement("div");
+    d.className = "col-box"; d.id = "cbox-" + i;
+    d.innerHTML = '<div class="cn">casillero ' + i + '</div><div class="chips" id="chips-' + i + '"></div>';
+    box.appendChild(d);
+  }
+  $("col-out").style.display = "none";
+}
+function colBox(msg){ return parseInt(sha256(msg)[0], 16) % 8; }
+$("col-short").addEventListener("click", ()=>{
+  colStop();
+  colBoxesInit();
+  $("col-cap").innerHTML = "📩 Soltando mensajes al azar… cada uno cae en el casillero que le toca por su huella.";
+  COL.timer = setInterval(()=>{
+    const msg = colMsgAzar();
+    const bx = colBox(msg);
+    const chips = $("chips-" + bx);
+    const boxEl = $("cbox-" + bx);
+    boxEl.classList.remove("pop"); void boxEl.offsetWidth; boxEl.classList.add("pop");
+    if (COL.occ[bx] && COL.occ[bx] !== msg){
+      colStop();
+      chips.textContent = "📄📄";
+      boxEl.classList.add("hit");
+      $("col-cap").innerHTML = "💥 ¡Dos mensajes distintos cayeron en el <b>mismo casillero (" + bx + ")</b>! Eso es un CHOQUE.";
+      $("col-out").style.display = "block";
+      $("col-out").className = "bigresult bad";
+      $("col-out").innerHTML =
+        "💥 <b>¡Choque!</b> Estos dos mensajes son <b>distintos</b>… pero les tocó el <b>mismo casillero</b> (la misma huella corta):<br>" +
+        '<span class="lab" style="margin-top:6px">Mensaje A:</span>“' + COL.occ[bx] + '”<br>' +
+        '<span class="lab">Mensaje B:</span>“' + msg + '”<br>' +
+        '<span class="lab" style="margin-top:6px">Con solo <b>8 casilleros</b> (una huella cortita) se llenan enseguida. 👉 Un tramposo aprovecharía esto para <b>colarte un archivo falso con el mismo “sello”</b>.</span>';
+      unlock("h-choque");
+      return;
+    }
+    COL.occ[bx] = msg;
+    chips.textContent = "📄";
+  }, 650);
+});
+$("col-long").addEventListener("click", ()=>{
+  colStop();
+  $("col-cap").innerHTML = "🔒 Con la huella larga de hoy no hay 8 casilleros…";
+  $("col-out").style.display = "block";
+  $("col-out").className = "bigresult ok";
+  $("col-out").innerHTML = "🔒 <b>La huella de hoy no tiene 8 casilleros… tiene un número de 78 cifras de casilleros.</b> Hay tantísimos que dos mensajes <b>jamás</b> caen en el mismo: lograrlo tomaría más intentos que toda la vida del universo. 👉 <b>Por eso hoy se usa la huella larga.</b>";
+  unlock("h-cosmos");
+});
+colBoxesInit();
+
+/* ================================================================
+   T4 · La descarga segura
+   ================================================================ */
+const DL = {
+  official: "app-utel.exe :: instalador oficial de Ana",
+  evil: "app-utel.exe :: instalador oficial de Ana ::virus::",
+  busy: false
+};
+const dlWait = ms => new Promise(r => setTimeout(r, ms));
+function dlTok(html){ $("dl-tok").innerHTML = html; }
+function dlMove(from, to, ms){
+  return new Promise(res => {
+    const t = $("dl-tok");
+    t.style.transition = "none"; t.style.left = from + "%"; t.style.opacity = "1";
+    setTimeout(()=>{ t.style.transition = "left " + ms + "ms ease-in-out"; t.style.left = to + "%"; setTimeout(res, ms); }, 30);
+  });
+}
+function dlPop(id){ const n = $(id); n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop"); }
+function dlFlash(){ const f = $("dl-flash"); f.classList.remove("show"); void f.offsetWidth; f.classList.add("show"); }
+function dlReset(){
+  DL.busy = false;
+  $("dl-tok").style.opacity = "0";
+  $("dl-n-mid").style.opacity = "0";
+  $("dl-mid-em").textContent = "😈";
+  $("dl-check").style.display = "none";
+  $("dl-cap").innerHTML = "👆 Pulsa un botón para bajar la app.";
+}
+async function dlRun(path){
+  if (DL.busy) return;
+  DL.busy = true;
+  $("dl-check").style.display = "none";
+  $("dl-tok").style.opacity = "0";
+  $("dl-mid-em").textContent = "😈";
+  if (path === "clean"){
+    $("dl-n-mid").style.opacity = "0";
+    $("dl-cap").innerHTML = "📥 Bajando del <b>sitio oficial</b>… el paquete viaja directo a tu computadora.";
+    dlTok("📦<small>app-utel</small>");
+    await dlMove(13, 87, 2200);
+    dlPop("dl-n-you");
+  } else {
+    $("dl-n-mid").style.opacity = "1";
+    $("dl-cap").innerHTML = "📥 Bajando por el <b>WiFi del café</b>… pero el hacker está en medio del camino.";
+    dlTok("📦<small>app-utel</small>");
+    await dlMove(13, 50, 1500);
+    $("dl-tok").style.opacity = "0";
+    dlFlash(); dlPop("dl-n-mid");
+    $("dl-cap").innerHTML = "😈 ¡El hacker atrapó el paquete y le <b>mete un virus</b>! Lo deja con el mismo nombre y la misma cara.";
+    await dlWait(1600);
+    dlTok("📦<small style='color:#ff8a8a'>¿con virus?</small>");
+    $("dl-tok").style.opacity = "1";
+    await dlMove(50, 87, 1500);
+    dlPop("dl-n-you");
+  }
+  $("dl-tok").style.opacity = "0";
+  $("dl-cap").innerHTML = "✅ El archivo llegó y <b>se ve normal</b>… pero no confíes: vamos a comparar su huella con la oficial. 🔍";
+  await dlWait(800);
+  const off = sha256(DL.official);
+  const mine = sha256(path === "clean" ? DL.official : DL.evil);
+  $("dl-h-off").textContent = hxPlain(off);
+  let html = "";
+  for (let i = 0; i < 64; i++){
+    html += '<b class="' + (mine[i] === off[i] ? "same" : "chg") + '">' + mine[i] + '</b>';
+    if ((i + 1) % 8 === 0 && i < 63) html += " ";
+  }
+  $("dl-h-mine").innerHTML = html;
+  $("dl-check").style.display = "block";
+  const out = $("dl-out");
+  if (mine === off){
+    out.className = "bigresult ok";
+    out.innerHTML = "✅ <b>Las dos huellas son IGUALITAS.</b> El archivo es exactamente el que Ana publicó: nadie lo tocó en el camino. Puedes instalarlo tranquilo.";
+    $("dl-cap").innerHTML = "🎉 Llegó sano y salvo.";
+    unlock("h-desc");
+  } else {
+    dlFlash();
+    out.className = "bigresult bad";
+    out.innerHTML = "🚨 <b>¡Las huellas NO coinciden!</b> Aunque el archivo se ve idéntico, <b>NO es el de Ana</b>: el hacker lo cambió. No lo instales. Así de fácil lo cachaste con la huella. 🕵️";
+    $("dl-cap").innerHTML = "🕵️ La huella delató al impostor.";
+    unlock("h-hacker");
+  }
+  DL.busy = false;
+}
+$("dl-clean").addEventListener("click", ()=> dlRun("clean"));
+$("dl-evil").addEventListener("click", ()=> dlRun("evil"));
+$("dl-reset").addEventListener("click", dlReset);
+dlReset();
+
+/* ================================================================
+   T5 · Autentificación: huella simple vs HMAC
+   ================================================================ */
+const AM = {
+  msg: "Bruno: deposita $100 a la cuenta 111",
+  alt: "Bruno: deposita $9,999 a la cuenta 666",
+  altered1: false, altered2: false
+};
+function am1Reset(){
+  AM.altered1 = false;
+  $("am-msg1").textContent = AM.msg;
+  $("am-msg1").style.color = "";
+  $("am-h1").textContent = hxPlain(sha256(AM.msg));
+  $("am-check1").disabled = true;
+  $("am-alter").disabled = false;
+  $("am-out1").style.display = "none";
+}
+$("am-alter").addEventListener("click", ()=>{
+  AM.altered1 = true;
+  $("am-msg1").textContent = AM.alt;
+  $("am-msg1").style.color = "var(--red)";
+  $("am-h1").textContent = hxPlain(sha256(AM.alt));
+  $("am-check1").disabled = false;
+  $("am-alter").disabled = true;
+  const out = $("am-out1");
+  out.style.display = "block"; out.className = "bigresult";
+  out.innerHTML = `😈 Alteraste el mensaje… y como calcular huellas <b>no requiere ningún secreto</b>, también recalculaste la huella. Todo cuadra perfecto. Ahora deja que Bruno verifique.`;
+});
+$("am-check1").addEventListener("click", ()=>{
+  const out = $("am-out1");
+  out.style.display = "block"; out.className = "bigresult bad";
+  out.innerHTML = `🏦 Bruno calcula la huella del mensaje recibido… <b>y coincide con la adjunta</b> ✅. Para él todo está “íntegro”, así que deposita.<br>💸 <b>¡FRAUDE EXITOSO!</b> La huella simple detecta accidentes, pero <b>no impostores</b>: cualquiera puede calcularla. Baja a la Fase 2 para ver la solución. 👇`;
+  unlock("h-fraude");
+});
+$("am-r1").addEventListener("click", am1Reset);
+
+function am2Reset(){
+  AM.altered2 = false;
+  $("am-msg2").textContent = AM.msg;
+  $("am-msg2").style.color = "";
+  const key = $("am-key").value || "tortas de tamal";
+  $("am-h2").textContent = hxPlain(hmac256(key, AM.msg));
+  $("am-check2").disabled = true;
+  $("am-alter2").disabled = false;
+  $("am-out2").style.display = "none";
+}
+$("am-key").addEventListener("input", am2Reset);
+$("am-alter2").addEventListener("click", ()=>{
+  AM.altered2 = true;
+  $("am-msg2").textContent = AM.alt;
+  $("am-msg2").style.color = "var(--red)";
+  $("am-h2").textContent = hxPlain(sha256(AM.alt));
+  $("am-check2").disabled = false;
+  $("am-alter2").disabled = true;
+  const out = $("am-out2");
+  out.style.display = "block"; out.className = "bigresult";
+  out.innerHTML = `😈 Alteraste el mensaje y calculaste el mejor código que pudiste… <b>pero sin la palabra secreta</b>: tu licuadora trabajó SIN el ingrediente clave. A ver si cuela: que Bruno verifique.`;
+});
+$("am-check2").addEventListener("click", ()=>{
+  const key = $("am-key").value || "tortas de tamal";
+  const bruno = hmac256(key, AM.alt);
+  const maloria = sha256(AM.alt);
+  const out = $("am-out2");
+  out.style.display = "block"; out.className = "bigresult ok";
+  out.innerHTML = `🏦 Bruno mezcla el mensaje recibido con la palabra secreta «${key}» y obtiene:<br><span style="font-family:var(--mono);font-size:.85rem;color:var(--cyan)">${bruno.slice(0,24)}…</span><br>El código que venía adjunto era:<br><span style="font-family:var(--mono);font-size:.85rem;color:var(--red)">${maloria.slice(0,24)}…</span><br>🚨 <b>NO COINCIDEN → mensaje RECHAZADO.</b> Sin la clave, Maloria no puede fabricar un código válido. 🛡️ Integridad <b>+ autentificación</b>: eso es HMAC.`;
+  unlock("h-hmac");
+});
+$("am-r2").addEventListener("click", am2Reset);
+am1Reset(); am2Reset();
+
+/* ================================================================
+   T7 · Ataque real: la actualización envenenada (motor auto/manual)
+   ================================================================ */
+const H_OK = sha256("app-utel v2.0 oficial").slice(0, 12);
+const H_BAD = sha256("app-utel v2.0 oficial ::☠️virus☠️").slice(0, 12);
+const MM = { mode: "bad", run: 0, busy: false, auto: false, i: -1, travelMs: 2600, pauseMs: 4200, secret: "mis-fotos-familia.zip", cancelAsk: null };
+const SPD = { slow: {t: 2600, p: 4200}, med: {t: 2000, p: 3200}, fast: {t: 1400, p: 2200} };
+const ANA_X = 13, MAL_X = 50, BRU_X = 87;
+const el = {};
+function mmInit(){
+  el.stage = $("mm-stage"); el.token = $("mm-token"); el.cap = $("mm-caption");
+  el.flash = $("mm-flash"); el.reveal = $("mm-reveal"); el.alarm = $("mm-alarm");
+  el.verdict = $("mm-verdict");
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function alive(myRun){ return myRun === MM.run; }
+function mmCaption(step, html){
+  el.cap.innerHTML = (step ? `<span class="step">${step}</span>` : "") + html;
+}
+function mmHold(who, html){ $(`mm-hold-${who}`).innerHTML = html; }
+function mmPop(who){
+  const n = $(`mm-node-${who}`);
+  n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop");
+  setTimeout(()=> n.classList.remove("pop"), 260);
+}
+function mmFlash(color){
+  el.flash.className = "mm-flash " + color + " show";
+  setTimeout(()=> el.flash.classList.remove("show"), 260);
+}
+async function mmTravel(emoji, cap, cls, xFrom, xTo){
+  const ms = MM.travelMs;
+  el.token.className = "mm-token " + (cls || "");
+  el.token.innerHTML = emoji + (cap ? `<span class="cap">${cap}</span>` : "");
+  el.token.style.transition = "none";
+  el.token.style.left = xFrom + "%";
+  el.token.style.opacity = "1";
+  await wait(40);
+  el.token.style.transition = `left ${ms}ms ease-in-out`;
+  el.token.style.left = xTo + "%";
+  await wait(ms);
+}
+function mmAsk(q){
+  return new Promise(resolve => {
+    let done = false;
+    MM.cancelAsk = () => { MM.cancelAsk = null; if (!done){ done = true; resolve(); } };
+    let html = `<div class="mm-q">🤔 ${q.q}</div><div class="mm-q-opts">`;
+    q.options.forEach((o, i) => html += `<button class="mm-q-opt" data-i="${i}">${o.t}</button>`);
+    html += `</div><div class="mm-q-fb" id="mm-q-fb"></div>`;
+    const box = $("mm-quiz");
+    box.innerHTML = html; box.style.display = "block";
+    const btns = [...box.querySelectorAll(".mm-q-opt")];
+    btns.forEach((b, i) => b.addEventListener("click", () => {
+      if (done) return; done = true; MM.cancelAsk = null;
+      btns.forEach((bb, j) => { bb.disabled = true; if (q.options[j].ok) bb.classList.add("ok"); });
+      if (!q.options[i].ok) b.classList.add("bad");
+      const fb = $("mm-q-fb"); fb.className = "mm-q-fb show";
+      fb.innerHTML = (q.options[i].ok ? "✅ ¡Exacto! " : "❌ No exactamente. ") + q.explain;
+      setTimeout(resolve, 1000);
+    }));
+  });
+}
+function mmHideToken(){ el.token.style.opacity = "0"; }
+function mmProgress(){
+  const beats = mmBeats();
+  const pct = MM.i < 0 ? 0 : Math.round(((MM.i + 1) / beats.length) * 100);
+  $("mm-progress-bar").style.width = pct + "%";
+}
+async function mmSleep(ms, r){
+  let left = ms;
+  while (left > 0 && MM.auto && alive(r)){ await wait(Math.min(160, left)); left -= 160; }
+}
+function mmBeats(){ return MM.mode === "bad" ? MM_BAD : MM_GOOD; }
+
+const MM_BAD = [
+  {
+    cap: `Estás en el WiFi del café. Tu compu le pide al servidor oficial <b>la actualización</b> de tu app favorita.`,
+    play: async (r)=>{
+      await mmTravel("📩", "¿me das la v2.0?", "", ANA_X, BRU_X); if (!alive(r)) return;
+      mmHideToken(); mmPop("bruno");
+    }
+  },
+  {
+    cap: `El servidor responde con la actualización <b>legítima</b> 📦. Pero para llegar a ti cruza el WiFi del café… <b>justo donde Maloria está en medio</b>.`,
+    play: async (r)=>{
+      await mmTravel("📦", "app v2.0 original", "k-green", BRU_X, MAL_X); if (!alive(r)) return;
+      mmHideToken(); mmPop("mal"); mmFlash("red");
+      mmHold("mal", "📦<div style='font-size:.7rem;color:var(--green)'>interceptada</div>");
+    }
+  },
+  {
+    cap: `Maloria tiene el paquete en sus manos. 👇 <b>Antes de continuar, adivina qué puede hacer.</b>`,
+    play: async (r)=>{
+      await mmAsk({
+        q: "¿Puede Maloria modificar un archivo que pasa por su WiFi?",
+        options: [
+          { t: "Sí: si nadie lo verifica después, puede meterle lo que quiera", ok: true },
+          { t: "No, los archivos no se pueden tocar en el camino", ok: false },
+          { t: "Solo si conoce tu contraseña", ok: false }
+        ],
+        explain: "Sí puede: controlar la red significa poder tocar lo que pasa por ella. La pregunta importante es si alguien COMPROBARÁ el archivo después… y en este escenario, nadie lo hará."
+      });
+    }
+  },
+  {
+    cap: `😈 Maloria abre el paquete y le mete un <b>regalito</b>: un virus espía. Lo vuelve a cerrar con el <b>mismo nombre y la misma apariencia</b>.`,
+    play: async (r)=>{
+      mmFlash("red");
+      mmHold("mal", "☠️<div style='font-size:.7rem;color:var(--red)'>virus adentro</div>");
+      mmPop("mal");
+      await wait(900);
+    }
+  },
+  {
+    cap: `El paquete envenenado llega a tu compu. Se ve <b>idéntico</b> al original: mismo nombre, mismo ícono. Nada sospechoso a la vista.`,
+    play: async (r)=>{
+      await mmTravel("📦", "app v2.0 (¿?)", "k-red", MAL_X, ANA_X); if (!alive(r)) return;
+      mmHideToken(); mmPop("ana");
+      mmHold("ana", "📦<div style='font-size:.7rem;color:var(--red)'>se ve normal</div>");
+    }
+  },
+  {
+    cap: `Tu compu está a punto de instalar. 👇 <b>¿Cómo podrías descubrir el engaño ANTES de instalar?</b>`,
+    play: async (r)=>{
+      await mmAsk({
+        q: "¿Qué delataría al archivo envenenado?",
+        options: [
+          { t: "Comparar su huella con la que publica el servidor oficial", ok: true },
+          { t: "Abrirlo a ver qué pasa", ok: false },
+          { t: "Mirar el ícono con mucha atención", ok: false }
+        ],
+        explain: "La huella: el virus cambió el contenido, así que la huella del archivo YA no coincide con la oficial — aunque por fuera se vea idéntico. Pero en este escenario… nadie la compara."
+      });
+    }
+  },
+  {
+    cap: `Nadie comparó nada: <b>instalas</b>. El virus despierta, husmea en tus carpetas… y encuentra tu archivo más valioso. 😱`,
+    play: async (r)=>{
+      $("mm-reveal-v").textContent = MM.secret || "(vacío)";
+      mmFlash("red"); el.reveal.classList.add("show");
+      await wait(1600); if (!alive(r)) return;
+      el.reveal.classList.remove("show");
+      await mmTravel("🗂️", "robo en curso…", "k-red", ANA_X, MAL_X); if (!alive(r)) return;
+      mmHideToken(); mmPop("mal");
+    }
+  },
+  {
+    cap: `Resultado: <b>Maloria tiene tus archivos</b> y tu compu, un espía instalado. Nadie notó nada.`,
+    play: async (r)=>{
+      el.verdict.style.display = "block";
+      el.verdict.className = "verdict-big bad";
+      el.verdict.innerHTML = `💀 ATAQUE EXITOSO — el virus entró caminando por la puerta grande.<br><span style="font-weight:400;font-size:1rem">El archivo “se veía bien”… pero nadie comparó su huella con la oficial. Ahora prueba arriba el escenario <b>“Verificando la huella oficial”</b>. 👆</span>`;
+      unlock("h-atq");
+      await wait(400);
+    }
+  }
+];
+const MM_GOOD = [
+  {
+    cap: `Mismo café, mismo WiFi. Pero hoy el servidor oficial <b>publica en su página la huella</b> de la v2.0: <span style="font-family:var(--mono);color:var(--cyan)">${H_OK}…</span> Tu compu la anota. 📝`,
+    play: async (r)=>{
+      mmHold("ana", `🔍<div style='font-size:.68rem;color:var(--cyan)'>${H_OK}…</div>`);
+      mmPop("ana");
+      await wait(900);
+    }
+  },
+  {
+    cap: `Tu compu pide la actualización, y el servidor la manda 📦. Como siempre, cruza el WiFi de Maloria…`,
+    play: async (r)=>{
+      await mmTravel("📩", "¿me das la v2.0?", "", ANA_X, BRU_X); if (!alive(r)) return;
+      await mmTravel("📦", "app v2.0 original", "k-green", BRU_X, MAL_X); if (!alive(r)) return;
+      mmHideToken(); mmPop("mal");
+    }
+  },
+  {
+    cap: `😈 Maloria hace <b>exactamente lo mismo</b> que antes: virus adentro, mismo nombre, misma cara. Y te lo manda.`,
+    play: async (r)=>{
+      mmFlash("red");
+      mmHold("mal", "☠️<div style='font-size:.7rem;color:var(--red)'>virus adentro</div>");
+      await mmTravel("📦", "app v2.0 (¿?)", "k-red", MAL_X, ANA_X); if (!alive(r)) return;
+      mmHideToken(); mmPop("ana");
+    }
+  },
+  {
+    cap: `El paquete está en tu compu, listo para instalarse. 👇 <b>¿Qué hará tu compu primero?</b>`,
+    play: async (r)=>{
+      await mmAsk({
+        q: "Antes de instalar, ¿cuál es el paso que salva el día?",
+        options: [
+          { t: "Calcular la huella del archivo recibido y compararla con la oficial", ok: true },
+          { t: "Instalar y confiar: el nombre es el correcto", ok: false },
+          { t: "Preguntarle al WiFi si el archivo es bueno", ok: false }
+        ],
+        explain: "Calcular y comparar: son dos renglones de 64 símbolos. Si el contenido cambió UN solo bit, la huella sale completamente distinta. Veamos…"
+      });
+    }
+  },
+  {
+    cap: `Tu compu calcula la huella del archivo recibido: <span style="font-family:var(--mono);color:var(--red)">${H_BAD}…</span> y la compara con la oficial: <span style="font-family:var(--mono);color:var(--cyan)">${H_OK}…</span> 🚨 <b>¡NO COINCIDEN!</b>`,
+    play: async (r)=>{
+      el.alarm.classList.add("show");
+      $("mm-emoji-mal").textContent = "🚫";
+      $("mm-node-mal").classList.add("dim");
+      await wait(1600); if (!alive(r)) return;
+      el.alarm.classList.remove("show");
+      mmFlash("green");
+    }
+  },
+  {
+    cap: `La instalación se cancela sola y el paquete va a la basura. El virus <b>jamás llegó a ejecutarse</b>.`,
+    play: async (r)=>{
+      el.verdict.style.display = "block";
+      el.verdict.className = "verdict-big good";
+      el.verdict.innerHTML = `🛡️ ATAQUE BLOQUEADO — una comparación de huellas te salvó.<br><span style="font-weight:400;font-size:1rem">Esto lo hacen por ti las tiendas de apps y los actualizadores serios, <b>millones de veces al día</b>. Ahora ya sabes exactamente qué comparan.</span>`;
+      unlock("h-def");
+      await wait(300);
+    }
+  }
+];
+
+function mmClear(){
+  MM.run++;
+  if (MM.cancelAsk) MM.cancelAsk();
+  MM.busy = false; MM.auto = false; MM.i = -1;
+  MM.secret = (($("mm-secret").value) || "").trim() || "mis-fotos-familia.zip";
+  el.token.style.opacity = "0";
+  el.flash.classList.remove("show");
+  el.reveal.classList.remove("show");
+  el.alarm.classList.remove("show");
+  el.verdict.style.display = "none";
+  $("mm-quiz").style.display = "none"; $("mm-quiz").innerHTML = "";
+  $("mm-reveal-v").textContent = MM.secret;
+  $("mm-emoji-mal").textContent = "😈";
+  $("mm-node-mal").classList.remove("dim");
+  ["ana","mal","bruno"].forEach(w => mmHold(w, ""));
+  mmHold("bruno", "📦<div style='font-size:.7rem;color:var(--green)'>v2.0 oficial</div>");
+  mmProgress();
+  mmAutoBtn(false);
+  $("mm-next").disabled = false;
+  $("mm-next").textContent = "👉 Ir paso a paso";
+  mmCaption("", `Escenario: <b>${MM.mode === "bad" ? "Sin verificar" : "Verificando la huella oficial"}</b>. Pulsa <b>▶ Reproducir</b> (va lento) o avanza tú con <b>👉 Ir paso a paso</b>.`);
+}
+function mmSetMode(mode){
+  MM.mode = mode;
+  $("mm-mode-bad").className = mode === "bad" ? "on-bad" : "";
+  $("mm-mode-good").className = mode === "good" ? "on-good" : "";
+  mmClear();
+}
+function mmAutoBtn(on){
+  $("mm-auto").textContent = on ? "⏸ Pausar" : "▶ Reproducir (automático y lento)";
+}
+async function mmDoBeat(){
+  if (MM.busy) return "busy";
+  const beats = mmBeats();
+  if (MM.i >= beats.length - 1) return "done";
+  MM.busy = true;
+  MM.i++;
+  const r = MM.run;
+  const beat = beats[MM.i];
+  $("mm-quiz").style.display = "none"; $("mm-quiz").innerHTML = "";
+  mmProgress();
+  mmCaption(`Paso ${MM.i + 1} de ${beats.length}`, beat.cap);
+  $("mm-next").disabled = true;
+  await beat.play(r);
+  MM.busy = false;
+  if (!alive(r)) return "cancel";
+  const finished = MM.i >= beats.length - 1;
+  $("mm-next").disabled = finished;
+  $("mm-next").textContent = finished ? "✓ Terminado" : "👉 Siguiente paso";
+  return finished ? "finished" : "ok";
+}
+async function mmStepManual(){
+  if (MM.auto){ MM.auto = false; mmAutoBtn(false); }
+  await mmDoBeat();
+}
+async function mmAutoToggle(){
+  if (MM.auto){ MM.auto = false; mmAutoBtn(false); return; }
+  const beats = mmBeats();
+  if (MM.i >= beats.length - 1) mmClear();
+  MM.auto = true; mmAutoBtn(true);
+  const r = MM.run;
+  while (MM.auto && alive(r)){
+    const res = await mmDoBeat();
+    if (res === "busy"){ await wait(180); continue; }
+    if (res !== "ok"){ break; }
+    await mmSleep(MM.pauseMs, r);
+  }
+  if (alive(r)){ MM.auto = false; mmAutoBtn(false); }
+}
+function mmSetSpeed(sp){
+  MM.travelMs = SPD[sp].t; MM.pauseMs = SPD[sp].p;
+  ["slow","med","fast"].forEach(k => $("mm-spd-" + k).classList.toggle("on", k === sp));
+}
+mmInit();
+$("mm-spd-slow").addEventListener("click", ()=> mmSetSpeed("slow"));
+$("mm-spd-med").addEventListener("click", ()=> mmSetSpeed("med"));
+$("mm-spd-fast").addEventListener("click", ()=> mmSetSpeed("fast"));
+$("mm-secret").addEventListener("input", ()=>{ MM.secret = (($("mm-secret").value)||"").trim() || "mis-fotos-familia.zip"; $("mm-reveal-v").textContent = MM.secret; });
+$("mm-auto").addEventListener("click", mmAutoToggle);
+$("mm-next").addEventListener("click", mmStepManual);
+$("mm-reset").addEventListener("click", mmClear);
+$("mm-mode-bad").addEventListener("click", ()=> mmSetMode("bad"));
+$("mm-mode-good").addEventListener("click", ()=> mmSetMode("good"));
+mmClear();
+
+/* ================================================================
+   T6 · Repaso
+   ================================================================ */
+const QUIZ = [
+  {
+    q: "¿Qué es el hash (la huella) de un mensaje?",
+    opts: ["Un resumen corto, de tamaño fijo e irrepetible del mensaje", "Una copia comprimida que se puede descomprimir", "Una contraseña para abrir el mensaje", "Un tipo de virus"],
+    ok: 0,
+    ex: "Es la huella digital: corta, siempre del mismo tamaño, y única en la práctica para cada mensaje. No es compresión: no hay forma de regresar."
+  },
+  {
+    q: "Cambias UNA letra de un documento de 300 páginas. ¿Qué pasa con su huella?",
+    opts: ["Cambia un solo símbolo", "Cambia casi por completo (efecto avalancha)", "No cambia, el documento es casi igual", "Se hace más larga"],
+    ok: 1,
+    ex: "Efecto avalancha: el cambio más pequeño produce una huella completamente distinta. Por eso ninguna alteración pasa desapercibida."
+  },
+  {
+    q: "¿Se puede recuperar el mensaje original a partir de su huella?",
+    opts: ["Sí, haciendo las cuentas al revés", "Sí, pero solo con supercomputadoras", "No: el hash es de un solo sentido", "Solo si el mensaje es corto"],
+    ok: 2,
+    ex: "Es de un solo sentido, como licuar fruta: del licuado no salen las fresas. Por eso es seguro guardar huellas de contraseñas."
+  },
+  {
+    q: "¿Cuál de estos algoritmos está ROTO y no debe usarse?",
+    opts: ["SHA-256", "MD5", "El candadito de https", "Todos siguen siendo seguros"],
+    ok: 1,
+    ex: "MD5 está roto desde 2004: se pueden fabricar choques (dos mensajes con la misma huella) a voluntad. SHA-1 está jubilado; el estándar vigente es SHA-256."
+  },
+  {
+    q: "Descargaste un programa y su huella NO coincide con la publicada por el autor. ¿Qué significa?",
+    opts: ["Nada, las huellas fallan seguido", "El archivo NO es el original: alguien lo alteró — no lo instales", "Que tu internet es lento", "Que el programa es de otra versión más nueva y mejor"],
+    ok: 1,
+    ex: "Huella distinta = contenido distinto, sin excepción. Aunque el archivo se vea idéntico, no es el que publicó el autor. A la basura."
+  },
+  {
+    q: "¿Qué agrega un HMAC (código con clave secreta) sobre la huella simple?",
+    opts: ["Hace la huella más larga", "Autentificación: prueba que lo mandó quien conoce la clave secreta", "Comprime el mensaje", "Nada, es lo mismo con otro nombre"],
+    ok: 1,
+    ex: "La huella simple la puede calcular cualquiera (¡hasta el impostor!). Al mezclarla con una clave secreta compartida, solo quien tiene la clave puede generar un código válido: integridad + autentificación."
+  }
+];
+let quizScore = 0, quizAnswered = 0;
+function quizRender(){
+  quizScore = 0; quizAnswered = 0;
+  $("quiz-score").textContent = "0";
+  $("quiz-total").textContent = QUIZ.length;
+  const list = $("quiz-list");
+  list.innerHTML = "";
+  QUIZ.forEach((item, qi) => {
+    const card = document.createElement("div");
+    card.className = "card q-card";
+    card.innerHTML = `<h3 style="color:var(--text)">${qi+1}. ${item.q}</h3>`;
+    const opts = document.createElement("div");
+    opts.className = "q-opts";
+    const expl = document.createElement("div");
+    expl.className = "q-expl";
+    expl.innerHTML = "💡 " + item.ex;
+    item.opts.forEach((o, oi) => {
+      const b = document.createElement("button");
+      b.className = "q-opt";
+      b.textContent = String.fromCharCode(97+oi) + ") " + o;
+      b.addEventListener("click", ()=>{
+        if (card.dataset.done) return;
+        card.dataset.done = "1";
+        quizAnswered++;
+        [...opts.children].forEach((x, xi) => {
+          x.disabled = true;
+          if (xi === item.ok) x.classList.add("correct");
+        });
+        if (oi === item.ok) quizScore++;
+        else b.classList.add("wrong");
+        $("quiz-score").textContent = quizScore;
+        expl.classList.add("show");
+        if (quizAnswered === QUIZ.length){
+          const pct = Math.round(100*quizScore/QUIZ.length);
+          if (pct === 100) unlock("quiz-100");
+          const msg = document.createElement("div");
+          msg.className = "note " + (pct >= 80 ? "green" : "");
+          msg.innerHTML = pct >= 80 ? `🏆 <b>${pct}%</b> — ¡Dominado! Ya puedes explicar huellas y autentificación a cualquiera.`
+                        : `📚 <b>${pct}%</b> — Date otra vuelta por las pestañas y reintenta.`;
+          $("quiz-list").appendChild(msg);
+        }
+      });
+      opts.appendChild(b);
+    });
+    card.appendChild(opts);
+    card.appendChild(expl);
+    list.appendChild(card);
+  });
+}
+$("quiz-reset").addEventListener("click", quizRender);
+quizRender();
+
+</script>
+</body>
+</html>
